@@ -1,0 +1,42 @@
+{
+  "prd": "docs/PRD.md",
+  "passed": true,
+  "summary": {
+    "sections": 9,
+    "requirements": 24,
+    "errors": 0,
+    "warnings": 5
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "possible-compound-requirement",
+      "location": "REQ-001 \u2014 Mobile web access",
+      "message": "Confirm the statement is atomic or split it into separate requirements"
+    },
+    {
+      "severity": "warning",
+      "code": "possible-compound-requirement",
+      "location": "REQ-002 \u2014 Eligible campaign funders",
+      "message": "Confirm the statement is atomic or split it into separate requirements"
+    },
+    {
+      "severity": "warning",
+      "code": "possible-compound-requirement",
+      "location": "REQ-008 \u2014 Automatic publication of eligible creatives",
+      "message": "Confirm the statement is atomic or split it into separate requirements"
+    },
+    {
+      "severity": "warning",
+      "code": "possible-compound-requirement",
+      "location": "REQ-016 \u2014 Campaign ranking inputs",
+      "message": "Confirm the statement is atomic or split it into separate requirements"
+    },
+    {
+      "severity": "warning",
+      "code": "possible-compound-requirement",
+      "location": "REQ-018 \u2014 Creator portfolio tiers",
+      "message": "Confirm the statement is atomic or split it into separate requirements"
+    }
+  ]
+}
