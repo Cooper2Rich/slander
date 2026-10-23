@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter } from "react-router-dom";
-import { Leaf } from "lucide-react";
+import { Waves } from "lucide-react";
 import PublicApp from "./PublicApp";
 import "../styles.css";
 import "./styles.css";
@@ -12,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HashRouter>
       <div className="public-notice">
-        <Leaf size={16} />
+        <Waves size={16} />
         <span>
           Public demo · fictional workspace saved in this browser · no real
           payments

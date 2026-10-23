@@ -142,7 +142,7 @@ test("old photo-based coffee ads receive a new filmed revision without losing ed
   expect(saved.viewers.support[0].amountCents).toBe(4200);
 });
 
-test("purple controls and text remain readable in public and creator views", async ({
+test("Ripple blue and seafoam controls and text remain readable in public and creator views", async ({
   page,
 }) => {
   const check = async (selectors: string[]) => {
@@ -166,7 +166,7 @@ test("purple controls and text remain readable in public and creator views", asy
           )
           .map((element) => {
             const foreground = rgba(getComputedStyle(element).color);
-            let background = [16, 11, 24];
+            let background = [0, 0, 0];
             const layers = [];
             let parent: HTMLElement | null = element;
             while (parent) {

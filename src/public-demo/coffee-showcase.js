@@ -30,7 +30,7 @@ export async function addCoffeeShowcase(value) {
       description:
         "Three finished films for a fictional neighborhood coffee shop. A midnight ritual, a carefully pulled espresso, and a place to stay awhile.",
       brief:
-        "An atmospheric coffee shop campaign with dark purple accents and light lavender controls. Explore the finished 16-second films or create your own story.",
+        "An atmospheric coffee shop campaign exploring the craft and rituals of coffee. Explore the finished 16-second films or create your own story.",
       cover: "forest",
       coverMedia: coffeeAds[0].poster,
       color: "purple",

@@ -10,7 +10,8 @@ import {
   Download,
 } from "lucide-react";
 import { api } from "../api";
-import { PUBLIC_DEMO, demoAsset } from "../runtime";
+import { APP_NAME, PUBLIC_DEMO, demoAsset } from "../runtime";
+import { Logo } from "../components/ui";
 import { useWorkspace } from "../context";
 import type { Post } from "../types";
 
@@ -50,7 +51,7 @@ function saveStatement(data: unknown) {
   );
   const link = document.createElement("a");
   link.href = url;
-  link.download = "slander-fictional-sample-statement.json";
+  link.download = `${APP_NAME.toLowerCase()}-fictional-sample-statement.json`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
@@ -683,8 +684,14 @@ export function GivingPage() {
   return (
     <div className="giving-page">
       <header>
-        <Link to="/campaigns" className="brand">
-          slander<span>✳</span>
+        <Link to="/campaigns" className="brand" aria-label={`${APP_NAME} home`}>
+          {PUBLIC_DEMO ? (
+            <Logo />
+          ) : (
+            <>
+              slander<span>✳</span>
+            </>
+          )}
         </Link>
         <span className="market-mode">FICTIONAL GIVING DEMO</span>
       </header>

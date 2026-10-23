@@ -1,61 +1,61 @@
 /* Public-demo palette experiment. Local application keeps its existing theme. */
 html:has(body.public-demo) {
-  background: #100b18;
+  background: #000000;
 }
 body.public-demo {
-  --ink: #f7efff;
-  --muted: #c2b2d0;
-  --line: #493159;
-  --lime: #d8b4fe;
-  --green: #6b3294;
-  --night: #100b18;
-  --surface: #1d1429;
-  --raised: #2d1b40;
-  --accent: #4c1d75;
-  --accent-strong: #5c2785;
-  --amber: #d7b7f1;
+  --ink: #eef8ff;
+  --muted: #abc4d4;
+  --line: #244454;
+  --lime: #9ee8df;
+  --green: #438dcb;
+  --night: #000000;
+  --surface: #07121b;
+  --raised: #102435;
+  --accent: #10365b;
+  --accent-strong: #174a76;
+  --amber: #a9d5ff;
   color-scheme: dark;
   color: var(--ink);
   background: var(--night);
 }
 .public-demo ::selection {
-  background: #77549a;
+  background: #185777;
   color: #fff;
 }
 .public-demo :is(button, a):focus-visible {
-  outline-color: #d2b1ff;
+  outline-color: #9ee8df;
 }
 .public-demo :is(input, select, textarea):focus {
-  outline-color: #ab87dc;
+  outline-color: #7ec8f2;
 }
 .public-demo :is(input, select, textarea) {
-  accent-color: #bb96e7;
+  accent-color: #9ee8df;
 }
 .public-demo .public-notice {
-  background: #32194a;
-  color: #e6dcef;
-  border-bottom: 1px solid #493455;
+  background: #0a2638;
+  color: #d0e7f5;
+  border-bottom: 1px solid #244454;
 }
 .public-demo .discovery-shell {
   background:
-    radial-gradient(ellipse at 12% 14%, #2c1b3a50, transparent 45%),
+    radial-gradient(ellipse at 12% 14%, #10365b40, transparent 45%),
     var(--night);
 }
 .public-demo .discovery-hero h1 em {
-  color: #c8a4ec;
+  color: #9ee8df;
 }
 .public-demo .discovery-art {
   transform: none;
   height: 360px;
-  border: 1px solid #493544;
+  border: 1px solid #244454;
 }
 .public-demo .discovery-art img {
   object-position: center 66%;
 }
 .public-demo .discovery-art span {
-  color: #f4e7ff;
-  background: #311644f2;
-  border: 1px solid #8854ab;
+  color: #eef8ff;
+  background: #071b2cf2;
+  border: 1px solid #327fac;
   transform: none;
   backdrop-filter: blur(12px);
 }
@@ -68,7 +68,7 @@ body.public-demo {
     .help-button,
     .change-identity
   ) {
-  color: #d0b0f2;
+  color: #9ee8df;
 }
 .public-demo
   :is(
@@ -136,62 +136,62 @@ body.public-demo {
     .form-grid textarea
   ) {
   background: var(--raised);
-  border-color: #4a4054;
+  border-color: #315268;
   color: var(--ink);
 }
 .public-demo :is(input, textarea)::placeholder {
-  color: #a79bad;
+  color: #a0b7c7;
 }
 .public-demo .ad-card:hover {
-  border-color: #75508a;
+  border-color: #5aa4ce;
   box-shadow: 0 12px 32px #0005;
 }
 .public-demo :is(.ad-card-media, .profile-media) {
-  background: #211a29;
+  background: #030b12;
 }
 .public-demo .ad-category {
-  color: #eadcf7;
-  background: #221b2be8;
-  border: 1px solid #675076;
+  color: #d5ebfa;
+  background: #071725ed;
+  border: 1px solid #42677f;
 }
 .public-demo .ad-play {
-  color: #eee0ff;
-  background: #321449ed;
+  color: #e1fbf7;
+  background: #0a2d49ed;
 }
 .public-demo :is(.logo-dot, .title-dot, .eyebrow) {
-  color: #d0a9f4;
+  color: #9ee8df;
 }
 .public-demo .profile-copy .profile-cause {
-  background: #351747;
-  border: 1px solid #6b3b89;
+  background: #0a2d45;
+  border: 1px solid #326c93;
 }
 .public-demo .button.primary {
-  background: #d8b4fe;
-  border-color: #e5caff;
-  color: #241035;
+  background: #9ee8df;
+  border-color: #b9f4ec;
+  color: #031b29;
 }
 .public-demo .button.primary:hover {
-  background: #e8ceff;
+  background: #c0f5ef;
 }
 .public-demo .button.secondary {
-  background: #c8a5ea;
-  border-color: #dbbdf4;
-  color: #241035;
+  background: #a9d5ff;
+  border-color: #c4e4ff;
+  color: #031b29;
 }
 .public-demo .button.secondary:hover {
-  background: #dbbdf4;
+  background: #c4e4ff;
 }
 .public-demo .button.ghost {
   background: transparent;
-  color: #cbb2e2;
+  color: #a9d5ff;
 }
 .public-demo .sidebar {
-  background: #16131d;
+  background: #03090f;
   border-color: var(--line);
 }
 .public-demo .sidebar-note {
-  background: #351849;
-  border-color: #63347f;
+  background: #0a2638;
+  border-color: #295879;
 }
 .public-demo
   :is(
@@ -227,60 +227,60 @@ body.public-demo {
     .callout,
     .metric-note
   ) {
-  background: #30233f;
-  color: #d0b0ed;
-  border-color: #4e3b5f;
+  background: #102c40;
+  color: #b3deef;
+  border-color: #315268;
 }
 .public-demo .nav-item {
-  color: #beb2ca;
+  color: #b7cedd;
 }
 .public-demo .nav-item.active {
   background: var(--accent);
-  color: #f8edff;
+  color: #eef8ff;
 }
 .public-demo .nav-item:hover {
-  background: #381c50;
+  background: #12334d;
 }
 .public-demo .nav-item.active .nav-count {
-  background: #67417f;
-  color: #f4e9fc;
+  background: #235677;
+  color: #e3f5ff;
 }
 .public-demo .note-doodle {
-  color: #78578c;
+  color: #4187af;
 }
 .public-demo .online-dot {
-  background: #d2a56c;
+  background: #9ee8df;
 }
 .public-demo .demo-pill {
-  background: #352841;
-  color: #decaed;
+  background: #102c40;
+  color: #c1e4f4;
 }
 .public-demo .demo-pill > span {
-  background: #bd93e4;
+  background: #9ee8df;
 }
 .public-demo :is(.tabs button, .market-tabs button) {
-  color: #ac9cb9;
+  color: #abc4d4;
 }
 .public-demo .tabs button.active {
   background: var(--accent);
 }
 .public-demo .tabs button:hover {
-  background: #2d2239;
+  background: #102435;
 }
 .public-demo .role-switch select {
-  color: #e6d7f1;
+  color: #d5ebfa;
 }
 .public-demo .role-switch svg {
-  color: #bca4d0;
+  color: #abc4d4;
 }
 .public-demo
   :is(.tabs button.active, .market-tabs button[aria-selected="true"]) {
-  color: #f3e2ff;
-  border-color: #c7a8ef;
+  color: #eef8ff;
+  border-color: #9ee8df;
 }
 .public-demo :is(.workspace-hero, .market-intro, .showcase-banner) {
-  background: linear-gradient(120deg, #261b34, #19151f);
-  border-color: #4c365d;
+  background: linear-gradient(120deg, #0b2a42, #03090f);
+  border-color: #244454;
 }
 .public-demo
   :is(
@@ -295,7 +295,7 @@ body.public-demo {
     .project-progress,
     .creator-info span
   ) {
-  color: #b8a4c8;
+  color: #abc4d4;
 }
 .public-demo
   :is(
@@ -304,9 +304,9 @@ body.public-demo {
     .badge.approved,
     .eligibility-result
   ) {
-  background: #362745;
-  color: #e2c5fa;
-  border-color: #634676;
+  background: #102e40;
+  color: #b7f0e6;
+  border-color: #315c70;
 }
 .public-demo
   :is(
@@ -320,22 +320,22 @@ body.public-demo {
   color: #e7bd89;
 }
 .public-demo :is(.project-status.archived, .badge.rejected) {
-  background: #312531;
-  color: #d4b5c9;
+  background: #10212e;
+  color: #bdd4e3;
 }
 .public-demo
   :is(.post-row:hover, .project-card:hover, .view-toggle button.active) {
-  background: #2b2136;
+  background: #102435;
 }
 .public-demo :is(.org-dot.green, .org-dot.orange, .org-dot.purple) {
-  background: #b18ad7;
+  background: #7ec8f2;
 }
 .public-demo :is(.avatar-0, .avatar-1, .avatar-2, .avatar-3) {
-  background: #43304f;
-  color: #ecd9f6;
+  background: #173b52;
+  color: #d0ecfa;
 }
 .public-demo .modal::backdrop {
-  background: #050309c9;
+  background: #000000cc;
 }
 .public-demo
   :is(.modal-header, .modal-footer, .section-toolbar, .ig-top, .ig-bottom) {
@@ -344,8 +344,8 @@ body.public-demo {
 .public-demo
   :is(.form-content input, .form-content textarea, .form-content select) {
   color: var(--ink);
-  background: #251e2e;
-  border-color: #54425f;
+  background: #102435;
+  border-color: #315268;
 }
 .public-demo .discovery-search input {
   background: transparent;
@@ -361,19 +361,19 @@ body.public-demo {
   gap: 24px;
   padding: 24px 28px;
   margin-bottom: 35px;
-  border: 1px solid #79479c;
+  border: 1px solid #32779a;
   border-radius: 13px;
-  background: linear-gradient(110deg, #44205e, #251135);
+  background: linear-gradient(110deg, #103b5b, #061724);
 }
 .public-demo .collection-banner h2 {
   font:
     27px Georgia,
     serif;
   margin: 8px 0;
-  color: #f4e7ff;
+  color: #eef8ff;
 }
 .public-demo .collection-banner p {
-  color: #bfaecb;
+  color: #abc4d4;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -381,8 +381,8 @@ body.public-demo {
   position: absolute;
   right: 13px;
   bottom: 15px;
-  background: #1b1325e8;
-  color: #f4e7ff;
+  background: #031322e8;
+  color: #eef8ff;
   padding: 7px 10px;
   border-radius: 6px;
   font-size: 11px;
@@ -406,5 +406,34 @@ body.public-demo {
   }
   .public-demo .collection-banner h2 {
     font-size: 25px;
+  }
+}
+
+/* Ripple's rings frame the play symbol: one story spreading outward. */
+.public-demo .ripple-logo {
+  gap: 10px;
+  letter-spacing: -1.6px;
+  color: var(--ink);
+}
+.public-demo .ripple-mark {
+  width: 43px;
+  height: 43px;
+  color: var(--lime);
+}
+.public-demo .ripple-logo.small .ripple-mark {
+  width: 30px;
+  height: 30px;
+}
+.public-demo .giving-page .brand .ripple-logo {
+  margin-left: 0;
+  color: var(--ink);
+}
+.public-demo .skip-link {
+  color: #031b29;
+}
+@media (max-width: 760px) {
+  .public-demo .ripple-mark {
+    width: 33px;
+    height: 33px;
   }
 }

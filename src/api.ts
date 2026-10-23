@@ -1,5 +1,5 @@
 import type { DemoAccess } from "./types";
-import { demoAsset } from "./runtime";
+import { APP_NAME, demoAsset } from "./runtime";
 
 export function accessHeaders(access?: DemoAccess) {
   return access
@@ -37,7 +37,7 @@ export async function downloadMedia(path: string, access: DemoAccess) {
   const url = URL.createObjectURL(await response.blob());
   const link = document.createElement("a");
   link.href = url;
-  link.download = "slander-creative";
+  link.download = `${APP_NAME.toLowerCase()}-creative`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
@@ -77,7 +77,7 @@ export async function downloadPost(id: string, access: DemoAccess) {
     );
     const link = document.createElement("a");
     link.href = url;
-    link.download = `slander-${id}.json`;
+    link.download = `ripple-${id}.json`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     return;

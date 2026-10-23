@@ -101,7 +101,7 @@ export default function PublicApp() {
     }
   }, [publicRoute, location.pathname]);
   useEffect(() => {
-    if (publicRoute) document.title = "Discover stories · Slander";
+    if (publicRoute) document.title = "Discover stories · Ripple";
   }, [publicRoute]);
   if (!publicRoute) return <App demoViews={demoViews} />;
   const adId = location.pathname.startsWith("/ads/")
@@ -132,7 +132,7 @@ export default function PublicApp() {
         Skip to content
       </a>
       <header className="discovery-header">
-        <Link to="/explore" aria-label="Slander home">
+        <Link to="/explore" aria-label="Ripple home">
           <Logo />
         </Link>
         <nav aria-label="Public navigation">

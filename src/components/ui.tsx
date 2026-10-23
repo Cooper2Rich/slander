@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { WorkspaceContext } from "../context";
 import { mediaResponse } from "../api";
-import { demoAsset } from "../runtime";
+import { demoAsset, PUBLIC_DEMO } from "../runtime";
 import {
   ArrowUpRight,
   Check,
@@ -17,6 +17,32 @@ import {
 import type { PostStatus, Post } from "../types";
 
 export function Logo({ small = false }: { small?: boolean }) {
+  if (PUBLIC_DEMO)
+    return (
+      <span className={`logo ripple-logo ${small ? "small" : ""}`}>
+        <svg className="ripple-mark" viewBox="0 0 48 48" aria-hidden="true">
+          <circle
+            cx="24"
+            cy="24"
+            r="21"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            opacity=".45"
+          />
+          <circle
+            cx="24"
+            cy="24"
+            r="14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          <path d="M21 17.5 31 24 21 30.5Z" fill="currentColor" />
+        </svg>
+        {!small && "ripple"}
+      </span>
+    );
   return (
     <span className={`logo ${small ? "small" : ""}`}>
       <span className="logo-mark">✳</span>

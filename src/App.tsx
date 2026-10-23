@@ -35,7 +35,7 @@ import { PostsPage } from "./pages/Posts";
 import { ProjectDetail } from "./pages/ProjectDetail";
 import { ActivityPage } from "./pages/Activity";
 import { CampaignsPage, GivingPage } from "./pages/Campaigns";
-import { PUBLIC_DEMO } from "./runtime";
+import { APP_NAME, PUBLIC_DEMO } from "./runtime";
 
 export default function App({
   demoViews = {},
@@ -117,7 +117,7 @@ export default function App({
                     ? "All submissions"
                     : "Projects";
   useEffect(() => {
-    document.title = `${title} · Slander`;
+    document.title = `${title} · ${APP_NAME}`;
   }, [title]);
   const legacyNav = [
     { to: "/campaigns", icon: Sparkles, label: "Campaigns" },
@@ -195,7 +195,11 @@ export default function App({
         />
       )}
       <aside className={`sidebar ${mobileNav ? "open" : ""}`}>
-        <NavLink to="/projects" className="brand" aria-label="Slander home">
+        <NavLink
+          to="/projects"
+          className="brand"
+          aria-label={`${APP_NAME} home`}
+        >
           <Logo />
         </NavLink>
         <div className="workspace-identity">
@@ -205,7 +209,7 @@ export default function App({
           <div>
             <strong>
               {role === "admin"
-                ? "Slander administration"
+                ? `${APP_NAME} administration`
                 : identity?.name || "Choose a profile"}
             </strong>
             <small>
@@ -481,7 +485,9 @@ export default function App({
         </main>
         <footer className="app-footer">
           <span>Stories for good. A little louder.</span>
-          <span>SLANDER © {new Date().getFullYear()}</span>
+          <span>
+            {APP_NAME.toUpperCase()} © {new Date().getFullYear()}
+          </span>
         </footer>
       </div>
       {toast && (
@@ -501,7 +507,7 @@ export default function App({
       {help && (
         <Modal
           title="A little tour. A lot of possibility."
-          subtitle="Welcome to your Slander demo workspace."
+          subtitle={`Welcome to your ${APP_NAME} demo workspace.`}
           onClose={() => setHelp(false)}
         >
           <div className="form-content help-content">
