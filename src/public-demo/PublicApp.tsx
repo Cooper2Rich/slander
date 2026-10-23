@@ -297,14 +297,12 @@ export default function PublicApp() {
                   className="button primary"
                   onClick={(event) => {
                     event.preventDefault();
-                    document
-                      .getElementById("stories")
-                      ?.scrollIntoView({
-                        behavior: matchMedia("(prefers-reduced-motion: reduce)")
-                          .matches
-                          ? "instant"
-                          : "smooth",
-                      });
+                    document.getElementById("stories")?.scrollIntoView({
+                      behavior: matchMedia("(prefers-reduced-motion: reduce)")
+                        .matches
+                        ? "instant"
+                        : "smooth",
+                    });
                   }}
                 >
                   Explore the stories <ArrowUpRight size={17} />
@@ -312,15 +310,40 @@ export default function PublicApp() {
               </div>
               <div className="discovery-art">
                 <img
-                  src={demoAsset("images/seedling.jpg")}
-                  alt="Small plants ready to grow"
+                  src={demoAsset("images/coffee-midnight.png")}
+                  alt="Espresso in a candlelit coffee shop after dark"
                 />
                 <span>
-                  Small stories.
+                  Nocturne Coffee.
                   <br />
-                  <strong>Growing impact.</strong> ✳
+                  <strong>Made for after dark.</strong> ✳
                 </span>
               </div>
+            </section>
+            <section
+              className="collection-banner"
+              aria-label="Nocturne Coffee collection"
+            >
+              <div>
+                <span className="eyebrow">
+                  FEATURED COLLECTION · FINISHED FILMS
+                </span>
+                <h2>Three films. One after-dark ritual.</h2>
+                <p>
+                  Nocturne Coffee · three 16-second coffee shop ads, ready to
+                  watch with sound.
+                </p>
+              </div>
+              <button
+                className="button secondary"
+                onClick={() => {
+                  setCategory("Coffee & culture");
+                  setSearch("");
+                  document.getElementById("stories")?.scrollIntoView();
+                }}
+              >
+                Watch coffee collection <Play size={16} />
+              </button>
             </section>
             <section id="stories">
               <div className="discovery-toolbar">
@@ -387,6 +410,11 @@ export default function PublicApp() {
                     >
                       <AdMedia ad={ad} />
                       <span className="ad-category">{ad.category}</span>
+                      {ad.durationSeconds && (
+                        <span className="ad-duration">
+                          0:{ad.durationSeconds} · Finished ad
+                        </span>
+                      )}
                       {ad.mediaType === "video" && (
                         <span className="ad-play">
                           <Play size={18} fill="currentColor" /> Preview

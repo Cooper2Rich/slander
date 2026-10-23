@@ -10,6 +10,7 @@ export type PublicAd = {
   media: string;
   mediaType: "image" | "video";
   poster: string;
+  durationSeconds?: number;
   project: string;
   nonprofit: string;
   category: string;

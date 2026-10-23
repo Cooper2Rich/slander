@@ -1,0 +1,407 @@
+/* Public-demo palette experiment. Local application keeps its existing theme. */
+html:has(body.public-demo) {
+  background: #100f16;
+}
+body.public-demo {
+  --ink: #f2edf8;
+  --muted: #b4aabd;
+  --line: #37303f;
+  --lime: #c7a8ef;
+  --green: #ab87dc;
+  --night: #100f16;
+  --surface: #1b1822;
+  --raised: #24202d;
+  --amber: #dfb987;
+  color-scheme: dark;
+  color: var(--ink);
+  background: var(--night);
+}
+.public-demo ::selection {
+  background: #77549a;
+  color: #fff;
+}
+.public-demo :is(button, a):focus-visible {
+  outline-color: #d2b1ff;
+}
+.public-demo :is(input, select, textarea):focus {
+  outline-color: #ab87dc;
+}
+.public-demo :is(input, select, textarea) {
+  accent-color: #bb96e7;
+}
+.public-demo .public-notice {
+  background: #261e34;
+  color: #e6dcef;
+  border-bottom: 1px solid #493455;
+}
+.public-demo .discovery-shell {
+  background:
+    radial-gradient(ellipse at 12% 14%, #2c1b3a50, transparent 45%),
+    var(--night);
+}
+.public-demo .discovery-hero h1 em {
+  color: #c8a4ec;
+}
+.public-demo .discovery-art {
+  transform: none;
+  height: 360px;
+  border: 1px solid #493544;
+}
+.public-demo .discovery-art img {
+  object-position: center 66%;
+}
+.public-demo .discovery-art span {
+  color: #f4e6d0;
+  background: #251b2de8;
+  border: 1px solid #8c6b4e;
+  transform: none;
+  backdrop-filter: blur(12px);
+}
+.public-demo
+  :is(
+    .discovery-header nav a:hover,
+    .text-button,
+    .hero-link,
+    .back-link,
+    .help-button,
+    .change-identity
+  ) {
+  color: #d0b0f2;
+}
+.public-demo
+  :is(
+    .demo-view-picker,
+    .discovery-hero p,
+    .metrics-note,
+    .ad-stats dt,
+    .ad-card-copy > p,
+    .ad-card-copy > small,
+    .profile-copy > p,
+    .profile-cause p,
+    .profile-cause small,
+    .spend-callout p,
+    .discovery-heading p,
+    .discovery-footer,
+    .creator-summary small
+  ) {
+  color: var(--muted);
+}
+.public-demo
+  :is(
+    .ad-card,
+    .market-panel,
+    .creator-summary > div,
+    .workspace-identity,
+    .topbar,
+    .modal,
+    .modal-footer,
+    .identity-panel,
+    .post-row,
+    .project-card,
+    .project-brief,
+    .account-panel,
+    .queue-summary,
+    .stats-row > *,
+    .metric,
+    .metric-card,
+    .ig-preview,
+    .ig-post,
+    .project-form,
+    .review-details,
+    .eligible-summary
+  ) {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+}
+.public-demo
+  :is(
+    .demo-view-picker select,
+    .discovery-filters select,
+    .discovery-search,
+    .viewer-form input,
+    .viewer-form select,
+    .amount-field input,
+    .search-box,
+    .post-filters select,
+    .sort-control,
+    .role-switch,
+    .form-field input,
+    .form-field select,
+    .form-field textarea,
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea
+  ) {
+  background: var(--raised);
+  border-color: #4a4054;
+  color: var(--ink);
+}
+.public-demo :is(input, textarea)::placeholder {
+  color: #a79bad;
+}
+.public-demo .ad-card:hover {
+  border-color: #75508a;
+  box-shadow: 0 12px 32px #0005;
+}
+.public-demo :is(.ad-card-media, .profile-media) {
+  background: #211a29;
+}
+.public-demo .ad-category {
+  color: #eadcf7;
+  background: #221b2be8;
+  border: 1px solid #675076;
+}
+.public-demo .ad-play {
+  color: #f7e3c6;
+  background: #1d1428e0;
+}
+.public-demo :is(.logo-dot, .title-dot, .eyebrow) {
+  color: #d0a9f4;
+}
+.public-demo .profile-copy .profile-cause {
+  background: #28202f;
+  border: 1px solid #4c3658;
+}
+.public-demo .button.primary {
+  background: #c7a8ef;
+  border-color: #d4b7f5;
+  color: #23152f;
+}
+.public-demo .button.primary:hover {
+  background: #d7bcf7;
+}
+.public-demo .button.secondary {
+  background: #28222f;
+  border-color: #5b486c;
+  color: #e4d7ef;
+}
+.public-demo .button.secondary:hover {
+  background: #382b43;
+}
+.public-demo .button.ghost {
+  background: transparent;
+  color: #cbb2e2;
+}
+.public-demo .sidebar {
+  background: #16131d;
+  border-color: var(--line);
+}
+.public-demo .sidebar-note {
+  background: #2b2037;
+  border-color: #4b355c;
+}
+.public-demo
+  :is(
+    .sidebar-note p,
+    .sidebar-user small,
+    .workspace-identity small,
+    .nav-label,
+    .breadcrumb > span,
+    .breadcrumb > svg,
+    .page-heading p,
+    .project-description,
+    .post-row-main p,
+    .post-author small,
+    .terms-list,
+    .market-panel p,
+    .muted,
+    .form-hint,
+    .app-footer,
+    .help-content p
+  ) {
+  color: var(--muted);
+}
+.public-demo
+  :is(
+    .workspace-symbol,
+    .nav-count,
+    .stat-icon,
+    .count-pill,
+    .big-count,
+    .empty-icon,
+    .format-proposal,
+    .info-banner,
+    .callout,
+    .metric-note
+  ) {
+  background: #30233f;
+  color: #d0b0ed;
+  border-color: #4e3b5f;
+}
+.public-demo .nav-item {
+  color: #beb2ca;
+}
+.public-demo .nav-item.active {
+  background: #382548;
+  color: #eddcfb;
+}
+.public-demo .nav-item:hover {
+  background: #291f34;
+}
+.public-demo .nav-item.active .nav-count {
+  background: #67417f;
+  color: #f4e9fc;
+}
+.public-demo .note-doodle {
+  color: #78578c;
+}
+.public-demo .online-dot {
+  background: #d2a56c;
+}
+.public-demo .demo-pill {
+  background: #352841;
+  color: #decaed;
+}
+.public-demo .demo-pill > span {
+  background: #bd93e4;
+}
+.public-demo :is(.tabs button, .market-tabs button) {
+  color: #ac9cb9;
+}
+.public-demo .tabs button.active {
+  background: #382548;
+}
+.public-demo .tabs button:hover {
+  background: #2d2239;
+}
+.public-demo .role-switch select {
+  color: #e6d7f1;
+}
+.public-demo .role-switch svg {
+  color: #bca4d0;
+}
+.public-demo
+  :is(.tabs button.active, .market-tabs button[aria-selected="true"]) {
+  color: #e0bdfb;
+  border-color: #c7a8ef;
+}
+.public-demo :is(.workspace-hero, .market-intro, .showcase-banner) {
+  background: linear-gradient(120deg, #261b34, #19151f);
+  border-color: #4c365d;
+}
+.public-demo
+  :is(
+    .hero-copy p,
+    .hero-kicker,
+    .hero-copy h2 span,
+    .terms-version,
+    .section-heading p,
+    .post-state small,
+    .post-row-main .format,
+    .project-org,
+    .project-progress,
+    .creator-info span
+  ) {
+  color: #b8a4c8;
+}
+.public-demo
+  :is(
+    .hero-sticker,
+    .project-status.active,
+    .badge.approved,
+    .eligibility-result
+  ) {
+  background: #362745;
+  color: #e2c5fa;
+  border-color: #634676;
+}
+.public-demo
+  :is(
+    .badge.changes,
+    .badge.held,
+    .badge.pending,
+    .project-status.draft,
+    .closed-note
+  ) {
+  background: #3a2b23;
+  color: #e7bd89;
+}
+.public-demo :is(.project-status.archived, .badge.rejected) {
+  background: #312531;
+  color: #d4b5c9;
+}
+.public-demo
+  :is(.post-row:hover, .project-card:hover, .view-toggle button.active) {
+  background: #2b2136;
+}
+.public-demo :is(.org-dot.green, .org-dot.orange, .org-dot.purple) {
+  background: #b18ad7;
+}
+.public-demo :is(.avatar-0, .avatar-1, .avatar-2, .avatar-3) {
+  background: #43304f;
+  color: #ecd9f6;
+}
+.public-demo .modal::backdrop {
+  background: #050309c9;
+}
+.public-demo
+  :is(.modal-header, .modal-footer, .section-toolbar, .ig-top, .ig-bottom) {
+  border-color: var(--line);
+}
+.public-demo
+  :is(.form-content input, .form-content textarea, .form-content select) {
+  color: var(--ink);
+  background: #251e2e;
+  border-color: #54425f;
+}
+.public-demo .discovery-search input {
+  background: transparent;
+  color: var(--ink);
+}
+.public-demo .discovery-footer {
+  border-color: var(--line);
+}
+.public-demo .collection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  margin-bottom: 35px;
+  border: 1px solid #665071;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #302139, #211b2a);
+}
+.public-demo .collection-banner h2 {
+  font:
+    27px Georgia,
+    serif;
+  margin: 8px 0;
+  color: #f3dfc4;
+}
+.public-demo .collection-banner p {
+  color: #bfaecb;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.public-demo .ad-duration {
+  position: absolute;
+  right: 13px;
+  bottom: 15px;
+  background: #1b1325e8;
+  color: #f0decc;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.public-demo .ad-card-media:has(.ad-duration) {
+  height: 320px;
+}
+.public-demo .ad-card-media:has(.ad-duration) video {
+  object-position: center 57%;
+}
+@media (max-width: 760px) {
+  .public-demo .discovery-art {
+    height: 240px;
+  }
+  .public-demo .collection-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 22px;
+    gap: 17px;
+  }
+  .public-demo .collection-banner h2 {
+    font-size: 25px;
+  }
+}

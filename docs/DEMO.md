@@ -12,6 +12,8 @@ The current scope follows the user's instruction: this is a demo and not every a
 
 ## Visible capabilities
 
+The featured **Nocturne Coffee** collection adds three finished 16.4-second portrait films with ambient audio. Choose **Watch coffee collection** in public discovery or **Nocturne Studio · fictional** in Creator view. It uses generated coffee-shop photography and a midnight/plum/amber public theme. Existing browser workspaces receive the collection once, retaining prior edits, uploads and giving history. [Asset files and exact prompts](COFFEE-DEMO-ASSETS.md).
+
 | Area               | Working behavior                                                                                                                                                                                                                                                                                                                                 |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Workspaces         | Admin, Campaign Owner, Creator; explicit organization/profile selection and scoped API access. Selectors are demo access, not sign-in.                                                                                                                                                                                                           |

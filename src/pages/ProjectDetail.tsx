@@ -53,7 +53,10 @@ export function ProjectDetail() {
         All projects
       </Link>
       <div className="project-detail-cover">
-        <img src={demoAsset(`images/${project.cover}.jpg`)} alt="" />
+        <img
+          src={demoAsset(project.coverMedia || `images/${project.cover}.jpg`)}
+          alt=""
+        />
         <div>
           <span className="category-pill">{project.category}</span>
           <h1>{project.name}</h1>

@@ -29,6 +29,8 @@ import {
   resolveAppeal,
 } from "../../server/creative-exceptions.js";
 import { prepareSamples, mediaEvidence, uploadMedia, mediaFile } from "./media";
+import { addCoffeeShowcase } from "./coffee-showcase.js";
+import { coffeeAds } from "./coffee-ads.js";
 
 export const campaignId = "fictional-river-showcase-v1";
 export const creatorId = `${campaignId}-creator`;
@@ -73,7 +75,13 @@ export async function prepareWorkspace() {
   return (preparing ||= (async () => {
     await prepareSamples();
     const existing = JSON.parse(localStorage.getItem(key) || "null");
-    if (existing?.version === 1) return;
+    if (existing?.version === 1) {
+      if (existing.coffeeShowcaseVersion !== 1) {
+        await addCoffeeShowcase(existing);
+        save(existing);
+      }
+      return;
+    }
     const value = seedData();
     value.version = 1;
     value.participations = [];
@@ -159,6 +167,7 @@ export async function prepareWorkspace() {
       reason: "Fictional sample: confirm the image permission before new use.",
       evidence: "Demo fixture only; this is not a real complaint.",
     });
+    await addCoffeeShowcase(ready);
     save(ready);
   })().catch((error) => {
     preparing = undefined;
@@ -192,6 +201,7 @@ function creator(access) {
     throw new Error("Switch to Creator and choose a profile first.");
 }
 function ownMedia(value, path, access) {
+  if (coffeeAds.some((ad) => path === `/videos/${ad.id}.webm`)) return;
   if (/^\/images\/(forest|food|education|seedling)\.jpg$/.test(path)) return;
   const uploaded = value.uploads.find((m) => m.media === path);
   if (
@@ -300,6 +310,9 @@ export async function workspaceRequest(
             p.revision === 1 && p.media.startsWith("/images/")
               ? fixtures[p.id]
               : null;
+          const coffee = coffeeAds.find(
+            (ad) => ad.id === p.id && p.media === `/videos/${ad.id}.webm`,
+          );
           return {
             id: p.id,
             projectId: p.projectId,
@@ -309,15 +322,26 @@ export async function workspaceRequest(
             caption: p.caption,
             media: sample ? `/videos/${p.id}.webm` : p.media,
             mediaType: sample ? "video" : p.mediaType,
-            poster: sample ? p.media : `/images/${project.cover}.jpg`,
+            poster: coffee
+              ? `/images/${coffee.image}.png`
+              : sample
+                ? p.media
+                : project.coverMedia || `/images/${project.cover}.jpg`,
+            durationSeconds: coffee ? 16 : undefined,
             project: project.name,
             nonprofit: project.nonprofit,
             category: project.category,
-            ...(sample || {
-              impressions: null,
-              clicks: null,
-              donatedCents: null,
-            }),
+            ...(coffee
+              ? {
+                  impressions: coffee.impressions,
+                  clicks: coffee.clicks,
+                  donatedCents: coffee.donatedCents,
+                }
+              : sample || {
+                  impressions: null,
+                  clicks: null,
+                  donatedCents: null,
+                }),
           };
         }),
     };

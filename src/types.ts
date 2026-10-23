@@ -35,6 +35,7 @@ export interface Project {
   description: string;
   brief: string;
   cover: string;
+  coverMedia?: string;
   color: string;
   startDate: string;
   endDate: string;

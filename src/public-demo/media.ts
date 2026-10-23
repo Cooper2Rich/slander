@@ -93,7 +93,14 @@ export async function uploadMedia(body: unknown) {
 }
 export async function mediaEvidence(path: string) {
   let bytes: Uint8Array;
-  if (/^\/images\/(forest|food|education|seedling)\.jpg$/.test(path))
+  if (/^\/videos\/nocturne-(midnight|espresso|afterhours)\.webm$/.test(path)) {
+    const response = await fetch(demoAsset(path));
+    if (!response.ok)
+      throw new Error(
+        "Coffee showcase video could not load. Please try again.",
+      );
+    bytes = new Uint8Array(await response.arrayBuffer());
+  } else if (/^\/images\/(forest|food|education|seedling)\.jpg$/.test(path))
     bytes = readFileSync(path);
   else {
     const file = await mediaFile(path);

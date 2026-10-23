@@ -8,6 +8,7 @@ const mime = {
   ".js": "text/javascript",
   ".css": "text/css",
   ".jpg": "image/jpeg",
+  ".png": "image/png",
   ".svg": "image/svg+xml",
   ".webm": "video/webm",
 };
@@ -28,7 +29,30 @@ createServer((req, res) => {
       "Content-Type",
       mime[extname(target)] || "application/octet-stream",
     );
-    res.end(readFileSync(target));
+    const bytes = readFileSync(target);
+    res.setHeader("Accept-Ranges", "bytes");
+    const range = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range || "");
+    if (range) {
+      const start = Number(range[1]);
+      const end = Math.min(
+        range[2] ? Number(range[2]) : bytes.length - 1,
+        bytes.length - 1,
+      );
+      if (start > end || start >= bytes.length) {
+        res
+          .writeHead(416, { "Content-Range": `bytes */${bytes.length}` })
+          .end();
+        return;
+      }
+      res.writeHead(206, {
+        "Content-Range": `bytes ${start}-${end}/${bytes.length}`,
+        "Content-Length": end - start + 1,
+      });
+      res.end(bytes.subarray(start, end + 1));
+    } else {
+      res.setHeader("Content-Length", bytes.length);
+      res.end(bytes);
+    }
   } catch {
     res.writeHead(404).end();
   }

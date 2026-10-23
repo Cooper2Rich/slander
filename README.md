@@ -4,6 +4,8 @@
 
 No installation or sign-in required. The public demo opens to a **video discovery grid**: hover for a muted preview, click for an ad profile, see illustrative impressions/CTR/donations, and choose **Fund ad spend**. Create a separate **viewer profile** to simulate contributions and keep a giving history. Profiles and contributions stay in this browser; there are no passwords, external sign-ins, real charges, or live ad purchases.
 
+The featured **Nocturne Coffee** collection includes three finished **16.4-second** motion ads with ambient audio. Choose **Watch coffee collection**, or switch to Creator and select **Nocturne Studio · fictional** to see all three under My ads. The public demo uses a midnight/plum/amber palette. [Asset files, generation prompts and rebuild notes](docs/COFFEE-DEMO-ASSETS.md).
+
 Use **Preview as** to explore the workspaces. Creators have two navigation tabs: **My ads** (their own creatives, results, and archive) and **Campaigns**. Admin and Campaign Owner views include creatives, spending, archives, and activity. Project creation, uploads, revisions, scoped exceptions, campaign consent, tracked simulated gifts, reports, and sample statements remain available. These public-demo UX experiments do not amend the PRD or change the local backend's navigation and permissions.
 
 A responsive, provider-free local campaign marketplace demo built with React, Express and SQLite. It has three selectable workspaces: **Admin**, **Campaign Owner**, and **Creator**. Role selection models scope; it is not authentication.

@@ -6,6 +6,7 @@ import { EmptyState, Media, Modal, StatusBadge } from "../components/ui";
 import { ReviewDialog } from "../components/ReviewDialog";
 import type { Post } from "../types";
 import { AdStats } from "./AdStats";
+import { demoAsset } from "../runtime";
 import {
   fundedCents,
   loadAds,
@@ -101,7 +102,11 @@ export function CreatorAds() {
                 onClick={() => setSelected(post)}
                 aria-label={`View ${post.title}`}
               >
-                <Media post={post} />
+                <Media
+                  post={post}
+                  controls={false}
+                  poster={ad?.poster ? demoAsset(ad.poster) : undefined}
+                />
               </button>
               <div className="ad-card-copy">
                 <StatusBadge status={post.status} />

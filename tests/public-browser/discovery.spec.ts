@@ -11,13 +11,19 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
     page.getByRole("heading", { name: "Find a story. Help it go further." }),
   ).toBeVisible();
   const cards = page.locator(".ad-card");
-  await expect(cards).toHaveCount(3);
+  await expect(cards).toHaveCount(6);
   await page.getByRole("link", { name: "Explore the stories" }).click();
   await expect(page.getByLabel("Demo role")).toHaveValue("public");
-  await expect(cards.first()).toContainText("24,800");
-  await expect(cards.first()).toContainText("3.50%");
-  await expect(cards.first()).toContainText("$1,860.00");
-  const video = cards.first().locator("video");
+  const treeCard = cards.filter({
+    has: page.getByRole("heading", {
+      name: "It starts with one tree",
+      exact: true,
+    }),
+  });
+  await expect(treeCard).toContainText("24,800");
+  await expect(treeCard).toContainText("3.50%");
+  await expect(treeCard).toContainText("$1,860.00");
+  const video = treeCard.locator("video");
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.readyState))
     .toBeGreaterThan(1);
@@ -142,7 +148,7 @@ test("creators have two tabs, own ads and own archive; public excludes archived 
     fullPage: true,
   });
   await page.getByLabel("Demo role").selectOption("public");
-  await expect(page.locator(".ad-card")).toHaveCount(1);
+  await expect(page.locator(".ad-card")).toHaveCount(4);
   await page.goto("./#/ads/sample-1");
   await expect(
     page.getByRole("heading", { name: "This ad is unavailable." }),

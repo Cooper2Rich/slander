@@ -99,8 +99,16 @@ export function ProjectsPage() {
         </div>
         <div className="hero-art">
           <img
-            src={demoAsset("images/seedling.jpg")}
-            alt="Garden tools and young plants ready for planting"
+            src={demoAsset(
+              PUBLIC_DEMO
+                ? "images/coffee-afterhours.png"
+                : "images/seedling.jpg",
+            )}
+            alt={
+              PUBLIC_DEMO
+                ? "A candlelit neighborhood coffee shop"
+                : "Garden tools and young plants ready for planting"
+            }
           />
           <div className="hero-image-shade" />
           <span className="hero-sticker">
@@ -235,7 +243,12 @@ export function ProjectsPage() {
                 className="project-card"
               >
                 <div className="project-cover">
-                  <img src={demoAsset(`images/${project.cover}.jpg`)} alt="" />
+                  <img
+                    src={demoAsset(
+                      project.coverMedia || `images/${project.cover}.jpg`,
+                    )}
+                    alt=""
+                  />
                   <span className="category-pill">{project.category}</span>
                   <span className="card-arrow">
                     <ArrowUpRight size={18} />

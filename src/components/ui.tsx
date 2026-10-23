@@ -152,9 +152,13 @@ export function Modal({
 export function Media({
   post,
   className = "",
+  controls = true,
+  poster,
 }: {
   post: Pick<Post, "media" | "mediaType" | "title">;
   className?: string;
+  controls?: boolean;
+  poster?: string;
 }) {
   const workspace = useContext(WorkspaceContext);
   const [source, setSource] = useState("");
@@ -189,14 +193,15 @@ export function Media({
   ]);
   const src = scoped
     ? source
-    : post.media.startsWith("/images/")
+    : post.media.startsWith("/images/") || post.media.startsWith("/videos/")
       ? demoAsset(post.media)
       : post.media;
   return post.mediaType === "video" ? (
     <video
       className={className}
       src={src || undefined}
-      controls
+      controls={controls}
+      poster={poster}
       playsInline
       preload="metadata"
       aria-label={post.title}
