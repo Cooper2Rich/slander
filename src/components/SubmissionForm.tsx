@@ -23,6 +23,11 @@ export function SubmissionForm({
     media: post?.media || "",
     mediaType: post?.mediaType || ("image" as "image" | "video"),
     rights: post?.rights || false,
+    channel: post?.channel || project.eligibilityPolicy.allowedChannels[0],
+    destination: post?.destination || project.eligibilityPolicy.destinations[0],
+    disclosures: post?.disclosures || { compensation: "", beneficiary: "" },
+    factualClaims: post?.factualClaims || [],
+    acceptedTermsVersion: post?.acceptedTermsVersion || "",
   });
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -73,8 +78,8 @@ export function SubmissionForm({
       await refresh();
       notify(
         post
-          ? "Updated post sent for another review"
-          : "Your post is in the review queue",
+          ? "Updated creative evaluated automatically"
+          : "Your creative has been evaluated automatically",
       );
       onClose();
     } catch (e) {
@@ -94,7 +99,7 @@ export function SubmissionForm({
           {post?.feedback && (
             <div className="callout amber">
               <p>
-                <strong>Feedback from the nonprofit</strong>
+                <strong>Historical feedback</strong>
                 <br />
                 {post.feedback}
               </p>
@@ -202,8 +207,8 @@ export function SubmissionForm({
           </label>
           {!["photo", "reel"].includes(data.format) && (
             <p className="field-help">
-              We’ll retain this proposal for review. This format needs a
-              separate handoff plan.
+              We’ll retain and check this proposal. This format needs a separate
+              handoff plan.
             </p>
           )}
           <label>
@@ -220,6 +225,81 @@ export function SubmissionForm({
               {data.caption.length.toLocaleString()} / 2,200
             </span>
           </label>
+          <label>
+            Campaign channel
+            <select
+              value={data.channel}
+              onChange={(e) => setData({ ...data, channel: e.target.value })}
+            >
+              {project.eligibilityPolicy.allowedChannels.map((channel) => (
+                <option key={channel}>{channel}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Authorized destination
+            <select
+              value={data.destination}
+              onChange={(e) =>
+                setData({ ...data, destination: e.target.value })
+              }
+            >
+              {project.eligibilityPolicy.destinations.map((destination) => (
+                <option key={destination}>{destination}</option>
+              ))}
+            </select>
+          </label>
+          <div className="callout">
+            <p>
+              <strong>Required disclosure blocks</strong>
+              <br />
+              {project.eligibilityPolicy.compensationDisclosure}
+              <br />
+              {project.eligibilityPolicy.beneficiaryDisclosure}
+              <br />
+              {project.eligibilityPolicy.factualClaims.join(" ")}
+            </p>
+          </div>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={
+                data.disclosures.compensation ===
+                  project.eligibilityPolicy.compensationDisclosure &&
+                data.disclosures.beneficiary ===
+                  project.eligibilityPolicy.beneficiaryDisclosure &&
+                data.acceptedTermsVersion ===
+                  project.eligibilityPolicy.termsVersion
+              }
+              onChange={(e) =>
+                setData({
+                  ...data,
+                  disclosures: e.target.checked
+                    ? {
+                        compensation:
+                          project.eligibilityPolicy.compensationDisclosure,
+                        beneficiary:
+                          project.eligibilityPolicy.beneficiaryDisclosure,
+                      }
+                    : { compensation: "", beneficiary: "" },
+                  factualClaims: e.target.checked
+                    ? project.eligibilityPolicy.factualClaims
+                    : [],
+                  acceptedTermsVersion: e.target.checked
+                    ? project.eligibilityPolicy.termsVersion
+                    : "",
+                })
+              }
+            />
+            <span>
+              I include these exact disclosure and fact blocks and accept
+              campaign terms {project.eligibilityPolicy.termsVersion}.
+              <small>
+                Structured fields do not prove these blocks appear in the
+                exported media. Include them visibly in your creative.
+              </small>
+            </span>
+          </label>
           <label className="checkbox-label">
             <input
               type="checkbox"
@@ -229,7 +309,10 @@ export function SubmissionForm({
             <span>
               I have the rights and necessary permissions to share this
               creative.
-              <small>Posts cannot be approved until this is confirmed.</small>
+              <small>
+                Eligibility requires this declaration. It does not verify
+                ownership.
+              </small>
             </span>
           </label>
         </div>
@@ -246,8 +329,8 @@ export function SubmissionForm({
             {saving
               ? "Submitting…"
               : post
-                ? "Resubmit for review"
-                : "Submit for review"}
+                ? "Save & evaluate revision"
+                : "Submit & evaluate"}
             <Send size={15} />
           </button>
         </div>

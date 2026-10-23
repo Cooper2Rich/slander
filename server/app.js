@@ -6,6 +6,16 @@ import { join, resolve, basename } from "node:path";
 import { ZodError } from "zod";
 import { z } from "zod";
 import {
+  configurePolicy,
+  refreshEligibility,
+  mediaDigest,
+} from "./eligibility.js";
+import {
+  holdCreative,
+  appealCreative,
+  resolveAppeal,
+} from "./creative-exceptions.js";
+import {
   ensureIdentity,
   readAccess,
   requireProject,
@@ -60,7 +70,7 @@ export function createApp(store, dataDir) {
       .json(store.update((state) => ensureIdentity(state, "creators", name)));
   });
   app.get("/api/workspace", (req, res) => {
-    const state = store.read();
+    const state = store.update(refreshEligibility);
     res.json(scopedWorkspace(state, readAccess(req, state)));
   });
   app.post("/api/projects", requireRole("admin"), (req, res) => {
@@ -82,6 +92,7 @@ export function createApp(store, dataDir) {
         createdAt: new Date().toISOString(),
       };
       state.projects.unshift(project);
+      configurePolicy(project, data.policyConfig);
       addActivity(
         state,
         "project",
@@ -117,6 +128,17 @@ export function createApp(store, dataDir) {
             nonprofit: nonprofit.name,
             nonprofitId: nonprofit.id,
           });
+          const previousPolicy = project.eligibilityPolicy?.version;
+          configurePolicy(project, data.policyConfig);
+          if (previousPolicy !== project.eligibilityPolicy.version)
+            addActivity(
+              state,
+              "policy",
+              `Policy updated for “${project.name}”`,
+              `Eligibility policy version ${project.eligibilityPolicy.version}`,
+              project.id,
+            );
+          refreshEligibility(state);
           addActivity(
             state,
             changedAccount ? "instagram" : "project",
@@ -215,12 +237,21 @@ export function createApp(store, dataDir) {
     const inferred = /\.(mp4|mov)$/.test(media) ? "video" : "image";
     if (body.mediaType !== inferred)
       throw new AppError("The media type does not match the selected file.");
+    const bytes = validUpload
+      ? readFileSync(join(uploadDir, basename(media)))
+      : readFileSync(resolve("public", media.slice(1)));
+    return {
+      verified: true,
+      bytes: bytes.length,
+      digest: mediaDigest(bytes),
+      source: validUpload ? "signature-verified-upload" : "approved-sample",
+    };
   };
   app.post(
     "/api/projects/:id/posts",
     requireRole("admin", "creator"),
     (req, res) => {
-      verifyMedia(req.body);
+      const mediaEvidence = verifyMedia(req.body);
       res.status(201).json(
         store.update((state) => {
           const access = readAccess(req, state);
@@ -233,10 +264,16 @@ export function createApp(store, dataDir) {
                   "creators",
                   z.string().trim().min(1).max(80).parse(req.body.creator),
                 );
-          const post = addSubmission(state, req.params.id, {
-            ...req.body,
-            creator: creator.name,
-          });
+          const post = addSubmission(
+            state,
+            req.params.id,
+            {
+              ...req.body,
+              creator: creator.name,
+              creatorId: creator.id,
+            },
+            mediaEvidence,
+          );
           post.creatorId = creator.id;
           return post;
         }),
@@ -262,36 +299,120 @@ export function createApp(store, dataDir) {
         }),
       ),
   );
+  app.post("/api/posts/:id/holds", requireRole("admin"), (req, res) =>
+    res.status(201).json(
+      store.update((state) => {
+        readAccess(req, state);
+        return holdCreative(state, req.params.id, req.body);
+      }),
+    ),
+  );
+  app.post(
+    "/api/posts/:id/appeals",
+    requireRole("creator", "admin"),
+    (req, res) =>
+      res.status(201).json(
+        store.update((state) => {
+          const access = readAccess(req, state);
+          const post = requirePost(state, req.params.id, access, "edit");
+          return appealCreative(
+            state,
+            post.id,
+            req.body,
+            access.creatorId || "Demo administrator",
+          );
+        }),
+      ),
+  );
+  app.post("/api/appeals/:id/resolve", requireRole("admin"), (req, res) =>
+    res.json(
+      store.update((state) => resolveAppeal(state, req.params.id, req.body)),
+    ),
+  );
+  app.post("/api/posts/:id/evaluate", requireRole("admin"), (req, res) =>
+    res.json(
+      store.update((state) => {
+        const post = requirePost(
+          state,
+          req.params.id,
+          readAccess(req, state),
+          "edit",
+        );
+        if (req.body.snapshotId !== post.snapshotId)
+          throw new AppError(
+            "Stale evaluation snapshot. Reopen the current creative.",
+            409,
+          );
+        refreshEligibility(state);
+        return post.eligibility;
+      }),
+    ),
+  );
+  app.post(
+    "/api/posts/:id/withdraw",
+    requireRole("creator", "admin"),
+    (req, res) =>
+      res.json(
+        store.update((state) => {
+          const access = readAccess(req, state);
+          const post = requirePost(state, req.params.id, access, "edit");
+          if (req.body.revision !== post.revision)
+            throw new AppError("This creative changed. Reopen it.", 409);
+          post.withdrawnAt ||= new Date().toISOString();
+          post.withdrawals ||= [];
+          if (!post.withdrawals.some((w) => w.snapshotId === post.snapshotId))
+            post.withdrawals.push({
+              snapshotId: post.snapshotId,
+              at: post.withdrawnAt,
+              actor: access.creatorId || "Demo administrator",
+            });
+          addActivity(
+            state,
+            "withdrawn",
+            `Withdrawn “${post.title}”`,
+            "New use stopped; prior snapshots and exports retained.",
+            post.projectId,
+          );
+          refreshEligibility(state);
+          return post;
+        }),
+      ),
+  );
   app.put("/api/posts/:id", requireRole("admin", "creator"), (req, res) => {
-    verifyMedia(req.body);
+    const mediaEvidence = verifyMedia(req.body);
     res.json(
       store.update((state) => {
         const access = readAccess(req, state);
         const post = requirePost(state, req.params.id, access, "edit");
-        return revisePost(state, req.params.id, {
-          ...req.body,
-          creator: post.creator,
-        });
+        return revisePost(
+          state,
+          req.params.id,
+          {
+            ...req.body,
+            creator: post.creator,
+          },
+          mediaEvidence,
+        );
       }),
     );
   });
   app.get("/api/posts/:id/export", (req, res) => {
-    const state = store.read();
-    const post = requirePost(
-      state,
-      req.params.id,
-      readAccess(req, state),
-      "export",
-    );
-    const project = getProject(state, post.projectId);
-    const gate = readiness(post, project);
-    if (!gate.ready) throw new AppError(gate.reasons.join(". "), 409);
-    res
-      .set(
-        "Content-Disposition",
-        `attachment; filename="slander-${post.id}.json"`,
-      )
-      .json({
+    const manifest = store.update((state) => {
+      const post = requirePost(
+        state,
+        req.params.id,
+        readAccess(req, state),
+        "export",
+      );
+      refreshEligibility(state);
+      const project = getProject(state, post.projectId);
+      const gate = readiness(post, project);
+      if (!gate.ready) throw new AppError(gate.reasons.join(". "), 409);
+      const record = {
+        id: randomUUID(),
+        postId: post.id,
+        projectId: post.projectId,
+        exportedAt: new Date().toISOString(),
         project: project.name,
         nonprofit: project.nonprofit,
         instagram: `@${project.instagram}`,
@@ -301,9 +422,22 @@ export function createApp(store, dataDir) {
         format: post.format,
         media: post.media,
         revision: post.revision,
-        approvalHistory: post.history,
-        note: "Approved handoff package. This post has not been published to Instagram.",
-      });
+        snapshot: structuredClone(
+          post.snapshots.find((s) => s.id === post.snapshotId),
+        ),
+        evaluation: structuredClone(post.eligibility),
+        approvalHistory: structuredClone(post.history),
+        note: "Eligible handoff package. This post has not been published to Instagram. Rights are declarations; structured disclosures do not prove rendering or semantic compliance. Live authorization pending.",
+      };
+      state.exports.push(record);
+      return record;
+    });
+    res
+      .set(
+        "Content-Disposition",
+        `attachment; filename="slander-${manifest.postId}.json"`,
+      )
+      .json(manifest);
   });
   app.use("/api", (_req, res) =>
     res.status(404).json({ error: "API route not found." }),

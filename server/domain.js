@@ -1,5 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import {
+  configurePolicy,
+  policyInput,
+  snapshotPost,
+  evaluatePost,
+  currentEligibility,
+  submissionsOpen,
+} from "./eligibility.js";
 
 export class AppError extends Error {
   constructor(message, status = 400) {
@@ -29,6 +37,7 @@ export const projectSchema = z
     endDate: date,
     status: z.enum(["draft", "active", "archived"]),
     instagram: z.string().trim().max(150).default(""),
+    policyConfig: policyInput.optional(),
   })
   .refine((v) => v.endDate >= v.startDate, {
     message: "The end date must be on or after the start date.",
@@ -42,17 +51,17 @@ export const postSchema = z.object({
   media: text(300),
   mediaType: z.enum(["image", "video"]),
   rights: z.boolean(),
+  channel: z.string().trim().max(80).default("instagram"),
+  destination: z.string().trim().max(600).default(""),
+  disclosures: z
+    .object({
+      compensation: z.string().max(600),
+      beneficiary: z.string().max(600),
+    })
+    .default({ compensation: "", beneficiary: "" }),
+  factualClaims: z.array(z.string().max(600)).max(20).default([]),
+  acceptedTermsVersion: z.string().max(80).default(""),
 });
-export const reviewSchema = z
-  .object({
-    decision: z.enum(["approved", "changes", "rejected"]),
-    note: z.string().trim().max(2000).default(""),
-    revision: z.number().int().positive(),
-  })
-  .refine((v) => v.decision === "approved" || v.note.length > 0, {
-    message: "Add feedback so the creator knows what to change.",
-    path: ["note"],
-  });
 export function normalizeInstagram(input) {
   const value = input
     .trim()
@@ -96,7 +105,8 @@ export function checkPolicy(post) {
 }
 export function readiness(post, project) {
   const reasons = [];
-  if (post.status !== "approved") reasons.push("Awaiting nonprofit approval");
+  if (!currentEligibility(post, project))
+    reasons.push("Current automatic eligibility is required");
   if (!post.policy.passed) reasons.push("Submission checks need attention");
   if (!["photo", "reel"].includes(post.format))
     reasons.push("Format needs a separate handoff plan");
@@ -115,24 +125,22 @@ export function addActivity(state, action, title, detail, projectId) {
   });
 }
 export function assertSubmissionsOpen(project) {
-  const today = new Date().toISOString().slice(0, 10);
-  if (
-    project.status !== "active" ||
-    today < project.startDate ||
-    today > project.endDate
-  )
+  if (!submissionsOpen(project))
     throw new AppError(
       "This project is not currently accepting submissions.",
       409,
     );
 }
-export function addSubmission(state, projectId, input) {
+export function addSubmission(state, projectId, input, mediaEvidence) {
   const project = getProject(state, projectId);
+  if (!project.eligibilityPolicy)
+    configurePolicy(project, project.policyConfig);
   assertSubmissionsOpen(project);
   const data = postSchema.parse(input);
   const at = new Date().toISOString();
   const post = {
     ...data,
+    creatorId: input.creatorId,
     id: randomUUID(),
     projectId,
     status: "pending",
@@ -146,12 +154,14 @@ export function addSubmission(state, projectId, input) {
         id: randomUUID(),
         action: "submitted",
         actor: data.creator,
-        note: "Submitted for nonprofit review.",
+        note: "Checking: immutable snapshot submitted for deterministic evaluation.",
         at,
       },
     ],
   };
   state.posts.unshift(post);
+  snapshotPost(post, mediaEvidence);
+  evaluatePost(state, post, project);
   addActivity(
     state,
     "submitted",
@@ -161,60 +171,22 @@ export function addSubmission(state, projectId, input) {
   );
   return post;
 }
-export function reviewPost(state, id, input, actor = "Demo administrator") {
-  const data = reviewSchema.parse(input);
-  const post = getPost(state, id);
-  if (getProject(state, post.projectId).status === "archived")
-    throw new AppError("Archived projects cannot be reviewed.", 409);
-  if (post.revision !== data.revision)
-    throw new AppError(
-      "This post changed. Close it and open it again before reviewing.",
-      409,
-    );
-  if (post.status !== "pending")
-    throw new AppError(
-      "Only posts awaiting review can receive a decision.",
-      409,
-    );
-  if (data.decision === "approved" && !post.policy.passed)
-    throw new AppError(
-      "Resolve the submission checks before approving this post.",
-      409,
-    );
-  post.status = data.decision;
-  post.feedback = data.note;
-  post.revision += 1;
-  post.updatedAt = new Date().toISOString();
-  post.history.push({
-    id: randomUUID(),
-    action: data.decision,
-    actor,
-    note: data.note || "Approved for Instagram handoff.",
-    at: post.updatedAt,
-  });
-  addActivity(
-    state,
-    data.decision,
-    `${data.decision === "approved" ? "Approved" : data.decision === "changes" ? "Requested changes to" : "Declined"} “${post.title}”`,
-    data.note || "Ready for the next step.",
-    post.projectId,
+export function reviewPost() {
+  throw new AppError(
+    "Manual creative decisions are retired. Correct the recorded facts and rerun automatic eligibility.",
+    409,
   );
-  return post;
 }
-export function revisePost(state, id, input) {
+export function revisePost(state, id, input, mediaEvidence) {
   const post = getPost(state, id);
   assertSubmissionsOpen(getProject(state, post.projectId));
-  if (post.revision !== input.revision)
+  const revision = z.number().int().positive().parse(input.revision);
+  if (post.revision !== revision)
     throw new AppError(
       "This submission changed. Reopen it and try again.",
       409,
     );
-  if (!["changes", "pending"].includes(post.status))
-    throw new AppError(
-      "Only pending posts or posts with requested changes can be edited.",
-      409,
-    );
-  const data = postSchema.parse(input);
+  const data = postSchema.parse({ ...input, creator: post.creator });
   Object.assign(post, data, {
     status: "pending",
     policy: checkPolicy(data),
@@ -222,19 +194,22 @@ export function revisePost(state, id, input) {
     updatedAt: new Date().toISOString(),
     feedback: "",
   });
+  delete post.withdrawnAt;
   post.history.push({
     id: randomUUID(),
     action: "resubmitted",
     actor: data.creator,
-    note: "Updated creative submitted for a new review.",
+    note: "Checking: new immutable revision submitted for deterministic evaluation.",
     at: post.updatedAt,
   });
   addActivity(
     state,
     "resubmitted",
     `${data.creator} resubmitted “${data.title}”`,
-    "A new review is required.",
+    "Automatic eligibility reruns on the new snapshot.",
     post.projectId,
   );
+  snapshotPost(post, mediaEvidence);
+  evaluatePost(state, post, getProject(state, post.projectId));
   return post;
 }

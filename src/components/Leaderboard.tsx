@@ -24,8 +24,8 @@ export function Leaderboard({ posts }: { posts: Post[] }) {
         <div>
           <h2>Creator leaderboard</h2>
           <p>
-            Demo standings by approved posts. Engagement and fundraising
-            rankings will come later.
+            Eligible creatives per creator, one point per current creative. This
+            demonstration board is not a performance grade or payout formula.
           </p>
         </div>
       </div>
@@ -41,7 +41,7 @@ export function Leaderboard({ posts }: { posts: Post[] }) {
               <Avatar name={creator.name} index={index} />
               <strong>{creator.name}</strong>
               <span>
-                {creator.count} approved{" "}
+                {creator.count} eligible{" "}
                 {creator.count === 1 ? "post" : "posts"}
               </span>
             </li>
@@ -49,7 +49,7 @@ export function Leaderboard({ posts }: { posts: Post[] }) {
         </ol>
       ) : (
         <p className="leaderboard-empty">
-          The first approved post will put a creator on the board.
+          The first eligible creative will put a creator on the board.
         </p>
       )}
     </section>

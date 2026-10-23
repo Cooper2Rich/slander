@@ -33,10 +33,66 @@ async function selectCreator(page: Page, name: string) {
   ).toBeVisible();
 }
 
+test("late nonprofit A response cannot repopulate nonprofit B after an identity switch", async ({
+  page,
+}) => {
+  await page.goto("/projects");
+  await page.getByLabel("Demo role").selectOption("nonprofit");
+  await selectNonprofit(page, "One Tree Collective");
+  const options = await (await page.request.get("/api/demo-options")).json();
+  const oldId = options.nonprofits.find(
+    (n: { name: string }) => n.name === "One Tree Collective",
+  ).id;
+  let release!: () => void;
+  let captured!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const started = new Promise<void>((resolve) => {
+    captured = resolve;
+  });
+  await page.route("**/api/workspace", async (route) => {
+    if (route.request().headers()["x-demo-nonprofit"] === oldId) {
+      const response = await route.fetch();
+      captured();
+      await pending;
+      await route.fulfill({ response });
+    } else await route.continue();
+  });
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await started;
+  if (await page.getByRole("button", { name: "Open navigation" }).isVisible())
+    await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Change nonprofit" }).click();
+  await expect(
+    page.getByRole("heading", { name: "A greener tomorrow", exact: true }),
+  ).not.toBeVisible();
+  await selectNonprofit(page, "The Open Table");
+  const oldResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/workspace") &&
+      response.request().headers()["x-demo-nonprofit"] === oldId,
+  );
+  release();
+  await oldResponse;
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  await expect(
+    page.getByRole("heading", { name: "A seat at every table", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "A greener tomorrow", exact: true }),
+  ).not.toBeVisible();
+});
+
 test("nonprofit selection gates data and limits settings and reviews to its organization", async ({
   page,
 }, testInfo) => {
-  await page.goto("/review");
+  await page.goto("/posts");
   await expect(
     page.getByRole("heading", { name: "More than a meal" }),
   ).toBeVisible();
@@ -48,7 +104,7 @@ test("nonprofit selection gates data and limits settings and reviews to its orga
     page.getByRole("heading", { name: "More than a meal" }),
   ).not.toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Review inbox", exact: false }),
+    page.getByRole("link", { name: "Platform exceptions", exact: false }),
   ).not.toBeVisible();
   await page.screenshot({
     path: `test-results/${testInfo.project.name}-nonprofit-selection.png`,
@@ -84,7 +140,7 @@ test("nonprofit selection gates data and limits settings and reviews to its orga
   await expect(
     page.getByRole("button", { name: "Submit a post", exact: true }),
   ).not.toBeVisible();
-  await navigate(page, "Review inbox");
+  await navigate(page, "All submissions");
   await expect(
     page.getByRole("heading", { name: "It starts with one tree", exact: true }),
   ).toBeVisible();
@@ -99,7 +155,7 @@ test("nonprofit selection gates data and limits settings and reviews to its orga
     .click();
   await expect(
     page.getByRole("button", { name: "Approve post", exact: true }),
-  ).toBeVisible();
+  ).not.toBeVisible();
   await page.getByRole("button", { name: "Close dialog" }).click();
   if (await page.getByRole("button", { name: "Open navigation" }).isVisible())
     await page.getByRole("button", { name: "Open navigation" }).click();
@@ -167,7 +223,7 @@ test("creator views contain only published projects and personal submissions wit
   await expect(
     page.getByRole("heading", { name: "Small hands, big impact" }),
   ).not.toBeVisible();
-  await navigate(page, "All submissions");
+  await navigate(page, "My creatives");
   await expect(
     page.getByRole("heading", { name: "Good things are shared" }),
   ).toBeVisible();
@@ -177,7 +233,7 @@ test("creator views contain only published projects and personal submissions wit
   await expect(
     page.getByRole("heading", { name: "More than a meal" }),
   ).not.toBeVisible();
-  await navigate(page, "Review inbox");
+  await navigate(page, "My creatives");
   await expect(
     page.getByRole("heading", { name: "Good things are shared" }),
   ).toBeVisible();
@@ -197,7 +253,7 @@ test("creator views contain only published projects and personal submissions wit
     page.getByText("Instagram account pending", { exact: true }),
   ).not.toBeVisible();
   await page.getByRole("button", { name: "Close dialog" }).click();
-  await navigate(page, "Leaderboard / approved");
+  await navigate(page, "Eligible library & counts");
   await expect(
     page.getByRole("heading", { name: "Creator leaderboard" }),
   ).toBeVisible();
@@ -225,7 +281,7 @@ test("creator views contain only published projects and personal submissions wit
     page.getByRole("button", { name: "Post details" }),
   ).not.toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Review history" }),
+    page.getByRole("heading", { name: "Evaluation & history" }),
   ).not.toBeVisible();
   await page.getByRole("button", { name: "Close dialog" }).click();
   if (await page.getByRole("button", { name: "Open navigation" }).isVisible())

@@ -12,7 +12,19 @@ export interface DemoOptions {
   nonprofits: Identity[];
   creators: Identity[];
 }
-export type PostStatus = "pending" | "approved" | "changes" | "rejected";
+export type PostStatus =
+  "pending" | "approved" | "changes" | "rejected" | "held";
+export interface EligibilityPolicy {
+  version: number;
+  allowedChannels: string[];
+  allowedFormats: string[];
+  destinations: string[];
+  compensationDisclosure: string;
+  beneficiaryDisclosure: string;
+  factualClaims: string[];
+  termsVersion: string;
+  maxFileBytes: number;
+}
 export type Format = "photo" | "reel" | "carousel" | "story" | "other";
 export interface Project {
   id: string;
@@ -29,6 +41,8 @@ export interface Project {
   status: "draft" | "active" | "archived";
   instagram?: string;
   createdAt: string;
+  eligibilityPolicy: EligibilityPolicy;
+  policyConfig?: Omit<EligibilityPolicy, "version">;
 }
 export interface HistoryEvent {
   id: string;
@@ -49,6 +63,28 @@ export interface Post {
   media: string;
   mediaType: "image" | "video";
   rights?: boolean;
+  channel?: string;
+  destination?: string;
+  disclosures?: { compensation: string; beneficiary: string };
+  factualClaims?: string[];
+  acceptedTermsVersion?: string;
+  eligibility?: {
+    id: string;
+    outcome: string;
+    snapshotDigest: string;
+    policyVersion: number;
+    ruleVersion: string;
+    factVersion: string;
+    reasons: { code: string; message: string }[];
+    facts: { holds: { id: string; reason: string; evidence: string }[] };
+  };
+  snapshots?: { id: string; revision: number; digest: string }[];
+  appeals?: {
+    id: string;
+    holdId: string;
+    note: string;
+    resolution?: { correctedFact: string };
+  }[];
   policy?: { passed: boolean; reasons: string[]; version: string };
   revision: number;
   createdAt: string;

@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { seedData } from "./seed.js";
 import { migrateIdentities } from "./access.js";
+import { refreshEligibility } from "./eligibility.js";
 
 export function createStore(filename, seed = true) {
   if (filename !== ":memory:")
@@ -44,6 +45,6 @@ export function createStore(filename, seed = true) {
       db.close();
     },
   };
-  store.update(migrateIdentities);
+  store.update((state) => refreshEligibility(migrateIdentities(state)));
   return store;
 }

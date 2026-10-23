@@ -32,6 +32,23 @@ export function ProjectForm({
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [policyConfig, setPolicyConfig] = useState(
+    project?.policyConfig ||
+      (project
+        ? {
+            allowedChannels: project.eligibilityPolicy.allowedChannels,
+            allowedFormats: project.eligibilityPolicy.allowedFormats,
+            destinations: project.eligibilityPolicy.destinations,
+            beneficiaryDisclosure:
+              project.eligibilityPolicy.beneficiaryDisclosure,
+            compensationDisclosure:
+              project.eligibilityPolicy.compensationDisclosure,
+            factualClaims: project.eligibilityPolicy.factualClaims,
+            termsVersion: project.eligibilityPolicy.termsVersion,
+            maxFileBytes: project.eligibilityPolicy.maxFileBytes,
+          }
+        : undefined),
+  );
   const set = (key: string, value: string) =>
     setData((d) => ({ ...d, [key]: value }));
   async function save(e: FormEvent) {
@@ -43,7 +60,7 @@ export function ProjectForm({
         project ? `/projects/${project.id}` : "/projects",
         access,
         project ? "PUT" : "POST",
-        data,
+        { ...data, ...(policyConfig ? { policyConfig } : {}) },
       );
       await refresh();
       notify(project ? "Project settings saved" : "Your new project is ready");
@@ -78,9 +95,134 @@ export function ProjectForm({
           <Instagram size={15} />
           Instagram account
         </button>
+        {policyConfig && (
+          <button
+            className={tab === "policy" ? "selected" : ""}
+            onClick={() => setTab("policy")}
+          >
+            Eligibility policy
+          </button>
+        )}
       </div>
-      <form onSubmit={save} className="project-form">
-        <div className="form-content" hidden={tab !== "details"}>
+      <form
+        onSubmit={save}
+        className="project-form"
+        onInvalidCapture={(event) =>
+          setTab(
+            (event.target as HTMLElement)
+              .closest("[data-section]")
+              ?.getAttribute("data-section") || "details",
+          )
+        }
+      >
+        {policyConfig && (
+          <div
+            className="form-content"
+            hidden={tab !== "policy"}
+            data-section="policy"
+          >
+            <p>
+              Policy v{project?.eligibilityPolicy.version}. Saving changed rules
+              creates a version and reruns checks. Rights and fixed compensation
+              disclosures are mandatory.
+            </p>
+            <label>
+              Allowed channels (comma separated)
+              <input
+                value={policyConfig.allowedChannels.join(",")}
+                onChange={(e) =>
+                  setPolicyConfig({
+                    ...policyConfig,
+                    allowedChannels: e.target.value.split(","),
+                  })
+                }
+              />
+            </label>
+            <label>
+              Allowed formats (comma separated)
+              <input
+                value={policyConfig.allowedFormats.join(",")}
+                onChange={(e) =>
+                  setPolicyConfig({
+                    ...policyConfig,
+                    allowedFormats: e.target.value.split(","),
+                  })
+                }
+              />
+            </label>
+            <label>
+              Authorized destinations (one per line)
+              <textarea
+                value={policyConfig.destinations.join("\n")}
+                onChange={(e) =>
+                  setPolicyConfig({
+                    ...policyConfig,
+                    destinations: e.target.value.split("\n"),
+                  })
+                }
+              />
+            </label>
+            <label>
+              Required beneficiary disclosure
+              <input
+                value={policyConfig.beneficiaryDisclosure}
+                onChange={(e) =>
+                  setPolicyConfig({
+                    ...policyConfig,
+                    beneficiaryDisclosure: e.target.value,
+                  })
+                }
+              />
+            </label>
+            <p>{policyConfig.compensationDisclosure}</p>
+            <label>
+              Required factual claim blocks (one per line)
+              <textarea
+                value={policyConfig.factualClaims.join("\n")}
+                onChange={(e) =>
+                  setPolicyConfig({
+                    ...policyConfig,
+                    factualClaims: e.target.value
+                      ? e.target.value.split("\n")
+                      : [],
+                  })
+                }
+              />
+            </label>
+            <label>
+              Campaign terms version
+              <input
+                value={policyConfig.termsVersion}
+                onChange={(e) =>
+                  setPolicyConfig({
+                    ...policyConfig,
+                    termsVersion: e.target.value,
+                  })
+                }
+              />
+            </label>
+            <label>
+              Maximum file bytes
+              <input
+                type="number"
+                min="1"
+                max={30 * 1024 * 1024}
+                value={policyConfig.maxFileBytes}
+                onChange={(e) =>
+                  setPolicyConfig({
+                    ...policyConfig,
+                    maxFileBytes: Number(e.target.value),
+                  })
+                }
+              />
+            </label>
+          </div>
+        )}
+        <div
+          className="form-content"
+          hidden={tab !== "details"}
+          data-section="details"
+        >
           <label>
             Project name
             <input
@@ -178,7 +320,7 @@ export function ProjectForm({
                   Published — accept submissions within dates
                 </option>
                 <option value="archived">
-                  Archived — close submissions and review
+                  Archived — close new submissions and handoff
                 </option>
               </select>
             </label>
@@ -196,7 +338,11 @@ export function ProjectForm({
             </label>
           </div>
         </div>
-        <div className="form-content" hidden={tab !== "account"}>
+        <div
+          className="form-content"
+          hidden={tab !== "account"}
+          data-section="account"
+        >
           <div className="instagram-intro">
             <span className="instagram-icon">
               <Instagram size={30} />
@@ -204,7 +350,7 @@ export function ProjectForm({
             <h3>One project. One official voice.</h3>
             <p>
               Pair this project with the nonprofit’s Instagram account so every
-              approved post has a clear destination.
+              eligible creative has a clear destination.
             </p>
           </div>
           <label>
@@ -235,7 +381,7 @@ export function ProjectForm({
           <div className="account-checks">
             <span>
               <Check size={16} />
-              Review posts before an account is added
+              Evaluate creatives before an account is added
             </span>
             <span>
               <Check size={16} />
@@ -243,7 +389,7 @@ export function ProjectForm({
             </span>
             <span>
               <Check size={16} />
-              Only approved posts can be handed off
+              Only eligible creatives can be handed off
             </span>
           </div>
           {!project && (

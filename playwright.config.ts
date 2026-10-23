@@ -10,7 +10,10 @@ export default defineConfig({
     command: "node server/index.js",
     url: "http://127.0.0.1:3100/api/health",
     reuseExistingServer: false,
-    env: { PORT: "3100", SLANDER_DATA_DIR: "./test-results/workspace" },
+    env: {
+      PORT: "3100",
+      SLANDER_DATA_DIR: `./test-results/workspace-${Date.now()}`,
+    },
   },
   projects: [
     {
@@ -22,7 +25,11 @@ export default defineConfig({
     },
     {
       name: "mobile",
-      use: { ...devices["iPhone 13"], defaultBrowserType: "chromium" },
+      use: {
+        ...devices["iPhone 13"],
+        defaultBrowserType: "chromium",
+        viewport: { width: 390, height: 664 },
+      },
     },
   ],
 });

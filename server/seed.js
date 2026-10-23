@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { COMPENSATION } from "./eligibility.js";
 
 export function seedData() {
   const now = new Date();
@@ -123,7 +124,15 @@ export function seedData() {
       status,
       media: `/images/${cover}.jpg`,
       mediaType: "image",
-      rights: true,
+      rights: status !== "changes",
+      channel: "instagram",
+      destination: `/campaigns/${projectId}/give`,
+      acceptedTermsVersion: "local-v1",
+      disclosures: {
+        compensation: COMPENSATION,
+        beneficiary: `Beneficiary: ${projects.find((p) => p.id === projectId).nonprofit}.`,
+      },
+      factualClaims: [],
       policy: { passed: true, reasons: [], version: "demo-submission-v1" },
       revision: 1,
       createdAt: new Date(now.getTime() - hours * 3600000).toISOString(),

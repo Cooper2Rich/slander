@@ -49,7 +49,7 @@ async function fixture(t) {
     baseURL: `http://127.0.0.1:${server.address().port}`,
   };
 }
-const submission = {
+export const submission = {
   title: "A better tomorrow",
   creator: "Test Creator",
   caption: "Help us grow a greener community.",
@@ -57,6 +57,13 @@ const submission = {
   media: "/images/forest.jpg",
   mediaType: "image",
   rights: true,
+  destination: "/campaigns/greener-tomorrow/give",
+  acceptedTermsVersion: "local-v1",
+  disclosures: {
+    compensation:
+      "Creators receive 10% of eligible attributed donations; 90% belongs to the nonprofit before fees.",
+    beneficiary: "Beneficiary: One Tree Collective.",
+  },
 };
 
 test("project account pairing persists and stays scoped to its nonprofit", async (t) => {
@@ -80,7 +87,7 @@ test("project account pairing persists and stays scoped to its nonprofit", async
   assert.match(store.read().activity[0].title, /Paired @one.tree/);
 });
 
-test("approval is separate from submission and account pairing gates handoff", async (t) => {
+test("automatic eligibility is separate from account pairing which gates handoff", async (t) => {
   const { request } = await fixture(t);
   const create = await request("/projects/greener-tomorrow/posts", {
     method: "POST",
@@ -88,28 +95,40 @@ test("approval is separate from submission and account pairing gates handoff", a
     body: submission,
   });
   assert.equal(create.status, 201);
-  assert.equal(create.data.status, "pending");
-  assert.equal((await request(`/posts/${create.data.id}/export`)).status, 409);
-  const review = await request(`/posts/${create.data.id}/review`, {
-    method: "POST",
-    body: { decision: "approved", note: "Great story.", revision: 1 },
-  });
-  assert.equal(review.status, 200);
-  assert.equal(review.data.status, "approved");
-  assert.equal((await request(`/posts/${create.data.id}/export`)).status, 409);
+  assert.equal(create.data.status, "approved");
+  assert.equal(create.data.revision, 1);
+  assert.equal(create.data.history[0].action, "submitted");
+  assert.equal(create.data.eligibility.outcome, "eligible");
+  assert.equal(
+    (await request("/posts/" + create.data.id + "/export")).status,
+    409,
+  );
+  assert.equal(
+    (
+      await request("/posts/" + create.data.id + "/review", {
+        method: "POST",
+        body: { decision: "approved", revision: 1 },
+      })
+    ).status,
+    409,
+  );
   const project = (await request("/workspace")).data.projects[0];
-  await request(`/projects/${project.id}`, {
+  await request("/projects/" + project.id, {
     method: "PUT",
     body: { ...project, instagram: "@official.nonprofit" },
   });
-  const exported = await request(`/posts/${create.data.id}/export`);
+  const exported = await request("/posts/" + create.data.id + "/export");
   assert.equal(exported.status, 200);
   assert.equal(exported.data.instagram, "@official.nonprofit");
   assert.equal(exported.data.caption, submission.caption);
+  assert.equal(
+    exported.data.snapshot.digest,
+    create.data.eligibility.snapshotDigest,
+  );
   assert.match(exported.data.note, /not been published/);
 });
 
-test("failed checks block approval until the creator revises and passes a new check", async (t) => {
+test("failed checks resolve only through a new automatically evaluated revision", async (t) => {
   const { request } = await fixture(t);
   const post = (
     await request("/projects/greener-tomorrow/posts", {
@@ -119,92 +138,60 @@ test("failed checks block approval until the creator revises and passes a new ch
     })
   ).data;
   assert.equal(post.policy.passed, false);
-  assert.equal(
-    (
-      await request(`/posts/${post.id}/review`, {
-        method: "POST",
-        body: { decision: "approved", revision: 1 },
-      })
-    ).status,
-    409,
-  );
-  assert.equal(
-    (
-      await request(`/posts/${post.id}/review`, {
-        method: "POST",
-        body: {
-          decision: "changes",
-          note: "Please confirm media rights.",
-          revision: 1,
-        },
-      })
-    ).status,
-    200,
-  );
-  const revised = await request(`/posts/${post.id}`, {
+  assert.equal(post.status, "changes");
+  assert.equal(post.eligibility.reasons[0].code, "RIGHTS_REQUIRED");
+  for (const decision of ["approved", "changes", "rejected"])
+    assert.equal(
+      (
+        await request("/posts/" + post.id + "/review", {
+          method: "POST",
+          body: { decision, note: "Manual bypass", revision: 1 },
+        })
+      ).status,
+      409,
+    );
+  const revised = await request("/posts/" + post.id, {
     method: "PUT",
     role: "creator",
-    body: { ...submission, revision: 2 },
+    body: { ...submission, revision: 1 },
   });
-  assert.equal(revised.data.status, "pending");
-  assert.equal(revised.data.policy.passed, true);
-  assert.equal(revised.data.history.length, 3);
-  const approved = await request(`/posts/${post.id}/review`, {
-    method: "POST",
-    body: { decision: "approved", revision: 3 },
-  });
-  assert.equal(approved.status, 200);
-  assert.equal(approved.data.history.length, 4);
+  assert.equal(revised.data.status, "approved");
+  assert.equal(revised.data.revision, 2);
+  assert.equal(revised.data.snapshots.length, 2);
+  assert.equal(revised.data.snapshots[0].content.rights, false);
+  assert.equal(revised.data.evaluations.length, 2);
 });
 
-test("feedback is mandatory for changes and decline, and stale decisions cannot overwrite review", async (t) => {
-  const { request } = await fixture(t);
-  assert.equal(
-    (
-      await request("/posts/sample-1/review", {
-        method: "POST",
-        body: { decision: "changes", note: " ", revision: 1 },
-      })
-    ).status,
-    400,
-  );
-  assert.equal(
-    (
-      await request("/posts/sample-1/review", {
-        method: "POST",
-        body: { decision: "rejected", revision: 1 },
-      })
-    ).status,
-    400,
-  );
-  assert.equal(
-    (
-      await request("/posts/sample-1/review", {
-        method: "POST",
-        body: { decision: "approved", revision: 1 },
-      })
-    ).status,
-    200,
-  );
-  assert.equal(
-    (
-      await request("/posts/sample-1/review", {
-        method: "POST",
-        body: { decision: "rejected", note: "Stale review", revision: 1 },
-      })
-    ).status,
-    409,
-  );
+test("manual decision mutations are retired and stale revisions cannot overwrite content", async (t) => {
+  const { request, store } = await fixture(t);
+  for (const decision of ["approved", "changes", "rejected"])
+    assert.equal(
+      (
+        await request("/posts/sample-1/review", {
+          method: "POST",
+          body: { decision, revision: 1 },
+        })
+      ).status,
+      409,
+    );
+  const before = store.read().posts[0];
+  const revised = await request("/posts/sample-1", {
+    method: "PUT",
+    role: "creator",
+    body: { ...submission, revision: 1 },
+  });
+  assert.equal(revised.status, 200);
   assert.equal(
     (
       await request("/posts/sample-1", {
         method: "PUT",
         role: "creator",
-        body: { ...submission, revision: 2 },
+        body: { ...submission, revision: 1 },
       })
     ).status,
     409,
   );
+  assert.deepEqual(store.read().posts[0].snapshots[0], before.snapshots[0]);
 });
 
 test("demo roles enforce workflow permissions and block cross-origin mutations", async (t) => {
@@ -298,7 +285,7 @@ test("format proposals are retained while unsupported handoff remains blocked", 
         body: { decision: "approved", revision: 1 },
       })
     ).status,
-    200,
+    409,
   );
   const exportResult = await request(`/posts/${post.id}/export`);
   assert.equal(exportResult.status, 409);
@@ -487,8 +474,8 @@ test("nonprofit can manage and review its projects but cannot add, reassign, or 
     role: "nonprofit",
     body: { decision: "approved", revision: 1 },
   });
-  assert.equal(review.status, 200);
-  assert.equal(review.data.history.at(-1).actor, own.nonprofit);
+  assert.equal(review.status, 409);
+  assert.equal(store.read().posts[0].eligibility.outcome, "eligible");
   assert.equal(
     (await request("/posts/sample-1/export", { role: "nonprofit" })).status,
     200,
@@ -519,7 +506,7 @@ test("creators see published projects, only their submissions, and public approv
   );
   assert.deepEqual(
     result.data.approvedPosts.map((p) => p.id),
-    ["sample-4"],
+    ["sample-1", "sample-2", "sample-3", "sample-4"],
   );
   assert(
     result.data.projects.every(
@@ -528,7 +515,10 @@ test("creators see published projects, only their submissions, and public approv
   );
   assert(result.data.posts.every((p) => !("readiness" in p)));
   assert.equal(result.data.approvedPosts[0].feedback, "");
-  assert.equal(result.data.approvedPosts[0].policy, undefined);
+  assert.equal(
+    result.data.approvedPosts.find((p) => p.id === "sample-4").policy,
+    undefined,
+  );
   assert.deepEqual(result.data.activity, []);
   const alex = store.read().creators.find((c) => c.name === "Alex Rivera");
   const other = await request("/workspace", {

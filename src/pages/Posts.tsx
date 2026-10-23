@@ -98,7 +98,9 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
   const [status, setStatus] = useState("all");
   const base = (mode === "approved" ? approvedPosts : posts).filter((p) =>
     mode === "review"
-      ? p.status === "pending" || (role === "creator" && p.status === "changes")
+      ? role === "creator"
+        ? true
+        : p.status === "held"
       : mode === "approved"
         ? p.status === "approved"
         : true,
@@ -113,11 +115,13 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
   );
   const title =
     mode === "review"
-      ? "Review inbox"
+      ? role === "creator"
+        ? "My creatives"
+        : "Platform exceptions"
       : mode === "approved"
         ? role === "creator"
-          ? "Leaderboard & approved posts"
-          : "Approved posts"
+          ? "Eligible library & counts"
+          : "Eligible creatives"
         : "All submissions";
   return (
     <>
@@ -137,13 +141,13 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
           <p>
             {role === "creator"
               ? mode === "approved"
-                ? "Discover approved stories from published projects and the creators behind them."
+                ? "Discover eligible stories from published projects and the creators behind them."
                 : `Submissions and feedback for ${identity?.name}. Only your work appears here.`
               : mode === "review"
-                ? "Thoughtful feedback turns a good idea into a great story."
+                ? "Scoped holds and appeals for platform exception handling. Eligible content needs no owner action."
                 : mode === "approved"
-                  ? "Your approved creatives, with a clear path to Instagram handoff."
-                  : "Follow every creative from first idea to nonprofit approval."}
+                  ? "Your eligible creatives, with a clear path to Instagram handoff."
+                  : "Follow automatic eligibility for every current creative."}
           </p>
         </div>
         <span className="big-count">
@@ -157,7 +161,7 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
         <div className="info-banner">
           <CheckCheck size={24} />
           <div>
-            <strong>Approved is a milestone.</strong>
+            <strong>Eligibility is automatic.</strong>
             <p>
               Add the nonprofit’s Instagram account to prepare a post for
               handoff. Live publishing is not enabled in this demo.
@@ -173,13 +177,13 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
           <div>
             <strong>
               {base.length
-                ? `${base.length} ${base.length === 1 ? "story is" : "stories are"} waiting for a little of your time.`
+                ? `${base.length} creative records in this view.`
                 : "You’re all caught up."}
             </strong>
             <p>
               {role !== "creator"
-                ? "Preview each creative, leave feedback, and decide what comes next."
-                : "Track your pending reviews and respond to requested changes."}
+                ? "Only scoped holds require exception handling. Mechanical failures go directly to creators."
+                : "Track automatic checks, exact fixes, and scoped appeals."}
             </p>
           </div>
         </div>
@@ -187,11 +191,11 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
       <div className="section-toolbar">
         <h2>
           {mode === "approved"
-            ? "Approved library"
+            ? "Eligible library"
             : mode === "review"
               ? role === "creator"
-                ? "Your review inbox"
-                : "Awaiting your review"
+                ? "Your creatives"
+                : "Scoped exceptions"
               : "Creator submissions"}
           <span className="count-pill">{filtered.length}</span>
         </h2>
@@ -216,10 +220,11 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
               onChange={(e) => setStatus(e.target.value)}
             >
               <option value="all">All statuses</option>
-              <option value="pending">In review</option>
-              <option value="changes">Changes requested</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Declined</option>
+              <option value="pending">Checking</option>
+              <option value="changes">Needs fixes</option>
+              <option value="held">On hold</option>
+              <option value="approved">Eligible</option>
+              <option value="rejected">Blocked</option>
             </select>
           )}
         </div>
@@ -239,7 +244,7 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
             search || projectFilter !== "all" || status !== "all"
               ? "Try changing your search or filters."
               : mode === "approved"
-                ? "Posts appear here after a nonprofit administrator approves them."
+                ? "Current eligible snapshots appear here automatically."
                 : "New creator submissions will appear here."
           }
         />

@@ -77,7 +77,7 @@ export function ActivityPage() {
           description={
             search
               ? "Try another search."
-              : "Project updates and review decisions will appear here."
+              : "Project updates, evaluations and exception history will appear here."
           }
         />
       )}

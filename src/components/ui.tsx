@@ -45,10 +45,11 @@ export function Instagram({ size = 20 }: { size?: number }) {
   );
 }
 export const statusLabels: Record<PostStatus, string> = {
-  pending: "In review",
-  approved: "Approved",
-  changes: "Changes requested",
-  rejected: "Declined",
+  pending: "Checking",
+  approved: "Eligible",
+  changes: "Needs fixes",
+  rejected: "Blocked",
+  held: "On hold",
 };
 export function StatusBadge({ status }: { status: PostStatus }) {
   const Icon = {
@@ -56,6 +57,7 @@ export function StatusBadge({ status }: { status: PostStatus }) {
     approved: Check,
     changes: MessageSquare,
     rejected: XCircle,
+    held: Clock3,
   }[status];
   return (
     <span className={`badge ${status}`}>

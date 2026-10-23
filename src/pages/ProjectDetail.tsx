@@ -1,3 +1,4 @@
+import { submissionsOpen } from "../calendar";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -43,11 +44,7 @@ export function ProjectDetail() {
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
-  const today = new Date().toISOString().slice(0, 10);
-  const accepting =
-    project.status === "active" &&
-    today >= project.startDate &&
-    today <= project.endDate;
+  const accepting = submissionsOpen(project);
   return (
     <>
       <Link to="/projects" className="back-link">
@@ -133,8 +130,8 @@ export function ProjectDetail() {
             </h3>
             <p>
               {project.instagram
-                ? `Approved posts for this project are prepared for ${project.nonprofit}’s Instagram account.`
-                : "Add the nonprofit’s Instagram account to give approved posts a destination."}
+                ? `Eligible creatives for this project are prepared for ${project.nonprofit}’s Instagram account.`
+                : "Add the nonprofit’s Instagram account to give eligible creatives a destination."}
             </p>
             {
               <button
@@ -149,7 +146,7 @@ export function ProjectDetail() {
             <small>
               {project.instagram
                 ? "Pairing saved · Live authorization pending"
-                : "You can start reviewing posts before pairing."}
+                : "Automatic eligibility does not require pairing."}
             </small>
           </div>
         )}
@@ -162,10 +159,11 @@ export function ProjectDetail() {
         <div className="tabs">
           {[
             ["all", "All"],
-            ["pending", "In review"],
-            ["approved", "Approved"],
-            ["changes", "Changes"],
-            ["rejected", "Declined"],
+            ["pending", "Checking"],
+            ["approved", "Eligible"],
+            ["changes", "Needs fixes"],
+            ["held", "On hold"],
+            ["rejected", "Blocked"],
           ].map(([value, label]) => (
             <button
               key={value}

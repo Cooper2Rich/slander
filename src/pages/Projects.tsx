@@ -37,8 +37,14 @@ export function ProjectsPage() {
         ? a.name.localeCompare(b.name)
         : b.createdAt.localeCompare(a.createdAt),
     );
-  const pending = posts.filter((p) => p.status === "pending").length;
-  const approved = approvedPosts.length;
+  const pending = posts.filter((p) =>
+    ["pending", "changes"].includes(p.status),
+  ).length;
+  const approved = (
+    role === "creator"
+      ? posts.filter((p) => p.status === "approved")
+      : approvedPosts
+  ).length;
   return (
     <>
       <div className="page-heading">
@@ -54,7 +60,7 @@ export function ProjectsPage() {
           </h1>
           <p>
             {role === "nonprofit"
-              ? `${identity?.name} — your projects, creators, and approvals in one place.`
+              ? `${identity?.name} — your projects, creators, and eligibility in one place.`
               : role === "creator"
                 ? `Welcome, ${identity?.name}. Find your next project and follow your own submissions.`
                 : "A little creativity. A lot of good. Bring your next story to life."}
@@ -83,12 +89,9 @@ export function ProjectsPage() {
             <br className="desktop-br" /> to turn meaningful stories into
             real-world change.
           </p>
-          <Link
-            className="hero-link"
-            to={role !== "creator" ? "/review" : "/posts"}
-          >
+          <Link className="hero-link" to="/posts">
             {role !== "creator"
-              ? "Visit your review inbox"
+              ? "View campaign creatives"
               : "Explore your submissions"}
             <ArrowUpRight size={17} />
           </Link>
@@ -132,11 +135,11 @@ export function ProjectsPage() {
             <Clock3 size={21} />
           </span>
           <div>
-            <span>Awaiting review</span>
+            <span>Checking / needs fixes</span>
             <strong>{pending.toString().padStart(2, "0")}</strong>
           </div>
           <span className="stat-note">
-            A fresh perspective awaits
+            Automatic checks
             <ArrowUpRight size={14} />
           </span>
         </Link>
@@ -145,7 +148,7 @@ export function ProjectsPage() {
             <Check size={22} />
           </span>
           <div>
-            <span>Approved posts</span>
+            <span>Eligible creatives</span>
             <strong>{approved.toString().padStart(2, "0")}</strong>
           </div>
           <span className="stat-note">
@@ -215,7 +218,7 @@ export function ProjectsPage() {
               (p) => p.projectId === project.id,
             );
             const awaiting = projectPosts.filter(
-              (p) => p.status === "pending",
+              (p) => p.status !== "approved",
             ).length;
             const creators = [...new Set(projectPosts.map((p) => p.creator))];
             return (
@@ -266,7 +269,7 @@ export function ProjectsPage() {
                       </span>
                       <strong>
                         {awaiting > 0
-                          ? `${awaiting} to review`
+                          ? `${awaiting} need attention`
                           : "All caught up"}
                       </strong>
                     </div>

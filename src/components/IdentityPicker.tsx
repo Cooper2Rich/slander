@@ -51,8 +51,8 @@ export function IdentityPicker({
       </h1>
       <p>
         {nonprofit
-          ? "Select an organization to open only its projects, submissions, and review queue."
-          : "See published projects, follow your submissions, and explore approved creative work."}
+          ? "Select an organization to open only its projects, submissions, and scoped exceptions."
+          : "See published projects, follow your submissions, and explore eligible creative work."}
       </p>
       <div className="identity-picker-form">
         <label>

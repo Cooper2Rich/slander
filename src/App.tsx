@@ -69,23 +69,26 @@ export default function App() {
   }, [toast]);
   const setRole = (value: Role) => {
     changeRole(value);
+    setMobileNav(false);
     setSearch("");
     setToast("");
     setHelp(false);
   };
   const pending =
-    workspace?.posts.filter(
-      (p) =>
-        p.status === "pending" ||
-        (role === "creator" && p.status === "changes"),
+    workspace?.posts.filter((p) =>
+      role === "creator"
+        ? ["pending", "changes"].includes(p.status)
+        : p.status === "held",
     ).length || 0;
   const title =
     location.pathname === "/review"
-      ? "Review inbox"
+      ? role === "creator"
+        ? "My creatives"
+        : "Platform exceptions"
       : location.pathname === "/approved"
         ? role === "creator"
-          ? "Leaderboard / approved posts"
-          : "Approved posts"
+          ? "Eligible library & counts"
+          : "Eligible creatives"
         : location.pathname === "/activity"
           ? "Activity"
           : location.pathname === "/posts"
@@ -105,12 +108,18 @@ export default function App() {
             ? "Our projects"
             : "Projects",
     },
-    { to: "/review", icon: Inbox, label: "Review inbox", count: pending },
+    {
+      to: "/review",
+      icon: Inbox,
+      label: role === "creator" ? "My creatives" : "Platform exceptions",
+      count: pending,
+    },
     { to: "/posts", icon: Layers3, label: "All submissions" },
     {
       to: "/approved",
       icon: role === "creator" ? Trophy : CheckCheck,
-      label: role === "creator" ? "Leaderboard / approved" : "Approved posts",
+      label:
+        role === "creator" ? "Eligible library & counts" : "Eligible creatives",
     },
     ...(role !== "creator"
       ? [{ to: "/activity", icon: Activity, label: "Activity" }]
@@ -156,6 +165,7 @@ export default function App() {
             className="change-identity"
             onClick={() => {
               chooseIdentity(null);
+              setMobileNav(false);
               setSearch("");
               setToast("");
               navigate("/projects");
@@ -171,6 +181,7 @@ export default function App() {
             nav.map((item) => (
               <NavLink
                 to={item.to}
+                onClick={() => setMobileNav(false)}
                 key={item.to}
                 className={({ isActive }) =>
                   `nav-item ${isActive ? "active" : ""}`
@@ -403,19 +414,19 @@ export default function App() {
                 <h3>Bring a story to the table</h3>
                 <p>
                   Select a creator profile, open a published project, and submit
-                  a photo or video. Your submissions and review inbox follow the
-                  selected creator.
+                  a photo or video. Your submissions and eligibility results
+                  follow the selected creator.
                 </p>
               </section>
             </div>
             <div>
               <span>03</span>
               <section>
-                <h3>Give good ideas a green light</h3>
+                <h3>Automatic checks, visible evidence</h3>
                 <p>
-                  Switch to Non-Profit or Admin View. Preview a post, approve
-                  it, request changes, or decline with feedback. Creators can
-                  revise and resubmit.
+                  Valid creatives become eligible automatically. Creators can
+                  revise eligible work; each revision keeps its own snapshot.
+                  Admin handles evidence-linked holds and appeals.
                 </p>
               </section>
             </div>
@@ -424,7 +435,7 @@ export default function App() {
               <section>
                 <h3>Get ready for Instagram</h3>
                 <p>
-                  Pair a project with the nonprofit’s username. Approved photos
+                  Pair a project with the nonprofit’s username. Eligible photos
                   and reels can then be downloaded for handoff.
                 </p>
               </section>

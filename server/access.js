@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { AppError, getProject, getPost, readiness } from "./domain.js";
+import { currentEligibility, eligibleCounts } from "./eligibility.js";
 
 const identityKey = (name) => name.trim().toLocaleLowerCase("en-US");
 export function ensureIdentity(state, collection, name) {
@@ -114,9 +115,14 @@ export function scopedWorkspace(state, access) {
     )
     .map((post) =>
       access.role === "creator"
-        ? { ...post, readiness: undefined }
+        ? {
+            ...post,
+            appeals: state.creativeAppeals.filter((a) => a.postId === post.id),
+            readiness: undefined,
+          }
         : {
             ...post,
+            appeals: state.creativeAppeals.filter((a) => a.postId === post.id),
             readiness: readiness(post, getProject(state, post.projectId)),
           },
     );
@@ -128,12 +134,17 @@ export function scopedWorkspace(state, access) {
     ),
     posts,
     approvedPosts: visible
-      .filter((p) => p.status === "approved")
+      .filter((p) => currentEligibility(p, getProject(state, p.projectId)))
       .map((p) =>
         access.role === "creator" && p.creatorId !== access.creatorId
           ? publicPost(p)
           : posts.find((post) => post.id === p.id),
       ),
+    eligibleCounts: eligibleCounts(
+      visible.filter((p) =>
+        currentEligibility(p, getProject(state, p.projectId)),
+      ),
+    ),
     activity:
       access.role === "creator"
         ? []
