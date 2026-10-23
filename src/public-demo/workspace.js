@@ -277,6 +277,51 @@ export async function workspaceRequest(
 ) {
   await prepareWorkspace();
   const value = state();
+  if (path === "/public/ads" && method === "GET") {
+    const fixtures = {
+      "sample-1": { impressions: 24800, clicks: 868, donatedCents: 186000 },
+      "sample-2": { impressions: 18300, clicks: 439, donatedCents: 124500 },
+      "sample-3": { impressions: 12600, clicks: 504, donatedCents: 97000 },
+    };
+    return {
+      handled: true,
+      data: value.posts
+        .filter((p) => {
+          const project = value.projects.find(
+            (project) => project.id === p.projectId,
+          );
+          return project?.status === "active" && currentEligibility(p, project);
+        })
+        .map((p) => {
+          const project = value.projects.find(
+            (project) => project.id === p.projectId,
+          );
+          const sample =
+            p.revision === 1 && p.media.startsWith("/images/")
+              ? fixtures[p.id]
+              : null;
+          return {
+            id: p.id,
+            projectId: p.projectId,
+            title: p.title,
+            creator: p.creator,
+            creatorId: p.creatorId,
+            caption: p.caption,
+            media: sample ? `/videos/${p.id}.webm` : p.media,
+            mediaType: sample ? "video" : p.mediaType,
+            poster: sample ? p.media : `/images/${project.cover}.jpg`,
+            project: project.name,
+            nonprofit: project.nonprofit,
+            category: project.category,
+            ...(sample || {
+              impressions: null,
+              clicks: null,
+              donatedCents: null,
+            }),
+          };
+        }),
+    };
+  }
   if (path === "/demo-options" && method === "GET")
     return {
       handled: true,
@@ -305,9 +350,25 @@ export async function workspaceRequest(
   if (!supported) return { handled: false };
   const a = accessFor(value, access);
   let data;
-  if (method === "GET" && path === "/workspace")
+  if (method === "GET" && path === "/workspace") {
     data = scopedWorkspace(value, a);
-  else if (method === "GET" && path === "/offers") {
+    if (a.role === "creator") {
+      // Only this creator's archive is returned; other creators' work stays out.
+      const ownArchived = value.posts.filter(
+        (p) =>
+          p.creatorId === a.creatorId &&
+          value.projects.some(
+            (project) =>
+              project.id === p.projectId && project.status === "archived",
+          ),
+      );
+      data.posts.push(...ownArchived);
+      data.approvedPosts = data.approvedPosts.filter(
+        (p) => p.creatorId === a.creatorId,
+      );
+      data.ownArchivedPosts = ownArchived.map((p) => p.id);
+    }
+  } else if (method === "GET" && path === "/offers") {
     const p = getProject(value, campaignId);
     data = {
       items:

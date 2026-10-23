@@ -90,6 +90,7 @@ export interface Post {
   createdAt: string;
   updatedAt: string;
   feedback: string;
+  withdrawnAt?: string;
   history: HistoryEvent[];
   readiness?: { ready: boolean; reasons: string[] };
 }
@@ -102,6 +103,7 @@ export interface Activity {
   at: string;
 }
 export interface Workspace {
+  ownArchivedPosts?: string[];
   projects: Project[];
   posts: Post[];
   approvedPosts: Post[];

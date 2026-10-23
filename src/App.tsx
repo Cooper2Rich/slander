@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import {
   NavLink,
   Navigate,
@@ -37,7 +37,18 @@ import { ActivityPage } from "./pages/Activity";
 import { CampaignsPage, GivingPage } from "./pages/Campaigns";
 import { PUBLIC_DEMO } from "./runtime";
 
-export default function App() {
+export default function App({
+  demoViews = {},
+}: {
+  demoViews?: Partial<
+    Record<"ArchivesPage" | "CreatorAds" | "SpendingPage", ComponentType>
+  >;
+}) {
+  const {
+    ArchivesPage = () => null,
+    CreatorAds = () => null,
+    SpendingPage = () => null,
+  } = demoViews;
   const location = useLocation();
   const navigate = useNavigate();
   const {
@@ -75,6 +86,7 @@ export default function App() {
     setSearch("");
     setToast("");
     setHelp(false);
+    if (PUBLIC_DEMO && value === "creator") navigate("/review");
   };
   const pending =
     workspace?.posts.filter((p) =>
@@ -82,25 +94,32 @@ export default function App() {
         ? ["pending", "changes"].includes(p.status)
         : p.status === "held",
     ).length || 0;
-  const title = location.pathname.startsWith("/campaigns")
-    ? "Campaigns"
-    : location.pathname === "/review"
-      ? role === "creator"
-        ? "My creatives"
-        : "Platform exceptions"
-      : location.pathname === "/approved"
-        ? role === "creator"
-          ? "Eligible library & counts"
-          : "Eligible creatives"
-        : location.pathname === "/activity"
-          ? "Activity"
-          : location.pathname === "/posts"
-            ? "All submissions"
-            : "Projects";
+  const title =
+    PUBLIC_DEMO && location.pathname === "/spending"
+      ? "Ad spending"
+      : PUBLIC_DEMO && location.pathname === "/archives"
+        ? "Archives"
+        : PUBLIC_DEMO && role === "creator" && location.pathname === "/review"
+          ? "My ads"
+          : location.pathname.startsWith("/campaigns")
+            ? "Campaigns"
+            : location.pathname === "/review"
+              ? role === "creator"
+                ? "My creatives"
+                : "Platform exceptions"
+              : location.pathname === "/approved"
+                ? role === "creator"
+                  ? "Eligible library & counts"
+                  : "Eligible creatives"
+                : location.pathname === "/activity"
+                  ? "Activity"
+                  : location.pathname === "/posts"
+                    ? "All submissions"
+                    : "Projects";
   useEffect(() => {
     document.title = `${title} · Slander`;
   }, [title]);
-  const nav = [
+  const legacyNav = [
     { to: "/campaigns", icon: Sparkles, label: "Campaigns" },
     {
       to: "/projects",
@@ -129,6 +148,21 @@ export default function App() {
       ? [{ to: "/activity", icon: Activity, label: "Activity" }]
       : []),
   ];
+  const nav = !PUBLIC_DEMO
+    ? legacyNav
+    : role === "creator"
+      ? [
+          { to: "/review", icon: Layers3, label: "My ads", count: pending },
+          { to: "/projects", icon: FolderHeart, label: "Campaigns" },
+        ]
+      : [
+          { to: "/campaigns", icon: Sparkles, label: "Campaigns" },
+          { to: "/projects", icon: FolderHeart, label: "Projects" },
+          { to: "/posts", icon: Layers3, label: "Creatives" },
+          { to: "/spending", icon: Trophy, label: "Ad spending" },
+          { to: "/archives", icon: Inbox, label: "Archives" },
+          { to: "/activity", icon: Activity, label: "Activity" },
+        ];
   if (/^\/campaigns\/[^/]+\/give\/?$/.test(location.pathname)) {
     return (
       <Routes>
@@ -312,8 +346,13 @@ export default function App() {
               <select
                 aria-label="Demo role"
                 value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
+                onChange={(e) =>
+                  e.target.value === "public"
+                    ? navigate("/explore")
+                    : setRole(e.target.value as Role)
+                }
               >
+                {PUBLIC_DEMO && <option value="public">Public viewer</option>}
                 <option value="admin">Admin View</option>
                 <option value="nonprofit">Campaign Owner</option>
                 <option value="creator">Creator</option>
@@ -338,7 +377,9 @@ export default function App() {
               options={options}
               onSelect={(id) => {
                 chooseIdentity(id);
-                navigate("/projects");
+                navigate(
+                  PUBLIC_DEMO && role === "creator" ? "/review" : "/projects",
+                );
               }}
               refreshOptions={loadOptions}
             />
@@ -371,16 +412,58 @@ export default function App() {
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route
                   path="/review"
-                  element={<PostsPage key="review" mode="review" />}
+                  element={
+                    PUBLIC_DEMO && role === "creator" ? (
+                      <CreatorAds />
+                    ) : (
+                      <PostsPage key="review" mode="review" />
+                    )
+                  }
                 />
                 <Route
                   path="/approved"
-                  element={<PostsPage key="approved" mode="approved" />}
+                  element={
+                    PUBLIC_DEMO && role === "creator" ? (
+                      <Navigate to="/review" replace />
+                    ) : (
+                      <PostsPage key="approved" mode="approved" />
+                    )
+                  }
                 />
                 <Route
                   path="/posts"
-                  element={<PostsPage key="posts" mode="all" />}
+                  element={
+                    PUBLIC_DEMO && role === "creator" ? (
+                      <Navigate to="/review" replace />
+                    ) : (
+                      <PostsPage key="posts" mode="all" />
+                    )
+                  }
                 />
+                {PUBLIC_DEMO && (
+                  <Route
+                    path="/spending"
+                    element={
+                      role === "creator" ? (
+                        <Navigate to="/review" replace />
+                      ) : (
+                        <SpendingPage />
+                      )
+                    }
+                  />
+                )}
+                {PUBLIC_DEMO && (
+                  <Route
+                    path="/archives"
+                    element={
+                      role === "creator" ? (
+                        <Navigate to="/review" replace />
+                      ) : (
+                        <ArchivesPage />
+                      )
+                    }
+                  />
+                )}
                 <Route
                   path="/activity"
                   element={

@@ -13,6 +13,7 @@ test("full site: project settings, scoped profiles, upload, failed checks, revis
       apiRequests.push(request.url());
   });
   await page.goto("./");
+  await page.getByLabel("Demo role").selectOption("admin");
   await expect(
     page.getByRole("heading", { name: "Projects.", exact: true }),
   ).toBeVisible();

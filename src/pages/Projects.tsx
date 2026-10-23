@@ -14,7 +14,7 @@ import {
   Sprout,
 } from "lucide-react";
 import { useWorkspace } from "../context";
-import { demoAsset } from "../runtime";
+import { PUBLIC_DEMO, demoAsset } from "../runtime";
 import { ProjectForm } from "../components/ProjectForm";
 import { Avatar, dateLabel, EmptyState, Instagram } from "../components/ui";
 
@@ -225,7 +225,13 @@ export function ProjectsPage() {
             return (
               <Link
                 key={project.id}
-                to={`/projects/${project.id}`}
+                to={
+                  PUBLIC_DEMO &&
+                  role === "creator" &&
+                  project.id === "fictional-river-showcase-v1"
+                    ? `/campaigns/${project.id}`
+                    : `/projects/${project.id}`
+                }
                 className="project-card"
               >
                 <div className="project-cover">

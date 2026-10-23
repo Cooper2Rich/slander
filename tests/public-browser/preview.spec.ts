@@ -56,8 +56,8 @@ test("earlier campaign-preview consent, creative and gift survive the full-site 
     page.getByText("Automatically eligible", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/Earlier public creative/)).toBeVisible();
-  await page.getByRole("tab", { name: "Funding" }).click();
-  await expect(page.getByText("$10.00", { exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Performance" }).click();
+  await expect(page.getByText("$90.00", { exact: true })).toBeVisible();
 });
 
 test("public preview works without an API server and persists only browser sample data", async ({

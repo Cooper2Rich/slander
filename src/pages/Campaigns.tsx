@@ -236,7 +236,10 @@ export function CampaignsPage() {
             role="tablist"
             aria-label="Campaign sections"
           >
-            {["Overview", "Funding", "Performance", "Settlement"].map((t) => (
+            {(PUBLIC_DEMO && role === "creator"
+              ? ["Overview", "Performance"]
+              : ["Overview", "Funding", "Performance", "Settlement"]
+            ).map((t) => (
               <button
                 key={t}
                 role="tab"

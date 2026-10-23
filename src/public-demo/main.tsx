@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter } from "react-router-dom";
 import { Leaf } from "lucide-react";
-import App from "../App";
+import PublicApp from "./PublicApp";
 import "../styles.css";
 import "./styles.css";
 
@@ -20,7 +20,7 @@ createRoot(document.getElementById("root")!).render(
           Source & local version ↗
         </a>
       </div>
-      <App />
+      <PublicApp />
     </HashRouter>
   </StrictMode>,
 );

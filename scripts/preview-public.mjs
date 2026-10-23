@@ -9,6 +9,7 @@ const mime = {
   ".css": "text/css",
   ".jpg": "image/jpeg",
   ".svg": "image/svg+xml",
+  ".webm": "video/webm",
 };
 createServer((req, res) => {
   const path = decodeURIComponent(

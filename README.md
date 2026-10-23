@@ -2,7 +2,9 @@
 
 [**Open the public interactive demo →**](https://cooper2rich.github.io/slander/)
 
-No installation or sign-in required. The public demo now uses the **same full interface as the local version**: Projects, Campaigns, submissions, eligible creatives, platform exceptions, activity, and the three role workspaces. Create a project, choose a creator profile, upload or select sample media, revise a creative, manage a scoped hold/appeal, and download a handoff. Campaign terms, simulated giving, reports and sample statement export are also available. Projects and eligibility reuse the local domain rules; money remains an explicitly fictional illustration. Each visitor's records and uploaded files stay in their own browser. The Express/SQLite version below provides the full local backend.
+No installation or sign-in required. The public demo opens to a **video discovery grid**: hover for a muted preview, click for an ad profile, see illustrative impressions/CTR/donations, and choose **Fund ad spend**. Create a separate **viewer profile** to simulate contributions and keep a giving history. Profiles and contributions stay in this browser; there are no passwords, external sign-ins, real charges, or live ad purchases.
+
+Use **Preview as** to explore the workspaces. Creators have two navigation tabs: **My ads** (their own creatives, results, and archive) and **Campaigns**. Admin and Campaign Owner views include creatives, spending, archives, and activity. Project creation, uploads, revisions, scoped exceptions, campaign consent, tracked simulated gifts, reports, and sample statements remain available. These public-demo UX experiments do not amend the PRD or change the local backend's navigation and permissions.
 
 A responsive, provider-free local campaign marketplace demo built with React, Express and SQLite. It has three selectable workspaces: **Admin**, **Campaign Owner**, and **Creator**. Role selection models scope; it is not authentication.
 
@@ -39,7 +41,7 @@ Live payments, payouts, OAuth, social publishing, ad delivery, production identi
 
 ## Data and verification
 
-The GitHub Pages demo is built with `npm run build:public`; only the generated `public-site/` assets are published to `gh-pages`. Source lives on `demo-2`. It renders the same `App` as the local version and reuses project, eligibility, revision, scope and exception domain modules through browser platform adapters. Fictional records live in localStorage; uploaded media lives in IndexedDB. Nothing connects to the local API, database or files. Verify desktop/mobile workflows with `npm run test:public`. Clearing this site's browser storage starts a fresh fictional workspace.
+The GitHub Pages demo is built with `npm run build:public`; only the generated `public-site/` assets are published to `gh-pages`. Source lives on `demo-2`. Public discovery and simplified workspaces reuse project, eligibility, revision, scope and exception domain modules through browser adapters. Fictional records live in localStorage; uploaded media lives in IndexedDB. Nothing connects to the local API, database or files. Bundled motion-story previews are generated from sample images with `node scripts/generate-preview-videos.mjs`. Verify desktop/mobile workflows with `npm run test:public`. Clearing this site's browser storage starts a fresh fictional workspace.
 
 Data persists in `data/slander.sqlite`; uploads stay in `data/uploads`. `SLANDER_DATA_DIR` selects an isolated directory. Never delete data to refresh the demo. Startup migrates existing records and retains identifiers. Showcase initialization is explicit, never a startup side effect.
 

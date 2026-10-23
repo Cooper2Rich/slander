@@ -1,5 +1,11 @@
 import type { Page } from "@playwright/test";
 export async function navigate(page: Page, label: string) {
+  const legacyFilter = {
+    "All submissions": "all",
+    "Platform exceptions": "held",
+    "Eligible creatives": "approved",
+  }[label];
+  if (legacyFilter) label = "Creatives";
   const open = page.getByRole("button", {
     name: "Open navigation",
     exact: true,
@@ -9,6 +15,8 @@ export async function navigate(page: Page, label: string) {
     .getByRole("navigation", { name: "Main navigation" })
     .getByRole("link", { name: label, exact: false })
     .click();
+  if (legacyFilter)
+    await page.getByLabel("Filter by post status").selectOption(legacyFilter);
 }
 export async function selectCreator(
   page: Page,
@@ -19,6 +27,7 @@ export async function selectCreator(
     .getByLabel("Creator profile", { exact: true })
     .selectOption({ label });
   await page.getByRole("button", { name: "Open creator studio" }).click();
+  await navigate(page, "Campaigns");
 }
 export async function selectOwner(
   page: Page,
