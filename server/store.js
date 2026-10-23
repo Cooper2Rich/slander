@@ -25,7 +25,7 @@ export function createStore(filename, seed = true, { migrationHook } = {}) {
         )
         .get().version
     : 0;
-  if (existed && oldVersion < 3) {
+  if (existed && oldVersion < 4) {
     const directory = dirname(filename);
     migrationBackup = `${directory}-backup-v${oldVersion === 0 ? 1 : oldVersion + 1}-${Date.now()}`;
     mkdirSync(migrationBackup);

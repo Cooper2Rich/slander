@@ -1924,7 +1924,7 @@ test("v3 migration backs up v2 rows and rolls back new tables and triggers on fa
   const filename = join(f.dir, "test.sqlite"),
     raw = new DatabaseSync(filename);
   raw.exec(
-    "DELETE FROM schema_migrations WHERE version=3; DROP TABLE finance_operations; DROP TABLE settlement_periods; DROP TABLE settlement_results;",
+    "DELETE FROM schema_migrations WHERE version>=3; DROP TABLE finance_operations; DROP TABLE settlement_periods; DROP TABLE settlement_results;",
   );
   raw.close();
   const oldState = f.store.read(),

@@ -35,12 +35,215 @@ import {
 } from "../server/private-media.js";
 import { seedData } from "../server/seed.js";
 import {
+  publishExposurePolicy,
+  scheduleExposure,
+  finishTrial,
+} from "../server/exposure-queue.js";
+import { financeFixture } from "./finance-helpers.js";
+import { spendMedia, mediaBalance } from "../server/media-budgets.js";
+import {
   COMPENSATION,
   evaluateSnapshot,
   eligibilityFacts,
   eligibleCounts,
   submissionsOpen,
 } from "../server/eligibility.js";
+
+const queueEvidence = {
+  disclosure: "Fictional isolated local queue receipts; no external delivery",
+};
+test("initial organic queue rotates stable creators, limits active trials, preserves cursor and retries atomically", async (t) => {
+  const f = await marketplaceFixture(t),
+    firstId = f.access.creatorId;
+  for (let i = 0; i < 4; i++)
+    assert.equal(
+      (
+        await submit(f.request, {
+          acceptedTermsVersion: f.terms.id,
+          caption: `Fictional variant ${i}`,
+        })
+      ).status,
+      201,
+    );
+  const secondId = f.store.read().creators.find((c) => c.id !== firstId).id;
+  f.store.update((s, r) =>
+    consent(s, r, f.project.id, f.terms.id, {
+      role: "creator",
+      creatorId: secondId,
+    }),
+  );
+  const second = await f.request(`/projects/${f.project.id}/posts`, {
+    method: "POST",
+    role: "creator",
+    headers: { "x-demo-creator": secondId },
+    body: {
+      ...valid,
+      caption: "Fictional second creator",
+      acceptedTermsVersion: f.terms.id,
+    },
+  });
+  assert.equal(second.status, 201);
+  const policy = f.store.update((s, r) =>
+    publishExposurePolicy(
+      s,
+      r,
+      f.project.id,
+      {
+        cohort: {
+          channel: "instagram",
+          placement: "feed",
+          paid: false,
+          mode: "simulated",
+        },
+        maxActiveTrialsPerCreator: 1,
+        trialAllocationCents: null,
+        exposurePlan: "Fictional discovery preview order",
+      },
+      adminAccess,
+    ),
+  );
+  const schedule = (key) =>
+    f.store.update((s, r) =>
+      scheduleExposure(
+        s,
+        r,
+        policy.id,
+        { idempotencyKey: key, maxSlots: 1 },
+        adminAccess,
+      ),
+    );
+  const first = schedule("first"),
+    retry = schedule("first"),
+    next = schedule("next"),
+    blocked = schedule("blocked");
+  assert.deepEqual(retry, first);
+  assert.equal(first.assignments.length, 1);
+  assert.equal(next.assignments.length, 1);
+  assert.notEqual(
+    first.assignments[0].creatorId,
+    next.assignments[0].creatorId,
+  );
+  assert.equal(next.cursorBefore, first.cursorAfter);
+  assert.equal(blocked.assignments.length, 0);
+  assert.ok(blocked.waiting.some((w) => w.reason === "MAX_ACTIVE_TRIALS"));
+  assert.equal(first.assignments[0].reservationId, null);
+  assert.equal(first.assignments[0].deliveryEvidence, null);
+  const creatorAssignment = [...first.assignments, ...next.assignments].find(
+    (a) => a.creatorId === firstId,
+  );
+  assert.equal(creatorAssignment.snapshotId, f.post.snapshotId);
+  f.store.update((s, r) =>
+    finishTrial(
+      s,
+      r,
+      creatorAssignment.id,
+      { reason: "Preview finished", evidenceRef: "Fictional preview receipt" },
+      adminAccess,
+    ),
+  );
+  assert.equal(schedule("after-completion").assignments[0].creatorId, firstId);
+  const reopened = createStore(join(f.dir, "test.sqlite"));
+  assert.deepEqual(
+    reopened.records.lastExposureRun(f.project.id, policy.id).cursorAfter,
+    firstId,
+  );
+  reopened.close();
+  queueEvidence.organic = { policy, first, retry, next, blocked };
+});
+test("paid trial waits for settled funds, reserves real capacity once, and invalidation releases only unused money", async (t) => {
+  const f = await financeFixture(t, { paid: true });
+  const policy = f.store.update((s, r) =>
+    publishExposurePolicy(
+      s,
+      r,
+      f.project.id,
+      {
+        cohort: {
+          channel: "instagram",
+          placement: "feed",
+          paid: true,
+          mode: "simulated",
+        },
+        maxActiveTrialsPerCreator: 1,
+        trialAllocationCents: 6000,
+        exposurePlan: "Fictional bounded paid initial trial",
+      },
+      adminAccess,
+    ),
+  );
+  const schedule = (key) =>
+    f.store.update((s, r) =>
+      scheduleExposure(
+        s,
+        r,
+        policy.id,
+        { idempotencyKey: key, maxSlots: 1 },
+        adminAccess,
+      ),
+    );
+  const pending = schedule("unfunded");
+  assert.equal(pending.status, "pending");
+  assert.equal(pending.waiting[0].reason, "WAITING_FOR_FUNDED_CAPACITY");
+  assert.equal(f.rows("reservations").length, 0);
+  const cash = f.support(10000, [
+    { purpose: "media", use: "ad_budget", amountCents: 10000 },
+  ]);
+  f.send(cash, "capture");
+  assert.equal(schedule("captured-only").status, "pending");
+  f.send(cash, "settlement");
+  const funded = schedule("funded"),
+    a = funded.assignments[0];
+  assert.ok(a.reservationId);
+  assert.equal(a.allocationCents, 6000);
+  assert.deepEqual(schedule("funded"), funded);
+  f.store.update((s, r) =>
+    spendMedia(
+      s,
+      r,
+      a.reservationId,
+      {
+        idempotencyKey: "fixture-invoice",
+        amountCents: 4000,
+        effectiveAt: new Date().toISOString(),
+        evidenceRef: "Fictional trial actual bill",
+      },
+      adminAccess,
+    ),
+  );
+  f.store.update((s) =>
+    s.creativeHolds.push({
+      id: "fictional-hold",
+      postId: f.post.id,
+      code: "CONTENT_HOLD",
+      reason: "Fictional invalidation",
+      evidence: "Fictional review evidence",
+      at: new Date().toISOString(),
+    }),
+  );
+  const stopped = schedule("invalidation"),
+    balance = mediaBalance(f.store.records, f.project.id);
+  assert.equal(stopped.invalidated, 1);
+  assert.equal(stopped.assignments.length, 0);
+  assert.equal(balance.reservedMediaCents, 0);
+  assert.equal(balance.spentMediaCents, 4000);
+  assert.equal(balance.availableCents, 6000);
+  assert.ok(f.store.records.get("distributions", a.distributionId));
+  assert.equal(
+    f.store.records.distributionStateAt(
+      f.project.id,
+      a.distributionId,
+      new Date().toISOString(),
+    ).state,
+    "stopped",
+  );
+  queueEvidence.paid = { policy, pending, funded, stopped, balance };
+  queueEvidence.queryPlans = f.store.records.analyticsQueryPlans();
+  if (process.env.SLANDER_QUEUE_EVIDENCE)
+    writeFileSync(
+      process.env.SLANDER_QUEUE_EVIDENCE,
+      JSON.stringify(queueEvidence, null, 2),
+    );
+});
 
 const valid = {
   title: "Automatic creative",

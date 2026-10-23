@@ -5,6 +5,7 @@ import { mkdirSync, readFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { marketplaceRoutes } from "./marketplace-routes.js";
 import { financeRoutes } from "./finance-routes.js";
+import { analyticsRoutes } from "./analytics-routes.js";
 import {
   migrateOrganizations,
   assignOrganizations,
@@ -206,6 +207,7 @@ export function createApp(store, dataDir) {
   mediaRoutes(app, store, uploadDir, requireRole);
   marketplaceRoutes(app, store, requireRole);
   financeRoutes(app, store, requireRole);
+  analyticsRoutes(app, store, requireRole);
   const upload = multer({
     storage: multer.diskStorage({
       destination: uploadDir,

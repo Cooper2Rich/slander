@@ -1,6 +1,11 @@
 import { migrateFinanceRecords, financeRepository } from "./finance-records.js";
 import { AppError } from "./domain.js";
 import {
+  migrateAnalyticsRecords,
+  analyticsRepository,
+  analyticsTables,
+} from "./analytics-records.js";
+import {
   migrateSettlementRecords,
   settlementRepository,
 } from "./settlement-records.js";
@@ -9,6 +14,7 @@ import {
 // The workspace remains authoritative for legacy creative snapshots; snapshot_refs
 // is an index of their IDs, not a second copy of their immutable contents.
 const tables = [
+  ...analyticsTables,
   "offer_versions",
   "participations",
   "participation_restrictions",
@@ -73,6 +79,7 @@ export function migrateRecords(db) {
       INSERT OR IGNORE INTO schema_migrations(version) VALUES(1);`);
     migrateFinanceRecords(db);
     migrateSettlementRecords(db);
+    migrateAnalyticsRecords(db);
   }
 }
 
@@ -86,6 +93,7 @@ export function recordRepository(db, writable) {
   return {
     ...financeRepository(db, writable),
     ...settlementRepository(db),
+    ...analyticsRepository(db),
     beginWrite() {
       dirtyTransactions.clear();
       newTransactions.clear();
