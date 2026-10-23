@@ -243,7 +243,7 @@ export function marketplaceRoutes(app, store, requireRole) {
   });
   app.get("/api/offers", (req, res) => {
     const state = store.read();
-    readAccess(req, state);
+    const access = readAccess(req, state);
     const query = z
       .object({
         cause: z.string().optional(),
@@ -261,6 +261,8 @@ export function marketplaceRoutes(app, store, requireRole) {
       })
       .strict()
       .parse(req.query);
+    if (["owner", "nonprofit"].includes(access.role))
+      query.organizationId = access.organizationId;
     const page = store.records.discoverOffers(query);
     res.json({
       ...page,
@@ -286,13 +288,13 @@ export function marketplaceRoutes(app, store, requireRole) {
       ?.slice(16);
     if (!/^[A-Za-z0-9_-]{43}$/.test(id || "")) {
       id = opaqueToken();
-      res.cookie("slander_visitor", id, {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 7 * 86400000,
-      });
     }
+    res.cookie("slander_visitor", id, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 86400000,
+    });
     return id;
   };
   app.get("/r/:token", (req, res) => {

@@ -3,7 +3,11 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { AppError, getProject } from "./domain.js";
 import { canViewProject, readAccess } from "./access.js";
-import { currentEligibility, mediaDigest } from "./eligibility.js";
+import {
+  currentEligibility,
+  mediaDigest,
+  refreshEligibility,
+} from "./eligibility.js";
 
 export function mediaSignature(bytes, mime) {
   const header = bytes.subarray(0, 16);
@@ -196,7 +200,7 @@ export function verifyMediaReference(
 }
 export function mediaRoutes(app, store, uploadDir, requireRole) {
   const retrieve = (req, res) => {
-    const state = store.read();
+    const state = refreshEligibility(store.read());
     const media = req.params.id
       ? store.records.get("media", req.params.id)
       : store.records.byMediaPath(`/uploads/${req.params.filename}`);

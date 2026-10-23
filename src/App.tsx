@@ -34,6 +34,7 @@ import { ProjectsPage } from "./pages/Projects";
 import { PostsPage } from "./pages/Posts";
 import { ProjectDetail } from "./pages/ProjectDetail";
 import { ActivityPage } from "./pages/Activity";
+import { CampaignsPage, GivingPage } from "./pages/Campaigns";
 
 export default function App() {
   const location = useLocation();
@@ -80,8 +81,9 @@ export default function App() {
         ? ["pending", "changes"].includes(p.status)
         : p.status === "held",
     ).length || 0;
-  const title =
-    location.pathname === "/review"
+  const title = location.pathname.startsWith("/campaigns")
+    ? "Campaigns"
+    : location.pathname === "/review"
       ? role === "creator"
         ? "My creatives"
         : "Platform exceptions"
@@ -98,6 +100,7 @@ export default function App() {
     document.title = `${title} · Slander`;
   }, [title]);
   const nav = [
+    { to: "/campaigns", icon: Sparkles, label: "Campaigns" },
     {
       to: "/projects",
       icon: FolderHeart,
@@ -125,6 +128,13 @@ export default function App() {
       ? [{ to: "/activity", icon: Activity, label: "Activity" }]
       : []),
   ];
+  if (/^\/campaigns\/[^/]+\/give\/?$/.test(location.pathname)) {
+    return (
+      <Routes>
+        <Route path="/campaigns/:id/give" element={<GivingPage />} />
+      </Routes>
+    );
+  }
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -155,7 +165,7 @@ export default function App() {
               {role === "admin"
                 ? "All organizations & projects"
                 : role === "nonprofit"
-                  ? "Nonprofit workspace"
+                  ? "Campaign Owner workspace"
                   : "Creator studio"}
             </small>
           </div>
@@ -237,7 +247,7 @@ export default function App() {
                 {role === "admin"
                   ? "Admin View"
                   : role === "nonprofit"
-                    ? "Non-Profit"
+                    ? "Campaign Owner"
                     : "Creator"}
               </small>
             </div>
@@ -292,7 +302,7 @@ export default function App() {
                 onChange={(e) => setRole(e.target.value as Role)}
               >
                 <option value="admin">Admin View</option>
-                <option value="nonprofit">Non-Profit</option>
+                <option value="nonprofit">Campaign Owner</option>
                 <option value="creator">Creator</option>
               </select>
               <ChevronDown size={13} />
@@ -342,6 +352,8 @@ export default function App() {
               }}
             >
               <Routes>
+                <Route path="/campaigns" element={<CampaignsPage />} />
+                <Route path="/campaigns/:id" element={<CampaignsPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route
@@ -402,9 +414,9 @@ export default function App() {
               <section>
                 <h3>Start with a project</h3>
                 <p>
-                  Admin creates projects and assigns their nonprofit. Non-Profit
-                  view starts with an organization selection and shows only that
-                  organization's projects.
+                  Open Campaigns as Admin and initialize the fictional showcase.
+                  Switch to Campaign Owner to explore scoped funding and
+                  reports.
                 </p>
               </section>
             </div>
@@ -413,9 +425,8 @@ export default function App() {
               <section>
                 <h3>Bring a story to the table</h3>
                 <p>
-                  Select a creator profile, open a published project, and submit
-                  a photo or video. Your submissions and eligibility results
-                  follow the selected creator.
+                  Select Alex River in Creator view. Open Campaigns, accept the
+                  frozen terms, and submit the supplied sample creative.
                 </p>
               </section>
             </div>
@@ -435,8 +446,9 @@ export default function App() {
               <section>
                 <h3>Get ready for Instagram</h3>
                 <p>
-                  Pair a project with the nonprofit’s username. Eligible photos
-                  and reels can then be downloaded for handoff.
+                  Create a tracked giving link, open it, and confirm a simulated
+                  $100 gift. See $10 creator, $90 beneficiary, and one vote.
+                  Admin can export a sample week statement from Settlement.
                 </p>
               </section>
             </div>

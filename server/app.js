@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { marketplaceRoutes } from "./marketplace-routes.js";
 import { financeRoutes } from "./finance-routes.js";
 import { analyticsRoutes } from "./analytics-routes.js";
+import { showcaseRoutes } from "./demo-showcase.js";
 import {
   migrateOrganizations,
   assignOrganizations,
@@ -71,6 +72,7 @@ export function createApp(store, dataDir) {
             error: "This action is not available in the selected demo view.",
           });
   app.get("/api/health", (_req, res) => res.json({ ok: true }));
+  showcaseRoutes(app, store, dataDir, requireRole);
   app.get("/api/demo-options", (_req, res) => {
     const { nonprofits, creators, organizations } = store.read();
     res.json({ nonprofits, creators, organizations });

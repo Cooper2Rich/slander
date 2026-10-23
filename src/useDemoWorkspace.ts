@@ -6,7 +6,12 @@ export function useDemoWorkspace() {
   const [access, setAccess] = useState<DemoAccess>(() => {
     const saved = localStorage.getItem("slander-role");
     return {
-      role: saved === "creator" || saved === "nonprofit" ? saved : "admin",
+      role:
+        saved === "owner" || saved === "nonprofit"
+          ? "nonprofit"
+          : saved === "creator"
+            ? saved
+            : "admin",
       nonprofitId: null,
       creatorId: null,
     };
@@ -53,7 +58,7 @@ export function useDemoWorkspace() {
   }, [load]);
   const setRole = (role: Role) => {
     setAccess({ role, nonprofitId: null, creatorId: null });
-    localStorage.setItem("slander-role", role);
+    localStorage.setItem("slander-role", role === "nonprofit" ? "owner" : role);
   };
   const chooseIdentity = (id: string | null) =>
     setAccess((current) => ({

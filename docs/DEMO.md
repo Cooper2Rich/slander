@@ -1,53 +1,44 @@
-# Slander demo implementation scope
+# Slander local demo
 
-The 25 September 2026 request authorizes implementing a working web demo from the PRD, focused on pairing a nonprofit’s Instagram account per project and approving posts. It supersedes the original document-only restriction for this implementation. The original PRD remains unchanged as the broader product intent.
+The current scope follows the user's instruction: this is a demo and not every aspect needs to function. The working core journey is discovery → frozen terms/consent → sample creative → automatic eligibility → tracked local gift → reports → exportable current sample week preview. See the README for exact click steps.
 
-## Included behavior
+## Visible capabilities
 
-| PRD intent                     | Demo implementation                                                                                                                                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| REQ-001: mobile web            | Responsive project, submission, review, and handoff views, tested at desktop and mobile sizes.                                                                                                               |
-| REQ-003: configured dates      | Stored exact start/end dates, shown on the project. Only active projects within their UTC calendar dates accept submissions.                                                                                 |
-| REQ-004: open submissions      | Any demo creator can submit without an invitation. Every submission enters review.                                                                                                                           |
-| REQ-005: prepublication checks | Versioned deterministic checks for rights confirmation and media/format compatibility, alongside server field validation. These are basic demo checks, not policy moderation. Failed checks block approval.  |
-| REQ-006: format proposals      | Photo/reel creatives and story/carousel/other proposals are retained. Only individual photos/reels can enter the demo handoff workflow. This is not a verified Instagram API capability matrix.              |
-| REQ-007: per-project account   | Each project can store one normalized Instagram username. Account fields can remain empty until later. Saving a username pairs the destination; it does not verify ownership or authorize Meta API access.   |
-| Approval workflow              | Nonprofit administrators approve, request changes, or decline. Feedback is required for changes and decline. Revisions rerun checks and require a new review. Review history and workspace activity persist. |
-| Handoff                        | Approval, passing checks, supported demo format, an account pairing, and a non-archived project are all required to export approved post details. Removing the pairing blocks handoff immediately.           |
+| Area               | Working behavior                                                                                                                                                                                                                                                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Workspaces         | Admin, Campaign Owner, Creator; explicit organization/profile selection and scoped API access. Selectors are demo access, not sign-in.                                                                                                                                                                                                           |
+| Campaigns          | Open offer discovery, campaign details, fixed 1,000bps USD terms, dates, attribution window, creator acceptance.                                                                                                                                                                                                                                 |
+| Creative           | Automatic versioned deterministic eligibility, immutable snapshots/revisions, evidence-linked holds/appeals. No routine manual approval. Existing upload/sample submission editor and library remain.                                                                                                                                            |
+| Sharing            | The showcase creates an organic Instagram feed distribution bound to the eligible revision and frozen terms, then an opaque first-party local link. This is local handoff, not a social post.                                                                                                                                                    |
+| Giving             | Public page works without choosing a private identity. Positive USD amounts become immutable intents; confirmation uses shared contribution/capture/settlement operations. A tracked $100 gift yields $10/$90 before zero fixture fees and one vote. Confirmation replay cannot duplicate money. Unresolved attribution is shown as unallocated. |
+| Funding            | Explicit fictional settled $600 seed-guarantee pool and $400 media pool. Public proceeds, creator commission and restricted funds stay separate. Initialization creates no guarantee promise, ad spend or creator payout.                                                                                                                        |
+| Performance        | Journal-derived donation votes and proceeds. Unknown outbound metrics/cost ratios show N/A. Actual grade remains provisional. Separately labeled grading-v2 example scores 77.5 using shared formulas, with fixed 15/10/35/40 weights.                                                                                                           |
+| Settlement         | Admin exports a JSON sample statement computed from shared current-week facts for Alex River. Accrual, settled availability, holds and prior payments are separate. The sample week cutoff is still in the future: no approved batch or simulated/real transfer is created.                                                                      |
+| Existing workspace | Projects, scoped settings, Instagram username pairing, creator submission editor, library/counts, activity and exception handling remain usable. Username pairing is not OAuth.                                                                                                                                                                  |
+| Media and tracking | Private upload retrieval is scoped; public media checks fresh eligibility including immediate participation suspension. Seven-day visitor cookie expiration renews on visits while keeping the same visitor ID.                                                                                                                                  |
 
-## Deliberately deferred
+## Explicit fictional setup
 
-- Live Instagram authorization, account verification, access-token handling, posting, and publishing retries. No external publication calls exist in this demo.
-- Paid advertising versus organic distribution and platform-specific format validation.
-- Donation collection, attribution, commissions, payouts, voting, rankings, and winners.
-- Production sign-in, verified nonprofit membership, authenticated creator identity, media authorization, and moderation policy. Demo role/profile choices are explicit; the API scopes data and mutations to those choices, which will later come from authenticated sessions.
-- Production storage, media transcoding, asynchronous processing, and deployment.
+Admin action: `POST /api/demo/showcase` with `x-demo-role: admin` and `{}`. It appends stable IDs under `fictional-river-showcase-v1`. A second call returns `created:false` and does not add funding again. It never deletes or replaces existing projects, posts, identities or media. All initialized identities and funding are fictional. Showcase terms are active from seven days before setup until ninety days after setup; initialize a new designed scenario if demonstrating after that offer has ended rather than resetting historical records.
 
-The demo supports manual review without an Instagram account. Approval is not publication. Export produces a handoff package and never marks a post as live.
+`GET /api/demo/showcase` returns readiness and IDs. Creator shortcut `POST /api/campaigns/:id/sample-creative` uses approved sample bytes, shared submission/snapshot/evaluation and selected identity. Consent is recorded through normal `/consent`; the sample shortcut does not manufacture participation. `POST /api/campaigns/:id/demo-link` uses shared distribution/link operations and enforces creator ownership. `/r/:token` must be visited through an ordinary anchor so Express records the click before redirecting to public giving.
 
-## Demo access rules
+`POST /api/demo/sample-statement` is Admin-only and limited to the fictional campaign. It defines an exact current seven-day UTC sample period and returns the shared creator statement with a disclosure. This is an exportable preview, not a backdated/closed settlement or a future-clock payout simulation.
 
-- **Admin View:** full workspace visibility, project creation and assignment, project settings, submission administration, approvals, and handoff.
-- **Non-Profit:** organization selection is mandatory before project data is displayed. Only that organization's projects, posts, and activity are returned. It can manage project content, publication state, dates, and Instagram pairing, and review its submissions. It cannot create or reassign projects.
-- **Creator:** a selected demo creator sees published (`active`) projects, only their own submissions and review feedback, and approved public creatives across published projects. Other creators' private review history is excluded. Creators cannot see project settings, Instagram configuration, handoff readiness, or activity, and cannot review posts or edit another creator's work.
-- The creator leaderboard uses actual approved-post counts in the demo. Equal counts share a rank. It does not implement the PRD's performance/fundraising ranking formula.
-- Organization and creator identities have stable IDs. Startup migrates existing projects and submissions without replacing user-created data. New projects with the same normalized nonprofit name belong to the same organization.
-- Switching profiles clears the current view immediately. Responses from a previously selected scope cannot repopulate the next scope. Re-entering Non-Profit or Creator and reloading require a fresh selection.
+The browser keeps the legacy internal `nonprofit` option for compatibility and stores/maps it to `owner`; API requests use `x-demo-role: owner` plus `x-demo-organization`. Legacy nonprofit headers remain a compatibility alias server-side. Original records keep stable IDs.
 
-These restrictions model the intended behavior, but the demo selectors are not authentication. API headers are deliberately selectable for demonstration. The later auth layer must supply and verify the role, nonprofit membership, and creator identity on the server.
+## Existing domain APIs and deliberate limits
 
-## Later integration boundary
+The accepted backend includes explicit organization ownership/beneficiaries, frozen offers, consent, distribution gates, source evidence/replay handling, balanced integer-cent journal, bounded restricted reservations/spend, finite seed promises/app-use, weekly manifests and simulated results, economics and evidence/configuration-gated grading. Their regression suites remain part of `npm run check`. The demo UI does not expose exhaustive forms for every API operation.
 
-The Instagram connection belongs to a project and its nonprofit. A later real integration should verify the authenticated nonprofit administrator, perform Meta OAuth, confirm account identity, and store credentials on the server. Keep the existing review revision and policy gates before introducing any publishing worker. A handle entered into this demo must never be treated as OAuth consent or proof of account ownership.
+No live effects are available: no donation collection, payment-provider credentials, payouts, social OAuth/posting, ad buying, or verified external metrics. The UI honestly disables live controls. Fair initial exposure scheduling is a local API preview; comprehensive opportunity verification and advanced configuration UI are deferred. An illustrative score cannot pay a bonus or buy advertising. The 77.5 sample is not presented as observed campaign performance or causal impact.
 
-## Architecture
+The earlier approved-post-count leaderboard is an eligibility-count feature, not the performance grade. Other creators' private evidence/history is excluded from public projections. The public giving projection includes only campaign presentation fields.
 
-- `server/domain.js`: input rules, project calendar eligibility, review transitions, submission checks, and handoff gates.
-- `server/access.js`: identity migration, nonprofit/project scoping, creator ownership, and public approved-post projections.
-- `server/store.js`: SQLite transactions around persistent workspace data.
-- `server/app.js`: JSON API, demo-role gates, uploads, pairing, and export.
-- `src/pages/`: projects, project detail, reviews/submissions, and activity.
-- `src/components/`: project/account settings, submission editor, review dialog, shared presentation.
-- `src/useDemoWorkspace.ts`: profile selection and responses scoped to the current view.
+## Architecture and checks
 
-Data remains on this computer. No credentials, payments, or Instagram API requests are needed to demonstrate the workflow.
+`server/demo-showcase.js` composes existing domain operations for the explicit fictional scenario. `src/pages/Campaigns.tsx` provides discovery/details, funding/performance/statement tabs and the public giving screen. Existing pages remain in their established shell.
+
+`tests/showcase.test.js` verifies append-only idempotence and original-record preservation, restricted pool amounts, consent → eligibility → tracked gift, cookie renewal, replay-safe confirmation, current-week statement, role scope, grade arithmetic and immediate public-media suspension. `tests/browser/marketplace.spec.ts` clicks the visible desktop/mobile core journey, confirms $10/$90/+1, checks scopes and downloads, checks overflow and records screenshots. Existing browser/unit/financial/analytics suites remain required.
+
+All test state uses temporary or `test-results` SQLite directories. The user's `data/` is never a test fixture.
