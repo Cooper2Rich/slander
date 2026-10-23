@@ -2,8 +2,9 @@
 
 [**Open the public interactive demo →**](https://cooper2rich.github.io/slander/)
 
-Explore the campaign marketplace in your browser. No installation or sign-in required.
+Explore the full demo interface in your browser, matching the local website. No installation or sign-in required.
 
+- Browse Projects, Campaigns, submissions, eligible creatives, platform exceptions and activity. Create projects, choose profiles, upload media, revise creatives, and try the hold/appeal and handoff workflows.
 - Try the Creator view: accept illustrative terms, submit the sample creative, open the tracked giving page, and confirm a simulated gift.
 - Switch to Campaign Owner for funding and performance previews, or Admin to export a sample statement.
 - All identities and amounts are fictional. Preview data stays in each visitor's browser. No real payments or server accounting occur.
