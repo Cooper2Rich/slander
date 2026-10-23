@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowUpRight, Heart, Play, Search } from "lucide-react";
+import { ArrowUpRight, Heart, Search } from "lucide-react";
 import App from "../App";
 import { Logo, Modal } from "../components/ui";
 import { demoAsset } from "../runtime";
-import { mediaFile } from "./media";
+import { AdMedia } from "./AdMedia";
 import {
   activeViewer,
   createViewer,
@@ -28,82 +28,6 @@ export function enterWorkspace(
     JSON.stringify({ role, creatorId: null, nonprofitId: null }),
   );
   navigate(role === "creator" ? "/review" : "/projects");
-}
-function AdMedia({ ad, full = false }: { ad: PublicAd; full?: boolean }) {
-  const video = useRef<HTMLVideoElement>(null);
-  const [source, setSource] = useState("");
-  const [watching, setWatching] = useState(false);
-  useEffect(() => {
-    let disposed = false,
-      url = "";
-    if (ad.media.startsWith("/api/media/"))
-      void mediaFile(ad.media).then((blob) => {
-        if (blob && !disposed) {
-          url = URL.createObjectURL(blob);
-          setSource(url);
-        }
-      });
-    return () => {
-      disposed = true;
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [ad.media]);
-  const src = ad.media.startsWith("/api/media/") ? source : demoAsset(ad.media);
-  function preview() {
-    if (
-      !full &&
-      !watching &&
-      !matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      void video.current?.play().catch(() => {});
-  }
-  function stop() {
-    if (!full && !watching && video.current) {
-      video.current.pause();
-      video.current.currentTime = 0;
-    }
-  }
-  return ad.mediaType === "video" ? (
-    <>
-      <video
-        ref={video}
-        src={src || undefined}
-        poster={demoAsset(ad.poster)}
-        muted={!full && !watching}
-        loop={!full && !watching}
-        controls={full || watching}
-        tabIndex={full || watching ? undefined : 0}
-        playsInline
-        preload="metadata"
-        aria-label={ad.title}
-        onPointerEnter={(event) => {
-          if (event.pointerType === "mouse") preview();
-        }}
-        onPointerLeave={stop}
-        onFocus={preview}
-        onBlur={stop}
-      />
-      {!full && !watching && (
-        <button
-          className="inline-play"
-          aria-label={`Play ${ad.title}`}
-          onClick={() => {
-            const player = video.current;
-            if (!player) return;
-            player.currentTime = 0;
-            player.muted = false;
-            player.loop = false;
-            setWatching(true);
-            void player.play().catch(() => {});
-          }}
-        >
-          <Play size={14} fill="currentColor" /> Play
-        </button>
-      )}
-    </>
-  ) : (
-    <img src={src || undefined} alt={ad.title} />
-  );
 }
 export default function PublicApp() {
   const location = useLocation(),
@@ -146,7 +70,7 @@ export default function PublicApp() {
   );
   const update = () => setVersion(version + 1);
   return (
-    <div className="discovery-shell">
+    <div className="discovery-shell compact-ads">
       <a
         href="#discovery-content"
         className="skip-link"

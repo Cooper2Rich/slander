@@ -57,10 +57,36 @@ test("finished coffee collection has three playable films over 15 seconds, with 
   await selectCreator(page, "Nocturne Studio · fictional");
   await navigate(page, "My ads");
   await expect(page.locator(".creator-card")).toHaveCount(3);
+  const creatorCard = page.locator(".creator-card").first();
+  const creatorVideo = creatorCard.locator("video");
+  await expect(creatorCard).toContainText("32,400");
+  await creatorCard
+    .getByRole("button", { name: "Play Your midnight ritual" })
+    .click();
+  await expect
+    .poll(() =>
+      creatorVideo.evaluate((video: HTMLVideoElement) => video.currentTime),
+    )
+    .toBeGreaterThan(0.1);
+  expect(
+    await creatorVideo.evaluate((video: HTMLVideoElement) => ({
+      muted: video.muted,
+      controls: video.controls,
+      loop: video.loop,
+    })),
+  ).toEqual({ muted: false, controls: true, loop: false });
+  await page.getByRole("heading", { name: "My ads.", exact: true }).hover();
+  expect(
+    await creatorVideo.evaluate((video: HTMLVideoElement) => video.paused),
+  ).toBe(false);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page
     .getByRole("button", { name: "View Your midnight ritual", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toBeVisible();
+  expect(
+    await creatorVideo.evaluate((video: HTMLVideoElement) => video.paused),
+  ).toBe(true);
   await expect
     .poll(() =>
       page

@@ -6,7 +6,7 @@ import { EmptyState, Media, Modal, StatusBadge } from "../components/ui";
 import { ReviewDialog } from "../components/ReviewDialog";
 import type { Post } from "../types";
 import { AdStats } from "./AdStats";
-import { demoAsset } from "../runtime";
+import { AdMedia } from "./AdMedia";
 import {
   fundedCents,
   loadAds,
@@ -16,7 +16,7 @@ import {
 } from "./catalog";
 
 export function CreatorAds() {
-  const { posts, identity, search } = useWorkspace();
+  const { posts, identity, search, access } = useWorkspace();
   const [ads, setAds] = useState<PublicAd[]>([]),
     [tab, setTab] = useState("Current"),
     [selected, setSelected] = useState<Post | null>(null);
@@ -33,7 +33,7 @@ export function CreatorAds() {
       `${p.title} ${p.caption}`.toLowerCase().includes(search.toLowerCase()),
   );
   return (
-    <>
+    <section className="creator-ads compact-ads" aria-label="Your ads">
       <div className="page-heading">
         <div>
           <span className="eyebrow">YOUR STORIES. YOUR IMPACT.</span>
@@ -97,19 +97,14 @@ export function CreatorAds() {
           const ad = ads.find((a) => a.id === post.id);
           return (
             <article key={post.id} className="ad-card creator-card">
-              <button
-                className="creator-thumbnail"
-                onClick={() => setSelected(post)}
-                aria-label={`View ${post.title}`}
-              >
-                <Media
-                  post={post}
-                  controls={false}
-                  poster={ad?.poster ? demoAsset(ad.poster) : undefined}
-                />
-              </button>
-              <div className="ad-card-copy">
+              <div className="ad-card-media">
+                <AdMedia ad={{ ...post, poster: ad?.poster }} access={access} />
                 <StatusBadge status={post.status} />
+                {ad?.durationSeconds && (
+                  <span className="ad-duration">0:{ad.durationSeconds}</span>
+                )}
+              </div>
+              <div className="ad-card-copy">
                 <h3>{post.title}</h3>
                 <AdStats
                   ad={
@@ -123,7 +118,18 @@ export function CreatorAds() {
                 <div className="creator-card-actions">
                   <button
                     className="button secondary"
-                    onClick={() => setSelected(post)}
+                    onClick={(event) => {
+                      event.currentTarget
+                        .closest(".creator-card")
+                        ?.querySelector("video")
+                        ?.pause();
+                      setSelected(post);
+                    }}
+                    aria-label={
+                      archived.includes(post.id)
+                        ? undefined
+                        : `View ${post.title}`
+                    }
                   >
                     {archived.includes(post.id)
                       ? "View archive"
@@ -177,7 +183,7 @@ export function CreatorAds() {
         ) : (
           <ReviewDialog post={selected} onClose={() => setSelected(null)} />
         ))}
-    </>
+    </section>
   );
 }
 export function SpendingPage() {

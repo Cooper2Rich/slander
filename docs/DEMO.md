@@ -54,3 +54,5 @@ The earlier approved-post-count leaderboard is an eligibility-count feature, not
 All test state uses temporary or `test-results` SQLite directories. The user's `data/` is never a test fixture.
 
 Public discovery opens directly to compact cards: four across at 1200px and above, three from 960px, two from 540px, and one on smaller phones. Videos play in their cards with sound and playback controls after choosing Play; muted hover previews and linked ad profiles remain available. Ad names and impressions/CTR/donated amounts sit underneath each video. The large promotional hero is removed. Creator navigation and the PRD are unchanged.
+
+Creator **My ads** now shares the compact public card layout and player, including full in-card playback with sound, metrics underneath, and retained View & edit/Public profile actions. Its grid responds to the available workspace width after accounting for the sidebar. Current ads and personal archives retain creator scope; private browser uploads continue through the scoped media adapter. The PRD is unchanged.
