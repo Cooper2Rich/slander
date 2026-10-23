@@ -52,3 +52,5 @@ The earlier approved-post-count leaderboard is an eligibility-count feature, not
 `tests/showcase.test.js` verifies append-only idempotence and original-record preservation, restricted pool amounts, consent → eligibility → tracked gift, cookie renewal, replay-safe confirmation, current-week statement, role scope, grade arithmetic and immediate public-media suspension. `tests/browser/marketplace.spec.ts` clicks the visible desktop/mobile core journey, confirms $10/$90/+1, checks scopes and downloads, checks overflow and records screenshots. Existing browser/unit/financial/analytics suites remain required.
 
 All test state uses temporary or `test-results` SQLite directories. The user's `data/` is never a test fixture.
+
+Public discovery opens directly to compact cards: four across at 1200px and above, three from 960px, two from 540px, and one on smaller phones. Videos play in their cards with sound and playback controls after choosing Play; muted hover previews and linked ad profiles remain available. Ad names and impressions/CTR/donated amounts sit underneath each video. The large promotional hero is removed. Creator navigation and the PRD are unchanged.

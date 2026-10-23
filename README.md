@@ -2,7 +2,7 @@
 
 [**Open the public interactive demo →**](https://cooper2rich.github.io/slander/)
 
-No installation or sign-in required. The public demo opens to a **video discovery grid**: hover for a muted preview, click for an ad profile, see illustrative impressions/CTR/donations, and choose **Fund ad spend**. Create a separate **viewer profile** to simulate contributions and keep a giving history. Profiles and contributions stay in this browser; there are no passwords, external sign-ins, real charges, or live ad purchases.
+No installation or sign-in required. The public demo opens directly to a **compact ad grid**: four cards across on desktop, adapting to three, two or one on smaller screens. Play full videos with sound in the grid, hover for a muted preview, or select an ad name for its profile. Each card shows the ad name, illustrative impressions/CTR/donations and **Fund ad spend**. Create a separate **viewer profile** to simulate contributions and keep a giving history. Profiles and contributions stay in this browser; there are no passwords, external sign-ins, real charges, or live ad purchases.
 
 The featured **Nocturne Coffee** collection includes three **16.4-second** ads made from real filmed coffee footage, with ambient audio. Choose **Watch coffee collection**, or switch to Creator and select **Nocturne Studio · fictional** to see all three under My ads. The public demo is branded **Ripple**, with a ripple-and-play logo, black backgrounds, dark blue accents, and seafoam/light blue buttons with contrast-checked text. [Asset files, footage credits and rebuild notes](docs/COFFEE-DEMO-ASSETS.md).
 

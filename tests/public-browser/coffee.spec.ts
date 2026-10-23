@@ -203,13 +203,15 @@ test("Ripple blue and seafoam controls and text remain readable in public and cr
     ".button.secondary",
     ".metrics-note",
     ".ad-stats dt",
-    ".ad-category",
-    ".ad-play",
+    ".inline-play",
+    ".ad-duration",
+    ".coffee-filter",
     ".demo-view-picker select",
     ".public-notice",
   ]);
   await selectCreator(page, "Nocturne Studio · fictional");
   await navigate(page, "My ads");
+  await expect(page.locator(".creator-card")).toHaveCount(3);
   await check([
     ".button.primary",
     ".button.secondary",

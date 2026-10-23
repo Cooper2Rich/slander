@@ -7,12 +7,12 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
+  const discoveryUrl = page.url();
   await expect(
-    page.getByRole("heading", { name: "Find a story. Help it go further." }),
+    page.getByRole("heading", { name: "Discover ads." }),
   ).toBeVisible();
   const cards = page.locator(".ad-card");
   await expect(cards).toHaveCount(6);
-  await page.getByRole("link", { name: "Explore the stories" }).click();
   await expect(page.getByLabel("Demo role")).toHaveValue("public");
   const treeCard = cards.filter({
     has: page.getByRole("heading", {
@@ -32,10 +32,28 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(false);
   expect(await video.evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
-  await page.getByRole("heading", { name: /Stories for good/ }).hover();
+  await page.getByRole("heading", { name: "Discover ads." }).hover();
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(true);
+  await cards
+    .first()
+    .getByRole("button", { name: "Play Your midnight ritual" })
+    .click();
+  await expect
+    .poll(() => video.evaluate((v: HTMLVideoElement) => v.currentTime))
+    .toBeGreaterThan(0.1);
+  expect(
+    await video.evaluate((v: HTMLVideoElement) => ({
+      muted: v.muted,
+      controls: v.controls,
+      loop: v.loop,
+    })),
+  ).toEqual({ muted: false, controls: true, loop: false });
+  await page.getByRole("heading", { name: "Discover ads." }).hover();
+  expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+  await expect(page).toHaveURL(discoveryUrl);
+  await video.evaluate((v: HTMLVideoElement) => v.pause());
   await page.getByLabel("Search ads").fill("no such story");
   await expect(cards).toHaveCount(0);
   await page.getByLabel("Search ads").fill("");
@@ -157,12 +175,10 @@ test("reduced motion prevents automatic preview; viewer profiles can be left and
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
-  const preview = page.locator(".ad-card-media").first();
+  const preview = page.locator(".ad-card-media video").first();
   await preview.focus();
   await expect
-    .poll(() =>
-      preview.locator("video").evaluate((v: HTMLVideoElement) => v.paused),
-    )
+    .poll(() => preview.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(true);
   await page.getByRole("link", { name: "Viewer account", exact: true }).click();
   await page.getByLabel("Your name").fill("Viewer Two");
@@ -180,4 +196,41 @@ test("reduced motion prevents automatic preview; viewer profiles can be left and
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+
+test("public ad grid shows four compact cards across and adapts without horizontal scrolling", async ({
+  page,
+}, info) => {
+  await page.goto("./");
+  await expect(page.locator(".ad-card")).toHaveCount(6);
+  for (const [width, columns] of [
+    [1440, 4],
+    [1024, 3],
+    [713, 2],
+    [390, 1],
+  ]) {
+    await page.setViewportSize({ width, height: 900 });
+    const layout = await page.locator(".ad-grid").evaluate((grid) => {
+      const cards = [...grid.querySelectorAll(".ad-card")];
+      const first = cards[0].getBoundingClientRect();
+      return {
+        columns: cards.filter(
+          (card) => Math.abs(card.getBoundingClientRect().top - first.top) < 1,
+        ).length,
+        firstTop: first.top,
+        firstBottom: first.bottom,
+        width: document.documentElement.scrollWidth,
+      };
+    });
+    expect(layout.columns, `columns at ${width}px`).toBe(columns);
+    expect(layout.width).toBeLessThanOrEqual(width);
+    expect(layout.firstTop).toBeLessThan(400);
+    if (width === 1440) {
+      expect(layout.firstBottom).toBeLessThan(900);
+      await page.screenshot({
+        path: `test-results/compact-grid-${info.project.name}.png`,
+        fullPage: true,
+      });
+    }
+  }
 });

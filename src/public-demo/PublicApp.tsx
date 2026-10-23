@@ -32,6 +32,7 @@ export function enterWorkspace(
 function AdMedia({ ad, full = false }: { ad: PublicAd; full?: boolean }) {
   const video = useRef<HTMLVideoElement>(null);
   const [source, setSource] = useState("");
+  const [watching, setWatching] = useState(false);
   useEffect(() => {
     let disposed = false,
       url = "";
@@ -49,31 +50,57 @@ function AdMedia({ ad, full = false }: { ad: PublicAd; full?: boolean }) {
   }, [ad.media]);
   const src = ad.media.startsWith("/api/media/") ? source : demoAsset(ad.media);
   function preview() {
-    if (!full && !matchMedia("(prefers-reduced-motion: reduce)").matches)
+    if (
+      !full &&
+      !watching &&
+      !matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
       void video.current?.play().catch(() => {});
   }
   function stop() {
-    if (!full && video.current) {
+    if (!full && !watching && video.current) {
       video.current.pause();
       video.current.currentTime = 0;
     }
   }
   return ad.mediaType === "video" ? (
-    <video
-      ref={video}
-      src={src || undefined}
-      poster={demoAsset(ad.poster)}
-      muted={!full}
-      loop={!full}
-      controls={full}
-      playsInline
-      preload="metadata"
-      aria-label={ad.title}
-      onPointerEnter={preview}
-      onPointerLeave={stop}
-      onFocus={preview}
-      onBlur={stop}
-    />
+    <>
+      <video
+        ref={video}
+        src={src || undefined}
+        poster={demoAsset(ad.poster)}
+        muted={!full && !watching}
+        loop={!full && !watching}
+        controls={full || watching}
+        tabIndex={full || watching ? undefined : 0}
+        playsInline
+        preload="metadata"
+        aria-label={ad.title}
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse") preview();
+        }}
+        onPointerLeave={stop}
+        onFocus={preview}
+        onBlur={stop}
+      />
+      {!full && !watching && (
+        <button
+          className="inline-play"
+          aria-label={`Play ${ad.title}`}
+          onClick={() => {
+            const player = video.current;
+            if (!player) return;
+            player.currentTime = 0;
+            player.muted = false;
+            player.loop = false;
+            setWatching(true);
+            void player.play().catch(() => {});
+          }}
+        >
+          <Play size={14} fill="currentColor" /> Play
+        </button>
+      )}
+    </>
   ) : (
     <img src={src || undefined} alt={ad.title} />
   );
@@ -278,83 +305,11 @@ export default function PublicApp() {
           )
         ) : (
           <>
-            <section className="discovery-hero">
-              <div>
-                <span className="eyebrow">
-                  GOOD STORIES DESERVE TO BE SEEN.
-                </span>
-                <h1>
-                  Find a story.
-                  <br />
-                  <em>Help it go further.</em>
-                </h1>
-                <p>
-                  Discover creators making a difference. Watch their stories,
-                  see the impact, and help the ads you love reach more people.
-                </p>
-                <a
-                  href="#stories"
-                  className="button primary"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    document.getElementById("stories")?.scrollIntoView({
-                      behavior: matchMedia("(prefers-reduced-motion: reduce)")
-                        .matches
-                        ? "instant"
-                        : "smooth",
-                    });
-                  }}
-                >
-                  Explore the stories <ArrowUpRight size={17} />
-                </a>
-              </div>
-              <div className="discovery-art">
-                <img
-                  src={demoAsset("images/nocturne-midnight-filmed-v2.jpg")}
-                  alt="Fresh coffee being poured through a filter"
-                />
-                <span>
-                  Nocturne Coffee.
-                  <br />
-                  <strong>Made for after dark.</strong> ✳
-                </span>
-              </div>
-            </section>
-            <section
-              className="collection-banner"
-              aria-label="Nocturne Coffee collection"
-            >
-              <div>
-                <span className="eyebrow">
-                  FEATURED COLLECTION · FINISHED FILMS
-                </span>
-                <h2>Three films. One after-dark ritual.</h2>
-                <p>
-                  Nocturne Coffee · three 16-second coffee shop ads, ready to
-                  watch with sound.
-                </p>
-              </div>
-              <button
-                className="button secondary"
-                onClick={() => {
-                  setCategory("Coffee & culture");
-                  setSearch("");
-                  document.getElementById("stories")?.scrollIntoView();
-                }}
-              >
-                Watch coffee collection <Play size={16} />
-              </button>
-            </section>
             <section id="stories">
               <div className="discovery-toolbar">
-                <div>
-                  <span className="eyebrow">
-                    THE NEXT STORY YOU CAN MOVE FORWARD
-                  </span>
-                  <h2>
-                    Stories for good<span className="title-dot">.</span>
-                  </h2>
-                </div>
+                <h1>
+                  Discover ads<span className="title-dot">.</span>
+                </h1>
                 <div className="discovery-filters">
                   <label className="discovery-search">
                     <Search size={17} />
@@ -362,7 +317,7 @@ export default function PublicApp() {
                       aria-label="Search ads"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search stories or creators"
+                      placeholder="Search ads or creators"
                     />
                   </label>
                   <select
@@ -379,64 +334,58 @@ export default function PublicApp() {
                   </select>
                 </div>
               </div>
-              <p className="metrics-note">
-                Hover to preview · tap or click to open a profile · sample
-                metrics are illustrative
-              </p>
+              <div className="discovery-grid-meta">
+                <p className="metrics-note">
+                  Hover to preview · Play for sound · Sample metrics.
+                </p>
+                <button
+                  className="button ghost coffee-filter"
+                  onClick={() => {
+                    setCategory("Coffee & culture");
+                    setSearch("");
+                  }}
+                >
+                  Watch coffee collection
+                </button>
+              </div>
               <div className="ad-grid">
                 {filtered?.map((ad) => (
                   <article key={ad.id} className="ad-card">
-                    <Link
-                      className="ad-card-media"
-                      to={`/ads/${ad.id}`}
-                      aria-label={`View ${ad.title}`}
-                      onFocus={(e) => {
-                        if (
-                          !matchMedia("(prefers-reduced-motion: reduce)")
-                            .matches
-                        )
-                          void e.currentTarget
-                            .querySelector("video")
-                            ?.play()
-                            .catch(() => {});
-                      }}
-                      onBlur={(e) => {
-                        const video = e.currentTarget.querySelector("video");
-                        if (video) {
-                          video.pause();
-                          video.currentTime = 0;
-                        }
-                      }}
-                    >
-                      <AdMedia ad={ad} />
-                      <span className="ad-category">{ad.category}</span>
+                    <div className="ad-card-media">
+                      {ad.mediaType === "video" ? (
+                        <AdMedia ad={ad} />
+                      ) : (
+                        <Link
+                          to={`/ads/${ad.id}`}
+                          aria-label={`View ${ad.title}`}
+                        >
+                          <AdMedia ad={ad} />
+                        </Link>
+                      )}
                       {ad.durationSeconds && (
                         <span className="ad-duration">
-                          0:{ad.durationSeconds} · Finished ad
+                          0:{ad.durationSeconds}
                         </span>
                       )}
-                      {ad.mediaType === "video" && (
-                        <span className="ad-play">
-                          <Play size={18} fill="currentColor" /> Preview
-                        </span>
-                      )}
-                    </Link>
+                    </div>
                     <div className="ad-card-copy">
-                      <span className="eyebrow">{ad.nonprofit}</span>
-                      <Link to={`/ads/${ad.id}`}>
+                      <Link
+                        to={`/ads/${ad.id}`}
+                        aria-label={
+                          ad.mediaType === "video"
+                            ? `View ${ad.title}`
+                            : undefined
+                        }
+                      >
                         <h3>{ad.title}</h3>
                       </Link>
-                      <p>by {ad.creator}</p>
                       <AdStats ad={ad} />
                       <button
                         className="button primary full"
                         onClick={() => setSupport(ad)}
                       >
-                        Fund ad spend <Heart size={16} />
+                        Fund ad spend <Heart size={14} />
                       </button>
-                      <small>
-                        {money(fundedCents(ad.id))} ad spend funded here
-                      </small>
                     </div>
                   </article>
                 ))}
