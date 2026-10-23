@@ -10,6 +10,7 @@ import {
   Download,
 } from "lucide-react";
 import { api } from "../api";
+import { PUBLIC_DEMO, demoAsset } from "../runtime";
 import { useWorkspace } from "../context";
 import type { Post } from "../types";
 
@@ -131,7 +132,8 @@ export function CampaignsPage() {
           </p>
         </div>
         <span className="market-mode">
-          <Leaf size={15} /> LOCAL SIMULATION
+          <Leaf size={15} />{" "}
+          {PUBLIC_DEMO ? "BROWSER PREVIEW" : "LOCAL SIMULATION"}
         </span>
       </div>
       {error && (
@@ -198,7 +200,7 @@ export function CampaignsPage() {
                 >
                   <div className="offer-photo">
                     <img
-                      src="/images/forest.jpg"
+                      src={demoAsset("images/forest.jpg")}
                       alt="Sunlight through a green forest"
                     />
                     <span>OPEN CAMPAIGN</span>
@@ -256,7 +258,7 @@ export function CampaignsPage() {
               <section className="campaign-story">
                 <img
                   className="campaign-cover"
-                  src="/images/forest.jpg"
+                  src={demoAsset("images/forest.jpg")}
                   alt="A forest worth caring for"
                 />
                 <div className="market-panel">
@@ -268,9 +270,17 @@ export function CampaignsPage() {
                     clear rights and disclosures, so you can walk the whole
                     journey.
                   </p>
-                  <Link to={`/projects/${offer.id}`} className="text-button">
-                    Open full creative brief <ArrowUpRight size={16} />
-                  </Link>
+                  {PUBLIC_DEMO ? (
+                    <p className="callout">
+                      Creative brief: tell a hopeful story about caring for
+                      rivers. The supplied forest image and disclosure text are
+                      fictional sample assets.
+                    </p>
+                  ) : (
+                    <Link to={`/projects/${offer.id}`} className="text-button">
+                      Open full creative brief <ArrowUpRight size={16} />
+                    </Link>
+                  )}
                 </div>
               </section>
               <div className="market-panel terms-panel">
@@ -448,8 +458,10 @@ export function CampaignsPage() {
                   <p>
                     $600 is restricted to seed guarantees. $400 is restricted to
                     media. This showcase does not create a guarantee promise or
-                    buy ads. Public giving creates its own creator and
-                    beneficiary journal entries.
+                    buy ads.{" "}
+                    {PUBLIC_DEMO
+                      ? "The browser preview keeps illustrative gift allocations separate."
+                      : "Public giving creates its own creator and beneficiary journal entries."}
                   </p>
                 )}
                 <p className="muted">{totals?.feeAssumption}</p>
@@ -480,7 +492,11 @@ export function CampaignsPage() {
                 <Metric
                   label="Beneficiary proceeds"
                   value={money(totals?.beneficiaryCents)}
-                  note="Simulated journal · before fixture fees"
+                  note={
+                    PUBLIC_DEMO
+                      ? "Browser preview · before fixture fees"
+                      : "Simulated journal · before fixture fees"
+                  }
                 />
                 <Metric
                   label="Outbound clicks / impressions"
@@ -504,8 +520,9 @@ export function CampaignsPage() {
                   </h2>
                   <p>
                     Fixed weights: CTR 15 · views 10 · votes 35 · amount 40.
-                    This example uses smoothed CTR and capped square-root
-                    components from the shared grading function.
+                    {PUBLIC_DEMO
+                      ? "This is a fixed illustrative score, separate from your preview gifts."
+                      : "This example uses smoothed CTR and capped square-root components from the shared grading function."}
                   </p>
                 </div>
                 <div className="grade-bars">
@@ -532,9 +549,9 @@ export function CampaignsPage() {
               <span className="eyebrow">CLEAR RECORDS. NO REAL TRANSFERS.</span>
               <h2>A week’s work, made visible.</h2>
               <p>
-                Preview an exportable fictional statement from the shared
-                settlement engine. Captured commission, settled availability,
-                holds, and prior payments remain separate.
+                {PUBLIC_DEMO
+                  ? "Export a fictional statement for this browser's sample week. It illustrates allocation totals; it is not a server journal, approved batch, or payment."
+                  : "Preview an exportable fictional statement from the shared settlement engine. Captured commission, settled availability, holds, and prior payments remain separate."}
               </p>
               <div className="metric-grid">
                 <Metric
@@ -678,7 +695,10 @@ export function GivingPage() {
       </header>
       <main className="giving-layout">
         <div className="giving-story">
-          <img src="/images/forest.jpg" alt="Sunlight over a green forest" />
+          <img
+            src={demoAsset("images/forest.jpg")}
+            alt="Sunlight over a green forest"
+          />
           <span className="eyebrow">SMALL ACTS. LASTING GOOD.</span>
           <h1>{campaign?.name || "A little kindness goes a long way."}</h1>
           <p>{campaign?.description}</p>
@@ -724,8 +744,10 @@ export function GivingPage() {
                 </p>
               )}
               <p>
-                Before fixture fees (assumed $0). This confirmation is recorded
-                in the shared simulated journal.
+                Before fixture fees (assumed $0).{" "}
+                {PUBLIC_DEMO
+                  ? "This preview is saved only in this browser. No server journal or payment is created."
+                  : "This confirmation is recorded in the shared simulated journal."}
               </p>
               <Link className="button primary full" to={`/campaigns/${id}`}>
                 Return to campaign <ArrowUpRight size={16} />

@@ -1,4 +1,5 @@
 import type { DemoAccess } from "./types";
+import { PUBLIC_DEMO } from "./runtime";
 
 export function accessHeaders(access?: DemoAccess) {
   return access
@@ -33,6 +34,10 @@ export async function api<T>(
   method = "GET",
   body?: unknown,
 ): Promise<T> {
+  if (PUBLIC_DEMO) {
+    const { publicApi } = await import("./public-demo/api");
+    return publicApi(path, access, method, body) as T;
+  }
   const form = body instanceof FormData;
   const response = await fetch(`/api${path}`, {
     method,

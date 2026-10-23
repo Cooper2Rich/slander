@@ -1,5 +1,7 @@
 # Slander local demo
 
+Public visitors can open the [GitHub Pages interactive preview](https://cooper2rich.github.io/slander/). It uses the same campaign screens with a browser-only fictional adapter, a hash router and no server connection. Terms/sample creative/giving/report/export interactions are illustrations stored separately in each visitor's browser. The full domain accounting and eligibility evidence described below belong to the local Express/SQLite version. The public preview never publishes the user's local workspace or private uploads.
+
 The current scope follows the user's instruction: this is a demo and not every aspect needs to function. The working core journey is discovery → frozen terms/consent → sample creative → automatic eligibility → tracked local gift → reports → exportable current sample week preview. See the README for exact click steps.
 
 ## Visible capabilities

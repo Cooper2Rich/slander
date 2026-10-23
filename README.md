@@ -1,5 +1,9 @@
 # Slander — Stories for good
 
+[**Open the public interactive demo →**](https://cooper2rich.github.io/slander/)
+
+No installation or sign-in required. The public preview reuses the campaign screens with fictional, browser-local data. Try Creator → accept terms → submit sample → tracked gift, then switch to Campaign Owner or Admin for reports and a statement export. No real payments or server accounting occur in the public preview. Each visitor has separate data; the full Express/SQLite demo below runs locally.
+
 A responsive, provider-free local campaign marketplace demo built with React, Express and SQLite. It has three selectable workspaces: **Admin**, **Campaign Owner**, and **Creator**. Role selection models scope; it is not authentication.
 
 ## Run
@@ -34,6 +38,8 @@ The showcase supplies fictional settled funding and sample media. Reports do not
 Live payments, payouts, OAuth, social publishing, ad delivery, production identity verification, external metric ingestion and production deployment are unavailable. Advanced grading configuration, exposure scheduling/opportunity verification and settlement administration remain API previews or deferred UI. Disabled live controls are labeled. [Full demo capabilities and API notes](docs/DEMO.md).
 
 ## Data and verification
+
+The GitHub Pages preview is built with `npm run build:public`; only the generated `public-site/` assets are published to `gh-pages`. Source lives on `demo-2`. Its browser adapter includes fictional fixtures only and never connects to the local API, database or uploads. Verify its desktop/mobile walkthrough with `npm run test:public`. Browser storage preserves that visitor's sample journey; clearing this site's browser storage starts a fresh preview.
 
 Data persists in `data/slander.sqlite`; uploads stay in `data/uploads`. `SLANDER_DATA_DIR` selects an isolated directory. Never delete data to refresh the demo. Startup migrates existing records and retains identifiers. Showcase initialization is explicit, never a startup side effect.
 
