@@ -9,6 +9,7 @@ import {
   migrateOrganizations,
   assignOrganizations,
   enforceFixedRate,
+  transitionDistribution,
 } from "./marketplace.js";
 import {
   mediaSignature,
@@ -406,7 +407,7 @@ export function createApp(store, dataDir) {
     );
   });
   app.get("/api/posts/:id/export", (req, res) => {
-    const manifest = store.update((state) => {
+    const manifest = store.update((state, records) => {
       const post = requirePost(
         state,
         req.params.id,
@@ -417,6 +418,26 @@ export function createApp(store, dataDir) {
       const project = getProject(state, post.projectId);
       const gate = readiness(post, project);
       if (!gate.ready) throw new AppError(gate.reasons.join(". "), 409);
+      let distribution = null;
+      if (project.offerVersionId) {
+        distribution =
+          typeof req.query.distributionId === "string"
+            ? records.get("distributions", req.query.distributionId)
+            : null;
+        if (
+          !distribution ||
+          distribution.postId !== post.id ||
+          distribution.campaignId !== project.id
+        )
+          throw new AppError("MATCHING_MARKETPLACE_DISTRIBUTION_REQUIRED", 409);
+        transitionDistribution(
+          state,
+          records,
+          distribution.id,
+          "exported",
+          readAccess(req, state),
+        );
+      }
       const record = {
         id: randomUUID(),
         postId: post.id,
@@ -431,6 +452,8 @@ export function createApp(store, dataDir) {
         format: post.format,
         media: post.media,
         revision: post.revision,
+        distributionId: distribution?.id || null,
+        termsId: distribution?.termsId || null,
         snapshot: structuredClone(
           post.snapshots.find((s) => s.id === post.snapshotId),
         ),

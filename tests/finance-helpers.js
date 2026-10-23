@@ -6,11 +6,19 @@ import { COMPENSATION } from "../server/eligibility.js";
 import { freezeIntent } from "../server/attribution.js";
 import { createContribution, ingestEvent } from "../server/finance.js";
 
-export async function financeFixture(t) {
+export async function financeFixture(t, options = {}) {
   const f = await fixture(t);
   const project = f.store.read().projects[0];
   f.store.update((s) => {
     s.projects[0].instagram = "fictional.trees";
+    if (options.payer === "sponsor") {
+      s.organizations.push({
+        id: "fictional-finance-sponsor",
+        name: "Fictional Finance Sponsor",
+        type: "business",
+      });
+      s.projects[0].sponsorOrganizationIds.push("fictional-finance-sponsor");
+    }
   });
   const at = new Date(Date.now() - 3600000).toISOString();
   const terms = f.store.update((s, r) =>
@@ -36,10 +44,23 @@ export async function financeFixture(t) {
           },
         },
         combinations: [
-          { channel: "instagram", placement: "feed", paid: false },
+          { channel: "instagram", placement: "feed", paid: !!options.paid },
         ],
         destinations: [`/campaigns/${project.id}/give`],
-        budgetPayer: "unassigned",
+        budgetPayer: options.paid ? options.payer || "owner" : "unassigned",
+        mediaBudget: options.paid
+          ? {
+              campaignLifetimeCapCents: options.cap || 10000,
+              distributionCapCents: options.distributionCap || 10000,
+              dailyCapCents: options.dailyCap || null,
+              payerId:
+                options.payer === "creator"
+                  ? f.store.read().creators[0].id
+                  : options.payer === "sponsor"
+                    ? "fictional-finance-sponsor"
+                    : project.ownerOrganizationId,
+            }
+          : null,
         guarantee: null,
         appUseAllocationCents: null,
         refundHoldPolicy: "Hold disputed gifts; cumulative refunds",
@@ -85,9 +106,9 @@ export async function financeFixture(t) {
       termsId: terms.id,
       channel: "instagram",
       placement: "feed",
-      paid: false,
+      paid: !!options.paid,
       destination: `/campaigns/${project.id}/give`,
-      payer: "unassigned",
+      payer: options.paid ? options.payer || "owner" : "unassigned",
       mode: "simulated",
     },
   });

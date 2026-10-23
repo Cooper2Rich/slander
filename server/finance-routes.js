@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AppError } from "./domain.js";
 import { readAccess, requireProject } from "./access.js";
+import { settlementRoutes } from "./settlement-routes.js";
 import {
   createContribution,
   ingestEvent,
@@ -10,6 +11,7 @@ import {
 } from "./finance.js";
 
 export function financeRoutes(app, store, requireRole) {
+  settlementRoutes(app, store, requireRole);
   const mutate = (req, fn) =>
     store.update((s, r) => fn(s, r, readAccess(req, s)));
   app.post(
@@ -73,11 +75,41 @@ export function financeRoutes(app, store, requireRole) {
       mode,
       a.role === "creator" ? a.creatorId : null,
     );
+    const committed = store.records.operationTotals(
+      req.params.id,
+      a.role === "creator" ? { creatorId: a.creatorId } : {},
+    );
     res.json({
       campaignId: req.params.id,
       mode,
       currency: "USD",
       ...totals,
+      settledBeforeCommitments: {
+        availableCreatorCents: totals.availableCreatorCents,
+        availableSeedGuaranteeCents: totals.availableSeedGuaranteeCents,
+        availableSeedAppUseCents: totals.availableSeedAppUseCents,
+        availableMediaCents: totals.availableMediaCents,
+      },
+      commitments: committed,
+      availableCreatorCents: Math.max(
+        0,
+        totals.availableCreatorCents -
+          committed.reservedBaseCents -
+          committed.paidBaseCents,
+      ),
+      availableSeedGuaranteeCents:
+        totals.availableSeedGuaranteeCents -
+        committed.reservedGuaranteeCents -
+        committed.usedGuaranteeCents,
+      availableSeedAppUseCents:
+        totals.availableSeedAppUseCents -
+        committed.reservedAppUseCents -
+        committed.usedAppUseCents,
+      availableMediaCents:
+        totals.availableMediaCents -
+        committed.reservedMediaCents -
+        committed.spentMediaCents,
+      recoveryCents: Math.max(0, committed.paidBaseCents - totals.creatorCents),
       feeAssumption:
         mode === "simulated"
           ? "Zero processing fees; fixture assumption."

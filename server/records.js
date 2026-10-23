@@ -1,5 +1,9 @@
 import { migrateFinanceRecords, financeRepository } from "./finance-records.js";
 import { AppError } from "./domain.js";
+import {
+  migrateSettlementRecords,
+  settlementRepository,
+} from "./settlement-records.js";
 
 // New histories live in indexed SQLite rows, never in the baseline workspace JSON.
 // The workspace remains authoritative for legacy creative snapshots; snapshot_refs
@@ -29,6 +33,9 @@ const tables = [
   "source_conflicts",
   "source_event_results",
   "reconciliation_runs",
+  "finance_operations",
+  "settlement_periods",
+  "settlement_results",
 ];
 
 export function migrateRecords(db) {
@@ -65,6 +72,7 @@ export function migrateRecords(db) {
       CREATE INDEX IF NOT EXISTS participation_restriction_lookup ON participation_restrictions(campaign_id,mode,json_extract(document,'$.creatorId'),effective_at DESC);
       INSERT OR IGNORE INTO schema_migrations(version) VALUES(1);`);
     migrateFinanceRecords(db);
+    migrateSettlementRecords(db);
   }
 }
 
@@ -77,6 +85,7 @@ export function recordRepository(db, writable) {
   const decode = (row) => (row ? JSON.parse(row.document) : null);
   return {
     ...financeRepository(db, writable),
+    ...settlementRepository(db),
     beginWrite() {
       dirtyTransactions.clear();
       newTransactions.clear();

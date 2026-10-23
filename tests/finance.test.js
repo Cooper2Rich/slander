@@ -26,7 +26,96 @@ import {
   remainingAllocations,
 } from "../server/finance-money.js";
 import { freezeIntent } from "../server/attribution.js";
-import { changeOfferState } from "../server/marketplace.js";
+import { changeOfferState, publishTerms } from "../server/marketplace.js";
+import {
+  reserveMedia,
+  spendMedia,
+  cancelMedia,
+  mediaBalance,
+} from "../server/media-budgets.js";
+import { seedCapacity, chargeAppUse } from "../server/seed-commitments.js";
+import {
+  definePeriod,
+  creatorStatement,
+  approveBatch,
+  exportBatch,
+  executeBatch,
+} from "../server/settlements.js";
+
+const admin = { role: "admin" };
+function financeEvidence(name, value) {
+  const destination = process.env.SLANDER_FINANCE_EVIDENCE;
+  if (!destination) return;
+  let evidence = {};
+  try {
+    evidence = JSON.parse(readFileSync(destination, "utf8"));
+  } catch {
+    /* New evidence file. */
+  }
+  evidence[name] = value;
+  writeFileSync(destination, JSON.stringify(evidence, null, 2) + "\n");
+}
+const mutateFinance = (f, fn) => f.store.update((s, r) => fn(s, r));
+const settleSupport = (f, cents, allocations) => {
+  const c = f.support(cents, allocations);
+  f.send(c, "capture");
+  f.send(c, "settlement");
+  return c;
+};
+function fictionalWeek(f) {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  const startsAt = start.toISOString(),
+    endsAt = new Date(+start + 7 * 86400000).toISOString();
+  return mutateFinance(f, (s, r) =>
+    definePeriod(
+      s,
+      r,
+      f.project.id,
+      { startsAt, endsAt, cutoff: endsAt },
+      admin,
+    ),
+  );
+}
+function newTerms(f, changes) {
+  const keys = [
+    "currency",
+    "creatorCommissionBps",
+    "effectiveAt",
+    "startsAt",
+    "endsAt",
+    "attributionPolicy",
+    "attributionWindowDays",
+    "permissions",
+    "combinations",
+    "destinations",
+    "budgetPayer",
+    "guarantee",
+    "appUseAllocationCents",
+    "appUse",
+    "mediaBudget",
+    "refundHoldPolicy",
+    "gradingConfigId",
+  ];
+  const body = {
+    ...Object.fromEntries(keys.map((k) => [k, f.terms[k]])),
+    effectiveAt: new Date().toISOString(),
+    ...changes,
+  };
+  return mutateFinance(f, (s, r) =>
+    publishTerms(s, r, f.project.id, body, admin, body.effectiveAt),
+  );
+}
+function promiseFor(f, p, floorCents = 2500) {
+  return {
+    floorCents,
+    creatorIds: [f.creatorId],
+    periodStart: p.startsAt,
+    periodEnd: p.endsAt,
+    cutoff: p.cutoff,
+    maxTotalLiabilityCents: floorCents,
+  };
+}
 
 test("USD BigInt fixed 1000bps handles cent boundaries and cumulative refunds without floating multiplication", () => {
   assert.deepEqual(splitGift(10000), {
@@ -819,7 +908,7 @@ test("v2 migration failure rolls back and an existing v1 upgrade backs up commit
   f.send(c, "capture");
   f.send(c, "settlement");
   const raw = new DatabaseSync(join(f.dir, "test.sqlite"));
-  raw.exec("DELETE FROM schema_migrations WHERE version=2");
+  raw.exec("DELETE FROM schema_migrations WHERE version>=2");
   raw.close();
   const state = f.store.read(),
     totals = f.store.records.financeTotals(f.project.id);
@@ -849,4 +938,1089 @@ test("v2 migration failure rolls back and an existing v1 upgrade backs up commit
   assert.deepEqual(reopened.read(), state);
   assert.deepEqual(reopened.records.financeTotals(f.project.id), totals);
   reopened.close();
+});
+
+test("fictional competing $60 reserves against $100 serialize; $40 bill consumes once, $20 cancel releases only unused", async (t) => {
+  const f = await financeFixture(t, {
+    paid: true,
+    cap: 20000,
+    distributionCap: 20000,
+  });
+  settleSupport(f, 10000, [
+    { purpose: "media", use: "ad_budget", amountCents: 10000 },
+  ]);
+  const results = await Promise.all(
+    ["a", "b"].map((idempotencyKey) =>
+      f.request(`/distributions/${f.distribution.id}/reservations`, {
+        method: "POST",
+        body: { idempotencyKey, amountCents: 6000 },
+      }),
+    ),
+  );
+  assert.deepEqual(results.map((r) => r.status).sort(), [201, 409]);
+  assert.match(
+    results.find((r) => r.status === 409).data.error,
+    /MEDIA_FUNDING_SHORTFALL/,
+  );
+  const reservation = results.find((r) => r.status === 201).data;
+  const input = {
+    idempotencyKey: "request1",
+    amountCents: 4000,
+    effectiveAt: new Date().toISOString(),
+    evidenceRef: "fictional invoice 1",
+  };
+  const spent = mutateFinance(f, (s, r) =>
+    spendMedia(s, r, reservation.id, input, admin),
+  );
+  assert.equal(
+    mediaBalance(f.store.records, f.project.id).reservedMediaCents,
+    2000,
+  );
+  assert.equal(
+    mediaBalance(f.store.records, f.project.id).availableCents,
+    4000,
+  );
+  financeEvidence("reserve60Spend40", {
+    fiction: true,
+    reservationId: reservation.id,
+    spendSourceId: spent.sourceRecordId,
+    balance: mediaBalance(f.store.records, f.project.id),
+    queryPlans: f.store.records.settlementQueryPlans(),
+  });
+  const replay = mutateFinance(f, (s, r) =>
+    spendMedia(
+      s,
+      r,
+      reservation.id,
+      { ...input, idempotencyKey: "renamed-request" },
+      admin,
+    ),
+  );
+  assert.equal(replay.id, spent.id);
+  assert.throws(
+    () =>
+      mutateFinance(f, (s, r) =>
+        spendMedia(
+          s,
+          r,
+          reservation.id,
+          { ...input, amountCents: 5000 },
+          admin,
+        ),
+      ),
+    /IDEMPOTENCY_CONFLICT/,
+  );
+  const exported = await f.request(
+    `/distributions/${f.distribution.id}/state`,
+    { method: "POST", body: { state: "exported" } },
+  );
+  assert.equal(exported.status, 200, JSON.stringify(exported.data));
+  mutateFinance(f, (s, r) => cancelMedia(s, r, reservation.id, admin));
+  mutateFinance(f, (s, r) => cancelMedia(s, r, reservation.id, admin));
+  const balance = mediaBalance(f.store.records, f.project.id);
+  assert.equal(balance.spentMediaCents, 4000);
+  assert.equal(balance.reservedMediaCents, 0);
+  assert.equal(balance.availableCents, 6000);
+  assert.equal(f.store.records.financeTotals(f.project.id).creatorCents, 0);
+  assert.equal(
+    f.rows("finance_operations").filter((o) => o.kind === "media_spend").length,
+    1,
+  );
+});
+
+test("fictional $70 bill on $60 reserve is retained in full and blocks commitments even with remaining cash", async (t) => {
+  const f = await financeFixture(t, { paid: true });
+  settleSupport(f, 10000, [
+    { purpose: "media", use: "ad_budget", amountCents: 10000 },
+  ]);
+  const r = mutateFinance(f, (s, r) =>
+    reserveMedia(
+      s,
+      r,
+      f.distribution.id,
+      { idempotencyKey: "reserve", amountCents: 6000 },
+      admin,
+    ),
+  );
+  mutateFinance(f, (s, repo) =>
+    spendMedia(
+      s,
+      repo,
+      r.id,
+      {
+        idempotencyKey: "bill",
+        amountCents: 7000,
+        effectiveAt: new Date().toISOString(),
+        evidenceRef: "fictional overdelivery bill",
+      },
+      admin,
+    ),
+  );
+  const balance = mediaBalance(f.store.records, f.project.id);
+  assert.equal(balance.spentMediaCents, 7000);
+  assert.equal(balance.overrunCents, 1000);
+  assert.equal(balance.held, true);
+  assert.equal(balance.availableCents, 3000);
+  financeEvidence("overrun70On60", { fiction: true, balance });
+  assert.throws(
+    () =>
+      mutateFinance(f, (s, r) =>
+        reserveMedia(
+          s,
+          r,
+          f.distribution.id,
+          { idempotencyKey: "extra", amountCents: 1 },
+          admin,
+        ),
+      ),
+    /DEFICIT_HOLD/,
+  );
+  mutateFinance(f, (s, repo) => cancelMedia(s, repo, r.id, admin));
+  assert.equal(
+    mediaBalance(f.store.records, f.project.id).spentMediaCents,
+    7000,
+  );
+  const bills = f
+    .rows("journal_entries")
+    .filter((e) => e.account === "media:spend_expense");
+  assert.equal(bills[0].debitCents, 7000);
+});
+
+test("legacy creative export shares marketplace pause, matching distribution and funded paid-plan gates", async (t) => {
+  const f = await financeFixture(t, { paid: true });
+  const path = `/posts/${f.post.id}/export?distributionId=${f.distribution.id}`;
+  assert.equal((await f.request(`/posts/${f.post.id}/export`)).status, 409);
+  const unreserved = await f.request(path);
+  assert.equal(unreserved.status, 409);
+  assert.match(unreserved.data.error, /MEDIA_RESERVATION_REQUIRED/);
+  settleSupport(f, 10000, [
+    { purpose: "media", use: "ad_budget", amountCents: 10000 },
+  ]);
+  mutateFinance(f, (s, r) =>
+    reserveMedia(
+      s,
+      r,
+      f.distribution.id,
+      { idempotencyKey: "export", amountCents: 6000 },
+      admin,
+    ),
+  );
+  mutateFinance(f, (s, r) =>
+    changeOfferState(s, r, f.project.id, "paused", admin),
+  );
+  assert.equal((await f.request(path)).status, 409);
+  assert.equal(f.store.read().exports.length, 0);
+  mutateFinance(f, (s, r) =>
+    changeOfferState(s, r, f.project.id, "open", admin),
+  );
+  const exported = await f.request(path);
+  assert.equal(exported.status, 200, JSON.stringify(exported.data));
+  assert.equal(exported.data.distributionId, f.distribution.id);
+  assert.equal(exported.data.termsId, f.terms.id);
+  assert.equal(f.store.read().exports.length, 1);
+});
+
+test("media requires settled purpose, named payer, independent caps and owner scope; pause blocks new reserves and creator external spend creates no Slander cash", async (t) => {
+  const f = await financeFixture(t, {
+    paid: true,
+    distributionCap: 6000,
+    dailyCap: 5000,
+  });
+  const c = f.support(10000, [
+    { purpose: "media", use: "ad_budget", amountCents: 10000 },
+  ]);
+  const reserve = (amountCents, key = randomUUID(), access = admin) =>
+    mutateFinance(f, (s, r) =>
+      reserveMedia(
+        s,
+        r,
+        f.distribution.id,
+        { idempotencyKey: key, amountCents },
+        access,
+      ),
+    );
+  assert.throws(() => reserve(100), /FUNDING_SHORTFALL/);
+  f.send(c, "capture");
+  assert.throws(() => reserve(100), /FUNDING_SHORTFALL/);
+  f.send(c, "settlement");
+  assert.throws(
+    () => reserve(100, "creator", { role: "creator", creatorId: f.creatorId }),
+    /settings/,
+  );
+  assert.throws(
+    () =>
+      reserve(100, "foreign", {
+        role: "owner",
+        organizationId: "another-owner",
+      }),
+    /not available/,
+  );
+  assert.throws(() => reserve(6500), /CAP_EXCEEDED/);
+  assert.throws(() => reserve(5500), /DAILY_CAP_EXCEEDED/);
+  reserve(5000);
+  mutateFinance(f, (s, r) =>
+    changeOfferState(s, r, f.project.id, "paused", admin),
+  );
+  assert.throws(() => reserve(1), /PAUSED/);
+  assert.equal(
+    (
+      await f.request(`/reservations/unknown/spend`, {
+        method: "POST",
+        role: "creator",
+        body: {},
+      })
+    ).status,
+    403,
+  );
+  const external = await financeFixture(t, { paid: true, payer: "creator" });
+  const creator = { role: "creator", creatorId: external.creatorId };
+  const r = mutateFinance(external, (s, repo) =>
+    reserveMedia(
+      s,
+      repo,
+      external.distribution.id,
+      { idempotencyKey: "own", amountCents: 6000 },
+      creator,
+    ),
+  );
+  mutateFinance(external, (s, repo) =>
+    spendMedia(
+      s,
+      repo,
+      r.id,
+      {
+        idempotencyKey: "externalbill",
+        amountCents: 4000,
+        effectiveAt: new Date().toISOString(),
+        evidenceRef: "fictional creator receipt",
+      },
+      admin,
+    ),
+  );
+  const balance = mediaBalance(external.store.records, external.project.id);
+  assert.equal(balance.spentMediaCents, 0);
+  assert.equal(balance.availableCents, 0);
+  assert.equal(balance.creatorMediaCostCents, 4000);
+  assert.equal(
+    external.rows("journal_entries").filter((e) => e.account === "available")
+      .length,
+    0,
+  );
+  mutateFinance(external, (s, repo) => cancelMedia(s, repo, r.id, creator));
+  assert.equal(
+    external.store.records.creatorMediaReserved(external.project.id),
+    0,
+  );
+});
+
+test("opening finite seed promises is atomic and purpose-specific; same promise across new terms is not reserved twice", async (t) => {
+  const f = await financeFixture(t),
+    p = fictionalWeek(f);
+  const c = f.support();
+  const promise = promiseFor(f, p, 6000);
+  const before = f.rows("offer_versions").length;
+  assert.throws(() => newTerms(f, { guarantee: promise }), /SEED_SHORTFALL/);
+  f.send(c, "capture");
+  assert.throws(() => newTerms(f, { guarantee: promise }), /SEED_SHORTFALL/);
+  f.send(c, "settlement");
+  assert.throws(
+    () =>
+      newTerms(f, {
+        guarantee: promise,
+        appUseAllocationCents: 1000,
+        appUse: {
+          obligationId: "fee",
+          amountCents: 1000,
+          recipientId: f.project.ownerOrganizationId,
+          trigger: "open",
+        },
+      }),
+    /SEED_SHORTFALL/,
+  );
+  assert.equal(f.rows("offer_versions").length, before);
+  assert.equal(f.rows("reservations").length, 0);
+  assert.deepEqual(seedCapacity(f.store.records, f.project.id), {
+    guaranteeCents: 6000,
+    appUseCents: 0,
+  });
+  assert.equal(
+    mediaBalance(f.store.records, f.project.id).availableCents,
+    4000,
+  );
+  newTerms(f, { guarantee: promise });
+  newTerms(f, { guarantee: promise });
+  assert.equal(f.rows("reservations").length, 1);
+  assert.equal(seedCapacity(f.store.records, f.project.id).guaranteeCents, 0);
+  assert.throws(
+    () =>
+      newTerms(f, {
+        guarantee: {
+          ...promise,
+          floorCents: 6500,
+          maxTotalLiabilityCents: 6500,
+        },
+      }),
+    /COMMITMENT_CONFLICT/,
+  );
+  assert.throws(() => newTerms(f, { appUseAllocationCents: 1 }), /recipient/);
+  assert.throws(() =>
+    newTerms(f, { guarantee: { ...promise, maxTotalLiabilityCents: 5000 } }),
+  );
+});
+
+test("fictional $25 floor and $10 base yields separate $15 top-up; app-use charges once and never votes or changes 1000bps", async (t) => {
+  const f = await financeFixture(t),
+    p = fictionalWeek(f),
+    gift = f.gift();
+  f.send(gift, "capture");
+  f.send(gift, "settlement");
+  settleSupport(f, 3000, [
+    { purpose: "seed", use: "guarantee", amountCents: 2500 },
+    { purpose: "seed", use: "app_use", amountCents: 500 },
+  ]);
+  const terms = newTerms(f, {
+    guarantee: promiseFor(f, p),
+    appUseAllocationCents: 500,
+    appUse: {
+      obligationId: "fictional-app-use",
+      amountCents: 500,
+      recipientId: f.project.ownerOrganizationId,
+      trigger: "fixture_open",
+    },
+  });
+  const charge = {
+    obligationId: "fictional-app-use",
+    trigger: "fixture_open",
+    evidenceRef: "fictional charge trigger",
+  };
+  const first = mutateFinance(f, (s, r) =>
+    chargeAppUse(s, r, f.project.id, charge, admin),
+  );
+  const again = mutateFinance(f, (s, r) =>
+    chargeAppUse(s, r, f.project.id, charge, admin),
+  );
+  assert.equal(first.id, again.id);
+  assert.throws(
+    () =>
+      mutateFinance(f, (s, r) =>
+        chargeAppUse(
+          s,
+          r,
+          f.project.id,
+          { ...charge, trigger: "wrong" },
+          admin,
+        ),
+      ),
+    /TRIGGER/,
+  );
+  const statement = creatorStatement(
+    f.store.records,
+    f.project.id,
+    f.creatorId,
+    p,
+  );
+  assert.equal(statement.capturedAccrualCents, 1000);
+  assert.equal(statement.topUpCents, 1500);
+  assert.equal(statement.payableCents, 2500);
+  assert.equal(statement.creatorCommissionBps, 1000);
+  const batch = mutateFinance(f, (s, r) =>
+    approveBatch(
+      s,
+      r,
+      f.project.id,
+      {
+        idempotencyKey: "floor-week",
+        periodId: p.id,
+        creatorIds: [f.creatorId],
+      },
+      admin,
+      p.cutoff,
+    ),
+  );
+  assert.equal(batch.manifest.lines[0].baseCents, 1000);
+  assert.equal(batch.manifest.lines[0].topUpCents, 1500);
+  assert.equal(f.store.records.financeTotals(f.project.id).votes, 1);
+  assert.equal(terms.creatorCommissionBps, 1000);
+  const totals = f.store.records.operationTotals(f.project.id);
+  assert.equal(totals.usedGuaranteeCents, 1500);
+  assert.equal(totals.reservedGuaranteeCents, 1000);
+  assert.equal(totals.usedAppUseCents, 500);
+  assert.equal(totals.reservedAppUseCents, 0);
+  financeEvidence("floorAndAppUse", {
+    fiction: true,
+    statement,
+    batch: batch.manifest,
+    appUseCharge: first,
+    totals,
+  });
+  assert(
+    f
+      .rows("journal_entries")
+      .some(
+        (e) => e.account === "seed:app_use_expense" && e.debitCents === 500,
+      ),
+  );
+});
+
+test("pending commission, eligibility or later seed refund holds a promised floor rather than premature top-up or underpayment", async (t) => {
+  const f = await financeFixture(t),
+    p = fictionalWeek(f),
+    gift = f.gift();
+  f.send(gift, "capture");
+  const seed = settleSupport(f, 2500, [
+    { purpose: "seed", use: "guarantee", amountCents: 2500 },
+  ]);
+  newTerms(f, { guarantee: promiseFor(f, p) });
+  let statement = creatorStatement(
+    f.store.records,
+    f.project.id,
+    f.creatorId,
+    p,
+  );
+  assert.equal(statement.guaranteePending, true);
+  assert.equal(statement.payableCents, 0);
+  assert.equal(statement.topUpCents, 0);
+  assert.throws(
+    () =>
+      mutateFinance(f, (s, r) =>
+        approveBatch(
+          s,
+          r,
+          f.project.id,
+          {
+            idempotencyKey: "pending",
+            periodId: p.id,
+            creatorIds: [f.creatorId],
+          },
+          admin,
+          p.cutoff,
+        ),
+      ),
+    /SETTLEMENT_HOLD/,
+  );
+  f.send(gift, "settlement");
+  f.send(seed, "refund", 100);
+  statement = creatorStatement(f.store.records, f.project.id, f.creatorId, p);
+  assert.equal(statement.payableCents, 0);
+  assert(statement.heldReasons.includes("SEED_SHORTFALL_HOLD"));
+  assert.equal(f.rows("settlement_manifests").length, 0);
+});
+
+test("exact UTC weeks, immutable approval manifests and stable intent retries never double allocate or report real payment", async (t) => {
+  const f = await financeFixture(t),
+    p = fictionalWeek(f),
+    gift = f.gift();
+  assert.throws(() =>
+    mutateFinance(f, (s, r) =>
+      definePeriod(
+        s,
+        r,
+        f.project.id,
+        {
+          startsAt: p.startsAt,
+          endsAt: new Date(Date.parse(p.endsAt) - 1).toISOString(),
+          cutoff: p.cutoff,
+        },
+        admin,
+      ),
+    ),
+  );
+  f.send(gift, "capture");
+  assert.equal(
+    creatorStatement(f.store.records, f.project.id, f.creatorId, p)
+      .payableCents,
+    0,
+  );
+  f.send(gift, "settlement");
+  const data = {
+    idempotencyKey: "week",
+    periodId: p.id,
+    creatorIds: [f.creatorId],
+  };
+  assert.throws(
+    () =>
+      mutateFinance(f, (s, r) =>
+        approveBatch(
+          s,
+          r,
+          f.project.id,
+          data,
+          { role: "creator", creatorId: f.creatorId },
+          p.cutoff,
+        ),
+      ),
+    /Admin/,
+  );
+  assert.throws(
+    () =>
+      mutateFinance(f, (s, r) => approveBatch(s, r, f.project.id, data, admin)),
+    /CUTOFF/,
+  );
+  const batch = mutateFinance(f, (s, r) =>
+    approveBatch(s, r, f.project.id, data, admin, p.cutoff),
+  );
+  assert.equal(
+    mutateFinance(f, (s, r) =>
+      approveBatch(s, r, f.project.id, data, admin, p.cutoff),
+    ).id,
+    batch.id,
+  );
+  assert.throws(
+    () =>
+      mutateFinance(f, (s, r) =>
+        approveBatch(
+          s,
+          r,
+          f.project.id,
+          { ...data, idempotencyKey: "another" },
+          admin,
+          p.cutoff,
+        ),
+      ),
+    /NO_RECONCILED/,
+  );
+  assert.equal(
+    f.store.records.operationTotals(f.project.id).reservedBaseCents,
+    1000,
+  );
+  const exported = exportBatch(
+    f.store.read(),
+    f.store.records,
+    batch.id,
+    admin,
+    "csv",
+  );
+  assert.equal(
+    exported.content,
+    exportBatch(f.store.read(), f.store.records, batch.id, admin, "csv")
+      .content,
+  );
+  assert(exported.content.includes(batch.id));
+  assert(exported.content.includes("journalSourceIds"));
+  assert(!exported.content.includes("sourceAccountId"));
+  assert(!exported.content.includes("donor"));
+  const execute = (outcome, key) =>
+    mutateFinance(f, (s, r) =>
+      executeBatch(
+        s,
+        r,
+        batch.id,
+        {
+          idempotencyKey: key,
+          outcome,
+          evidenceRef: "fictional transfer fixture",
+        },
+        admin,
+        p.cutoff,
+      ),
+    );
+  const unknown = execute("unknown", "try1"),
+    failed = execute("failed", "try2");
+  assert.equal(
+    unknown.intents[0].transferIntentId,
+    failed.intents[0].transferIntentId,
+  );
+  assert.equal(
+    f.store.records.operationTotals(f.project.id).reservedBaseCents,
+    1000,
+  );
+  assert.throws(() => execute("paid", "live"));
+  const paid = execute("simulated_paid", "try3");
+  assert.equal(paid.status, "simulated_paid");
+  execute("simulated_paid", "try3");
+  execute("simulated_paid", "try4");
+  const totals = f.store.records.operationTotals(f.project.id);
+  assert.equal(totals.reservedBaseCents, 0);
+  assert.equal(totals.paidBaseCents, 1000);
+  const raw = new DatabaseSync(join(f.dir, "test.sqlite"));
+  assert.throws(
+    () =>
+      raw
+        .prepare("UPDATE settlement_manifests SET document=? WHERE id=?")
+        .run(JSON.stringify({ status: "paid" }), batch.id),
+    /Immutable/,
+  );
+  raw.close();
+  const refused = await f.request(`/settlements/${batch.id}/execute`, {
+    method: "POST",
+    role: "creator",
+    body: { status: "paid" },
+  });
+  assert.equal(refused.status, 403);
+});
+
+test("refund after approval blocks stale payment; refund after simulated payment creates recovery and linked next-week correction without editing batch", async (t) => {
+  const f = await financeFixture(t),
+    p = fictionalWeek(f),
+    gift = f.gift();
+  f.send(gift, "capture");
+  f.send(gift, "settlement");
+  const batch = mutateFinance(f, (s, r) =>
+    approveBatch(
+      s,
+      r,
+      f.project.id,
+      { idempotencyKey: "original", periodId: p.id, creatorIds: [f.creatorId] },
+      admin,
+      p.cutoff,
+    ),
+  );
+  const manifestBefore = exportBatch(
+    f.store.read(),
+    f.store.records,
+    batch.id,
+    admin,
+  ).content;
+  const result = mutateFinance(f, (s, r) =>
+    executeBatch(
+      s,
+      r,
+      batch.id,
+      {
+        idempotencyKey: "pay",
+        outcome: "simulated_paid",
+        evidenceRef: "fictional transfer",
+      },
+      admin,
+      p.cutoff,
+    ),
+  );
+  assert.equal(result.status, "simulated_paid");
+  const next = mutateFinance(f, (s, r) =>
+    definePeriod(
+      s,
+      r,
+      f.project.id,
+      {
+        startsAt: p.endsAt,
+        endsAt: new Date(Date.parse(p.endsAt) + 7 * 86400000).toISOString(),
+        cutoff: new Date(Date.parse(p.endsAt) + 7 * 86400000).toISOString(),
+      },
+      admin,
+    ),
+  );
+  const lateAt = new Date(Date.parse(p.cutoff) + 1000).toISOString();
+  const refund = mutateFinance(f, (s, r) =>
+    ingestEvent(
+      s,
+      r,
+      f.eventData(gift, "refund", 10000, { effectiveAt: lateAt }),
+      lateAt,
+    ),
+  );
+  let statement = creatorStatement(
+    f.store.records,
+    f.project.id,
+    f.creatorId,
+    next,
+  );
+  assert.equal(statement.recoveryCents, 1000);
+  assert.equal(statement.recoveryHold, true);
+  assert.equal(statement.payableCents, 0);
+  financeEvidence("postPaymentRecovery", {
+    fiction: true,
+    statement,
+    transfer: result,
+    refundSourceId: refund.event.id,
+    recoveryOperations: f
+      .rows("finance_operations")
+      .filter((o) => o.kind === "recovery_hold"),
+  });
+  assert(
+    statement.adjustments.some(
+      (a) =>
+        a.sourceRecordId === refund.event.id && a.originalPeriodId === p.id,
+    ),
+  );
+  assert.equal(
+    exportBatch(f.store.read(), f.store.records, batch.id, admin).content,
+    manifestBefore,
+  );
+  assert.equal(
+    f.rows("finance_operations").find((o) => o.kind === "recovery_hold")
+      .originalPeriodId,
+    p.id,
+  );
+  mutateFinance(f, (s, r) =>
+    ingestEvent(
+      s,
+      r,
+      f.eventData(gift, "refund", 10000, { effectiveAt: lateAt }),
+      lateAt,
+    ),
+  );
+  assert.equal(
+    f.rows("finance_operations").filter((o) => o.kind === "recovery_hold")
+      .length,
+    1,
+  );
+  const stale = await financeFixture(t),
+    week = fictionalWeek(stale),
+    c = stale.gift();
+  stale.send(c, "capture");
+  stale.send(c, "settlement");
+  const pendingBatch = mutateFinance(stale, (s, r) =>
+    approveBatch(
+      s,
+      r,
+      stale.project.id,
+      {
+        idempotencyKey: "pending",
+        periodId: week.id,
+        creatorIds: [stale.creatorId],
+      },
+      admin,
+      week.cutoff,
+    ),
+  );
+  stale.send(c, "refund");
+  assert.throws(
+    () =>
+      mutateFinance(stale, (s, r) =>
+        executeBatch(
+          s,
+          r,
+          pendingBatch.id,
+          {
+            idempotencyKey: "pay",
+            outcome: "simulated_paid",
+            evidenceRef: "fictional stale payment",
+          },
+          admin,
+          week.cutoff,
+        ),
+      ),
+    /STALE_BATCH/,
+  );
+  assert.equal(
+    stale.store.records.operationTotals(stale.project.id).reservedBaseCents,
+    1000,
+  );
+  assert.equal(
+    stale.store.records.operationTotals(stale.project.id).paidBaseCents,
+    0,
+  );
+});
+
+test("late in-window capture/settlement receipts enter the next exact week linked to the closed original period", async (t) => {
+  const f = await financeFixture(t),
+    p = fictionalWeek(f),
+    early = f.gift();
+  f.send(early, "capture");
+  f.send(early, "settlement");
+  const batch = mutateFinance(f, (s, r) =>
+    approveBatch(
+      s,
+      r,
+      f.project.id,
+      { idempotencyKey: "oldweek", periodId: p.id, creatorIds: [f.creatorId] },
+      admin,
+      p.cutoff,
+    ),
+  );
+  mutateFinance(f, (s, r) =>
+    executeBatch(
+      s,
+      r,
+      batch.id,
+      {
+        idempotencyKey: "oldpay",
+        outcome: "simulated_paid",
+        evidenceRef: "fictional original payment",
+      },
+      admin,
+      p.cutoff,
+    ),
+  );
+  const originalExport = exportBatch(
+    f.store.read(),
+    f.store.records,
+    batch.id,
+    admin,
+  ).content;
+  const late = f.gift(20000);
+  const receiptAt = new Date(Date.parse(p.endsAt) + 1000).toISOString();
+  const effectiveAt = new Date().toISOString();
+  mutateFinance(f, (s, r) =>
+    ingestEvent(
+      s,
+      r,
+      f.eventData(late, "capture", 20000, { effectiveAt }),
+      receiptAt,
+    ),
+  );
+  const settled = mutateFinance(f, (s, r) =>
+    ingestEvent(
+      s,
+      r,
+      f.eventData(late, "settlement", 20000, { effectiveAt }),
+      receiptAt,
+    ),
+  );
+  const next = mutateFinance(f, (s, r) =>
+    definePeriod(
+      s,
+      r,
+      f.project.id,
+      {
+        startsAt: p.endsAt,
+        endsAt: new Date(Date.parse(p.endsAt) + 7 * 86400000).toISOString(),
+        cutoff: new Date(Date.parse(p.endsAt) + 7 * 86400000).toISOString(),
+      },
+      admin,
+    ),
+  );
+  const statement = creatorStatement(
+    f.store.records,
+    f.project.id,
+    f.creatorId,
+    next,
+  );
+  assert.equal(statement.payableCents, 2000);
+  assert.equal(statement.priorPaymentsCents, 1000);
+  assert(
+    statement.adjustments.some(
+      (a) =>
+        a.sourceRecordId === settled.event.id &&
+        a.originalPeriodId === p.id &&
+        a.adjustmentPeriodId === next.id,
+    ),
+  );
+  assert.equal(
+    exportBatch(f.store.read(), f.store.records, batch.id, admin).content,
+    originalExport,
+  );
+  const nextBatch = mutateFinance(f, (s, r) =>
+    approveBatch(
+      s,
+      r,
+      f.project.id,
+      {
+        idempotencyKey: "late-adjustment",
+        periodId: next.id,
+        creatorIds: [f.creatorId],
+      },
+      admin,
+      next.cutoff,
+    ),
+  );
+  assert.equal(nextBatch.manifest.lines[0].amountCents, 2000);
+  assert(
+    nextBatch.manifest.lines[0].adjustments.every(
+      (a) => a.originalPeriodId === p.id,
+    ),
+  );
+  financeEvidence("lateReceiptAdjustment", {
+    fiction: true,
+    originalBatchId: batch.id,
+    nextBatch: nextBatch.manifest,
+  });
+});
+
+test("sponsor costs name the business, immutable internal source/journal facts share rollback, restart and indexed capped pages", async (t) => {
+  const f = await financeFixture(t, { paid: true, payer: "sponsor" });
+  settleSupport(f, 10000, [
+    { purpose: "media", use: "ad_budget", amountCents: 10000 },
+  ]);
+  const before = {
+    reservations: f.rows("reservations").length,
+    operations: f.rows("finance_operations").length,
+    journal: f.rows("journal_transactions").length,
+    sources: f.rows("source_events").length,
+  };
+  assert.throws(
+    () =>
+      mutateFinance(f, (s, r) => {
+        reserveMedia(
+          s,
+          r,
+          f.distribution.id,
+          { idempotencyKey: "rollback", amountCents: 6000 },
+          admin,
+        );
+        s.projects[0].title = "must roll back";
+        throw new Error("Injected reservation failure");
+      }),
+    /Injected/,
+  );
+  assert.deepEqual(
+    {
+      reservations: f.rows("reservations").length,
+      operations: f.rows("finance_operations").length,
+      journal: f.rows("journal_transactions").length,
+      sources: f.rows("source_events").length,
+    },
+    before,
+  );
+  assert.notEqual(f.store.read().projects[0].title, "must roll back");
+  const reservation = mutateFinance(f, (s, r) =>
+    reserveMedia(
+      s,
+      r,
+      f.distribution.id,
+      { idempotencyKey: "sponsor", amountCents: 6000 },
+      admin,
+    ),
+  );
+  assert.equal(reservation.payerId, "fictional-finance-sponsor");
+  const spend = mutateFinance(f, (s, r) =>
+    spendMedia(
+      s,
+      r,
+      reservation.id,
+      {
+        idempotencyKey: "bill",
+        amountCents: 4000,
+        effectiveAt: new Date().toISOString(),
+        evidenceRef: "fictional sponsor invoice",
+      },
+      admin,
+    ),
+  );
+  assert.equal(spend.payer, "sponsor");
+  assert.equal(spend.payerId, "fictional-finance-sponsor");
+  const source = f.store.records.get("source_events", spend.sourceRecordId);
+  assert.equal(source.sourceKind, "finance_operation");
+  assert.equal(source.contributionId, spend.id);
+  const tx = f.store.records.get("journal_transactions", spend.transactionId);
+  assert.equal(tx.sourceRecordId, source.id);
+  assert.equal(
+    f.store.records.operationTotals(f.project.id).creatorMediaCostCents,
+    0,
+  );
+  const report = await f.request(`/campaigns/${f.project.id}/finance`);
+  assert.equal(report.data.availableMediaCents, 4000);
+  assert.equal(report.data.settledBeforeCommitments.availableMediaCents, 10000);
+  const plans = f.store.records.settlementQueryPlans();
+  for (const plan of Object.values(plans))
+    assert(
+      plan.some((r) => /USING (COVERING )?INDEX/.test(r.detail)),
+      JSON.stringify(plan),
+    );
+  const raw = new DatabaseSync(join(f.dir, "test.sqlite"));
+  for (const table of ["finance_operations", "reservations"]) {
+    assert.throws(
+      () => raw.exec(`UPDATE ${table} SET effective_at='2000'`),
+      /Immutable/,
+    );
+    assert.throws(() => raw.exec(`DELETE FROM ${table}`), /Immutable/);
+  }
+  raw.close();
+  const restarted = createStore(join(f.dir, "test.sqlite"));
+  assert.equal(restarted.migrationBackup, null);
+  assert.deepEqual(
+    mediaBalance(restarted.records, f.project.id),
+    mediaBalance(f.store.records, f.project.id),
+  );
+  restarted.close();
+  assert(!JSON.stringify(f.store.read()).includes(spend.id));
+});
+
+test("v3 migration backs up v2 rows and rolls back new tables and triggers on failure", async (t) => {
+  const f = await financeFixture(t),
+    c = f.support();
+  f.send(c, "capture");
+  f.send(c, "settlement");
+  const filename = join(f.dir, "test.sqlite"),
+    raw = new DatabaseSync(filename);
+  raw.exec(
+    "DELETE FROM schema_migrations WHERE version=3; DROP TABLE finance_operations; DROP TABLE settlement_periods; DROP TABLE settlement_results;",
+  );
+  raw.close();
+  const oldState = f.store.read(),
+    oldTotals = f.store.records.financeTotals(f.project.id);
+  assert.throws(
+    () =>
+      createStore(filename, true, {
+        migrationHook(stage) {
+          if (stage === "afterSchema") throw new Error("Injected v3 failure");
+        },
+      }),
+    /Injected v3/,
+  );
+  const failed = new DatabaseSync(filename);
+  assert.equal(
+    failed.prepare("SELECT MAX(version) AS n FROM schema_migrations").get().n,
+    2,
+  );
+  assert.equal(
+    failed
+      .prepare("SELECT name FROM sqlite_master WHERE name='finance_operations'")
+      .get(),
+    undefined,
+  );
+  failed.close();
+  const restored = createStore(filename);
+  assert(restored.migrationBackup.includes("backup-v3"));
+  t.after(() =>
+    rmSync(restored.migrationBackup, { recursive: true, force: true }),
+  );
+  assert.deepEqual(restored.read(), oldState);
+  assert.deepEqual(restored.records.financeTotals(f.project.id), oldTotals);
+  assert.equal(restored.records.position(c.id).settledCents, c.amountCents);
+  restored.close();
+});
+
+test("late guarantee correction retains its original finite week and holds a stale approved intent", async (t) => {
+  const f = await financeFixture(t),
+    p = fictionalWeek(f),
+    gift = f.gift();
+  f.send(gift, "capture");
+  f.send(gift, "settlement");
+  settleSupport(f, 2500, [
+    { purpose: "seed", use: "guarantee", amountCents: 2500 },
+  ]);
+  newTerms(f, { guarantee: promiseFor(f, p) });
+  const old = mutateFinance(f, (s, r) =>
+    approveBatch(
+      s,
+      r,
+      f.project.id,
+      { idempotencyKey: "oldfloor", periodId: p.id, creatorIds: [f.creatorId] },
+      admin,
+      p.cutoff,
+    ),
+  );
+  const next = mutateFinance(f, (s, r) =>
+    definePeriod(
+      s,
+      r,
+      f.project.id,
+      {
+        startsAt: p.endsAt,
+        endsAt: new Date(Date.parse(p.endsAt) + 7 * 86400000).toISOString(),
+        cutoff: new Date(Date.parse(p.endsAt) + 7 * 86400000).toISOString(),
+      },
+      admin,
+    ),
+  );
+  const receivedAt = new Date(Date.parse(p.cutoff) + 1000).toISOString();
+  mutateFinance(f, (s, r) =>
+    ingestEvent(
+      s,
+      r,
+      f.eventData(gift, "refund", 5000, {
+        effectiveAt: new Date().toISOString(),
+      }),
+      receivedAt,
+    ),
+  );
+  const statement = creatorStatement(
+    f.store.records,
+    f.project.id,
+    f.creatorId,
+    next,
+  );
+  const adjustment = statement.guaranteeAdjustments.find(
+    (g) => g.originalPeriodId === p.id,
+  );
+  assert.equal(adjustment.topUpCents, 2000);
+  assert.equal(adjustment.newTopUpCents, 500);
+  assert.equal(statement.payableCents, 0);
+  assert(statement.heldReasons.includes("APPROVED_BATCH_RECONCILIATION_HOLD"));
+  assert.equal(
+    f.store.records.get("settlement_manifests", old.id).manifest.lines[0]
+      .amountCents,
+    2500,
+  );
 });

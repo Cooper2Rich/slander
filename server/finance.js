@@ -13,6 +13,7 @@ import {
   attributionEligibility,
 } from "./attribution.js";
 import { initialPosition, positionProjection } from "./finance-money.js";
+import { postOperation } from "./finance-operations.js";
 
 const text = z.string().trim().min(1).max(200);
 const money = z.number().int().nonnegative().safe();
@@ -212,6 +213,43 @@ function applyEvent(state, records, c, event, at) {
     state: "applied",
     lastTransactionId: position.lastTransactionId,
   });
+  if (position.creatorId) {
+    const totals = records.operationTotals(c.campaignId, {
+      creatorId: position.creatorId,
+    });
+    const recoveryCents = Math.max(
+      0,
+      totals.paidBaseCents -
+        records.financeTotals(c.campaignId, c.mode, position.creatorId)
+          .creatorCents,
+    );
+    const originalPeriod = records.periodAt(
+      c.campaignId,
+      position.eligibility.effectiveAt,
+    );
+    const delta = recoveryCents - totals.recoveryRecordedCents;
+    if (delta)
+      postOperation(
+        records,
+        c.campaignId,
+        delta > 0 ? "recovery_hold" : "recovery_adjustment",
+        { idempotencyKey: event.id },
+        {
+          creatorId: position.creatorId,
+          purpose: "public",
+          recoveryCents,
+          recoveryRecordedCents: delta,
+          correctingSourceRecordId: event.id,
+          priorTransactionId: before.lastTransactionId,
+          originalPeriodId: originalPeriod?.id || null,
+        },
+        [
+          ["recovery:creator", delta],
+          ["recovery:carry_forward", -delta],
+        ],
+        at,
+      );
+  }
   return { state: "applied", position };
 }
 export function ingestEvent(

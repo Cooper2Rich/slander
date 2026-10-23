@@ -3,6 +3,13 @@ import { z } from "zod";
 import { AppError, getPost, getProject } from "./domain.js";
 import { currentEligibility, refreshEligibility } from "./eligibility.js";
 import { requireProject } from "./access.js";
+import {
+  guaranteePolicy,
+  appUsePolicy,
+  mediaPolicy,
+  reserveSeedCommitments,
+} from "./seed-commitments.js";
+import { paidPlanReady, cancelMedia } from "./media-budgets.js";
 
 export const channels = ["instagram", "facebook", "tiktok", "youtube"];
 export function enforceFixedRate(input) {
@@ -75,16 +82,10 @@ export const termsInput = z
       .max(50),
     destinations: z.array(text).min(1).max(30),
     budgetPayer: z.enum(["unassigned", "owner", "sponsor", "creator"]),
-    guarantee: z
-      .object({
-        floorCents: z.number().int().nonnegative().safe(),
-        creatorIds: z.array(text).min(1),
-        periodStart: instant,
-        periodEnd: instant,
-      })
-      .strict()
-      .nullable(),
+    guarantee: guaranteePolicy.nullable(),
     appUseAllocationCents: z.number().int().nonnegative().safe().nullable(),
+    appUse: appUsePolicy.nullable().default(null),
+    mediaBudget: mediaPolicy.nullable().default(null),
     refundHoldPolicy: text,
     gradingConfigId: z.string().max(100).nullable(),
   })
@@ -210,6 +211,7 @@ export function publishTerms(
     beneficiaryOrganizationId: project.beneficiaryOrganizationId,
     createdAt: at,
   };
+  reserveSeedCommitments(state, records, row, at);
   records.append("offer_versions", row);
   project.offerVersionId = row.id;
   project.offerState = "open";
@@ -371,7 +373,6 @@ export function createDistribution(
   if (data.paid) {
     if (data.payer === "unassigned" || terms.budgetPayer !== data.payer)
       throw new AppError("MEDIA_BUDGET_PAYER_REQUIRED", 409);
-    // US-004 supplies the bounded execution/reservation seam. Planning cannot buy inventory.
   }
   return records.append("distributions", {
     ...data,
@@ -425,12 +426,27 @@ export function transitionDistribution(
       terms.permissions[d.channel].state !== "allowed"
     )
       throw new AppError("Current distribution eligibility required.", 409);
-    if (d.paid)
+    if (d.paid && !paidPlanReady(records, d))
       throw new AppError(
         "MEDIA_RESERVATION_REQUIRED: paid funded execution requires a bounded reservation.",
         409,
       );
     capability("manual_handoff");
+  }
+  if (next === "stopped") {
+    let cursor = "";
+    for (;;) {
+      const page = records.subjectPage(
+        "reservations",
+        d.campaignId,
+        "distributionId",
+        d.id,
+        cursor,
+      );
+      for (const r of page) cancelMedia(state, records, r.id, access, at);
+      if (page.length < 100) break;
+      cursor = page.at(-1).id;
+    }
   }
   return records.append("distribution_events", {
     id: randomUUID(),
