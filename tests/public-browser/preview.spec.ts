@@ -1,4 +1,64 @@
 import { test, expect } from "@playwright/test";
+import { selectCreator, selectOwner, openRiverCampaign } from "./helpers";
+
+test("earlier campaign-preview consent, creative and gift survive the full-site upgrade", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem("slander-public-workspace-v1")) return;
+    const at = new Date().toISOString();
+    localStorage.setItem(
+      "slander-public-preview-v1",
+      JSON.stringify({
+        accepted: true,
+        posts: [
+          {
+            id: "public-sample-creative",
+            projectId: "fictional-river-showcase-v1",
+            title: "Earlier public creative",
+            creator: "Alex River · fictional",
+            caption: "A fictional river story.",
+            format: "photo",
+            media: "/slander/images/forest.jpg",
+            mediaType: "image",
+            revision: 1,
+            createdAt: at,
+            updatedAt: at,
+            history: [],
+            feedback: "",
+          },
+        ],
+        intents: [
+          {
+            id: "earlier-gift",
+            amountCents: 10000,
+            attributed: true,
+            createdAt: at,
+            result: {
+              amountCents: 10000,
+              creatorCents: 1000,
+              beneficiaryCents: 9000,
+              votes: 1,
+              unallocatedCents: 0,
+            },
+          },
+        ],
+      }),
+    );
+  });
+  await page.goto("./");
+  await selectCreator(page);
+  await openRiverCampaign(page);
+  await expect(
+    page.getByRole("button", { name: "✓ Terms accepted" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText("Automatically eligible", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/Earlier public creative/)).toBeVisible();
+  await page.getByRole("tab", { name: "Funding" }).click();
+  await expect(page.getByText("$10.00", { exact: true })).toBeVisible();
+});
 
 test("public preview works without an API server and persists only browser sample data", async ({
   page,
@@ -12,14 +72,8 @@ test("public preview works without an API server and persists only browser sampl
       apiRequests.push(req.url());
   });
   await page.goto("./");
-  await page
-    .getByRole("link")
-    .filter({
-      has: page.getByRole("heading", {
-        name: "A little louder for living rivers",
-      }),
-    })
-    .click();
+  await selectCreator(page);
+  await openRiverCampaign(page);
   await expect(page.locator(".campaign-cover")).toBeVisible();
   expect(
     await page
@@ -54,7 +108,8 @@ test("public preview works without an API server and persists only browser sampl
     fullPage: true,
   });
   await page.getByRole("link", { name: "Return to campaign" }).click();
-  await page.getByLabel("Demo role").selectOption("nonprofit");
+  await selectOwner(page);
+  await openRiverCampaign(page);
   await page.getByRole("tab", { name: "Funding" }).click();
   await expect(page.getByText("$600.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();

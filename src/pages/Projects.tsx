@@ -14,6 +14,7 @@ import {
   Sprout,
 } from "lucide-react";
 import { useWorkspace } from "../context";
+import { demoAsset } from "../runtime";
 import { ProjectForm } from "../components/ProjectForm";
 import { Avatar, dateLabel, EmptyState, Instagram } from "../components/ui";
 
@@ -98,7 +99,7 @@ export function ProjectsPage() {
         </div>
         <div className="hero-art">
           <img
-            src="/images/seedling.jpg"
+            src={demoAsset("images/seedling.jpg")}
             alt="Garden tools and young plants ready for planting"
           />
           <div className="hero-image-shade" />
@@ -228,7 +229,7 @@ export function ProjectsPage() {
                 className="project-card"
               >
                 <div className="project-cover">
-                  <img src={`/images/${project.cover}.jpg`} alt="" />
+                  <img src={demoAsset(`images/${project.cover}.jpg`)} alt="" />
                   <span className="category-pill">{project.category}</span>
                   <span className="card-arrow">
                     <ArrowUpRight size={18} />

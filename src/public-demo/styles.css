@@ -1,122 +1,50 @@
+body.public-demo {
+  --public-notice-height: 44px;
+}
 .public-notice {
+  min-height: var(--public-notice-height);
+  padding: 10px 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 12px 22px;
   background: #344938;
-  color: #fff;
+  color: white;
   font-size: 12px;
   line-height: 1.5;
+  position: sticky;
+  top: 0;
+  z-index: 60;
 }
 .public-notice a {
-  margin-left: 20px;
+  margin-left: 18px;
   text-decoration: underline;
   white-space: nowrap;
 }
-.public-shell {
-  min-height: calc(100vh - 42px);
+.public-demo .app-shell {
+  min-height: calc(100vh - var(--public-notice-height));
 }
-.public-shell .sidebar {
-  top: 42px;
+.public-demo .sidebar {
+  top: var(--public-notice-height);
 }
-.public-main {
-  margin-left: 239px;
-  min-width: 0;
-  width: calc(100% - 239px);
-}
-.public-toolbar {
-  min-height: 82px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 40px;
-  border-bottom: 1px solid var(--line);
-  background: white;
-  gap: 15px;
-}
-.public-toolbar label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-}
-.public-toolbar select {
-  max-width: 260px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px;
-  background: #fafbf8;
-}
-.public-content {
-  padding: 38px 40px;
-  max-width: 1600px;
-  margin: auto;
-}
-.public-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 20px;
-  padding: 14px;
-  background: #e7edcd;
-  border-radius: 8px;
-  font-weight: 600;
-}
-.public-sidebar-note {
-  margin: auto 20px 30px;
-  padding: 20px;
-  background: #edf0e1;
-  border-radius: 12px;
-  line-height: 1.8;
-}
-.public-sidebar-note p {
-  margin: 12px 0;
-  color: var(--muted);
-}
-.public-sidebar-note small {
-  color: var(--muted);
-}
-.public-footer {
-  padding: 25px 40px;
-  font-size: 11px;
-  color: var(--muted);
+.public-demo .topbar {
+  top: var(--public-notice-height);
 }
 @media (max-width: 760px) {
+  body.public-demo {
+    --public-notice-height: 70px;
+  }
   .public-notice {
-    padding: 10px 16px;
     flex-wrap: wrap;
-    text-align: center;
+    gap: 3px 8px;
     font-size: 11px;
+    text-align: center;
+    padding: 8px 15px;
+  }
+  .public-notice span {
+    max-width: calc(100% - 30px);
   }
   .public-notice a {
-    margin: 0;
-  }
-  .public-shell .sidebar {
-    display: none;
-  }
-  .public-main {
-    width: 100%;
     margin-left: 0;
-  }
-  .public-toolbar {
-    padding: 14px 18px;
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .public-toolbar label {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .public-toolbar select {
-    max-width: 72%;
-    min-width: 0;
-  }
-  .public-content {
-    padding: 25px 18px;
-  }
-  .public-footer {
-    padding: 20px 18px;
   }
 }

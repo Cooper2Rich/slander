@@ -270,17 +270,9 @@ export function CampaignsPage() {
                     clear rights and disclosures, so you can walk the whole
                     journey.
                   </p>
-                  {PUBLIC_DEMO ? (
-                    <p className="callout">
-                      Creative brief: tell a hopeful story about caring for
-                      rivers. The supplied forest image and disclosure text are
-                      fictional sample assets.
-                    </p>
-                  ) : (
-                    <Link to={`/projects/${offer.id}`} className="text-button">
-                      Open full creative brief <ArrowUpRight size={16} />
-                    </Link>
-                  )}
+                  <Link to={`/projects/${offer.id}`} className="text-button">
+                    Open full creative brief <ArrowUpRight size={16} />
+                  </Link>
                 </div>
               </section>
               <div className="market-panel terms-panel">

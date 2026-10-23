@@ -7,6 +7,7 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:3200/slander/",
     trace: "retain-on-failure",
+    actionTimeout: 10000,
   },
   webServer: {
     command: "node scripts/preview-public.mjs",

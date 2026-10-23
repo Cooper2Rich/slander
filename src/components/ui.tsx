@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { WorkspaceContext } from "../context";
-import { accessHeaders } from "../api";
+import { mediaResponse } from "../api";
+import { demoAsset } from "../runtime";
 import {
   ArrowUpRight,
   Check,
@@ -165,10 +166,7 @@ export function Media({
     const controller = new AbortController();
     let url = "";
     setSource("");
-    void fetch(post.media, {
-      headers: accessHeaders(access),
-      signal: controller.signal,
-    })
+    void mediaResponse(post.media, access, controller.signal)
       .then(async (response) => {
         if (!response.ok) throw new Error("Media unavailable");
         const blob = await response.blob();
@@ -189,7 +187,11 @@ export function Media({
     access?.creatorId,
     access?.nonprofitId,
   ]);
-  const src = scoped ? source : post.media;
+  const src = scoped
+    ? source
+    : post.media.startsWith("/images/")
+      ? demoAsset(post.media)
+      : post.media;
   return post.mediaType === "video" ? (
     <video
       className={className}

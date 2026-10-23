@@ -1,5 +1,5 @@
 import type { DemoAccess } from "./types";
-import { PUBLIC_DEMO } from "./runtime";
+import { demoAsset } from "./runtime";
 
 export function accessHeaders(access?: DemoAccess) {
   return access
@@ -16,8 +16,22 @@ export function accessHeaders(access?: DemoAccess) {
     : {};
 }
 
+export async function mediaResponse(
+  path: string,
+  access?: DemoAccess,
+  signal?: AbortSignal,
+) {
+  if (import.meta.env.MODE === "public" && path.startsWith("/api/media/")) {
+    const { previewMedia } = await import("./public-demo/workspace.js");
+    return previewMedia(path, access);
+  }
+  return fetch(path.startsWith("/images/") ? demoAsset(path) : path, {
+    headers: accessHeaders(access),
+    signal,
+  });
+}
 export async function downloadMedia(path: string, access: DemoAccess) {
-  const response = await fetch(path, { headers: accessHeaders(access) });
+  const response = await mediaResponse(path, access);
   if (!response.ok)
     throw new Error("The creative media is unavailable in this view.");
   const url = URL.createObjectURL(await response.blob());
@@ -34,9 +48,9 @@ export async function api<T>(
   method = "GET",
   body?: unknown,
 ): Promise<T> {
-  if (PUBLIC_DEMO) {
+  if (import.meta.env.MODE === "public") {
     const { publicApi } = await import("./public-demo/api");
-    return publicApi(path, access, method, body) as T;
+    return (await publicApi(path, access, method, body)) as T;
   }
   const form = body instanceof FormData;
   const response = await fetch(`/api${path}`, {
@@ -56,6 +70,18 @@ export async function api<T>(
 }
 
 export async function downloadPost(id: string, access: DemoAccess) {
+  if (import.meta.env.MODE === "public") {
+    const data = await api(`/posts/${id}/export`, access);
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `slander-${id}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  }
   const workspace = await api<{
     posts: { id: string; projectId: string }[];
     projects: { id: string; offerVersionId?: string }[];

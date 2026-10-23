@@ -10,6 +10,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { useWorkspace } from "../context";
+import { demoAsset } from "../runtime";
 import { dateLabel, EmptyState, Instagram } from "../components/ui";
 import { ProjectForm } from "../components/ProjectForm";
 import { SubmissionForm } from "../components/SubmissionForm";
@@ -52,7 +53,7 @@ export function ProjectDetail() {
         All projects
       </Link>
       <div className="project-detail-cover">
-        <img src={`/images/${project.cover}.jpg`} alt="" />
+        <img src={demoAsset(`images/${project.cover}.jpg`)} alt="" />
         <div>
           <span className="category-pill">{project.category}</span>
           <h1>{project.name}</h1>

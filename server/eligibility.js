@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readSampleMedia } from "./media-samples.js";
 import { z } from "zod";
 import { submissionsOpen, utcDate } from "../src/calendar.ts";
 export { submissionsOpen, utcDate };
@@ -88,9 +88,7 @@ export function snapshotPost(post, mediaEvidence) {
     !mediaEvidence &&
     /^\/images\/(forest|food|education|seedling)\.jpg$/.test(post.media)
   ) {
-    const bytes = readFileSync(
-      new URL(`../public${post.media}`, import.meta.url),
-    );
+    const bytes = readSampleMedia(post.media);
     mediaEvidence = {
       verified: true,
       bytes: bytes.length,

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Check, Upload, Send, Image as ImageIcon } from "lucide-react";
 import { api } from "../api";
+import { demoAsset } from "../runtime";
 import { useWorkspace } from "../context";
 import type { Post, Project, Format } from "../types";
 import { Modal, Media } from "./ui";
@@ -185,7 +186,7 @@ export function SubmissionForm({
                 aria-label={`Use ${cover} sample`}
                 disabled={uploading}
               >
-                <img src={`/images/${cover}.jpg`} alt="" />
+                <img src={demoAsset(`images/${cover}.jpg`)} alt="" />
                 {data.media === `/images/${cover}.jpg` && <Check size={12} />}
               </button>
             ))}

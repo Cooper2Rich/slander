@@ -35,6 +35,7 @@ import { PostsPage } from "./pages/Posts";
 import { ProjectDetail } from "./pages/ProjectDetail";
 import { ActivityPage } from "./pages/Activity";
 import { CampaignsPage, GivingPage } from "./pages/Campaigns";
+import { PUBLIC_DEMO } from "./runtime";
 
 export default function App() {
   const location = useLocation();
@@ -137,7 +138,19 @@ export default function App() {
   }
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main-content">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={
+          PUBLIC_DEMO
+            ? (event) => {
+                event.preventDefault();
+                document.getElementById("main-content")?.focus();
+                document.getElementById("main-content")?.scrollIntoView();
+              }
+            : undefined
+        }
+      >
         Skip to content
       </a>
       {mobileNav && (
@@ -309,7 +322,7 @@ export default function App() {
             </label>
           </div>
         </header>
-        <main id="main-content" className="main-content">
+        <main id="main-content" className="main-content" tabIndex={-1}>
           {error && (
             <div className="load-error" role="alert">
               <p>{error}</p>
@@ -414,9 +427,9 @@ export default function App() {
               <section>
                 <h3>Start with a project</h3>
                 <p>
-                  Open Campaigns as Admin and initialize the fictional showcase.
-                  Switch to Campaign Owner to explore scoped funding and
-                  reports.
+                  {PUBLIC_DEMO
+                    ? "Explore the supplied fictional projects, or create one as Admin. The Riverkind campaign is already initialized. Switch to Campaign Owner to explore scoped funding and reports."
+                    : "Open Campaigns as Admin and initialize the fictional showcase. Switch to Campaign Owner to explore scoped funding and reports."}
                 </p>
               </section>
             </div>
@@ -454,10 +467,9 @@ export default function App() {
             </div>
             <div className="callout">
               <p>
-                This is a local demo with sample organizations and selectable
-                roles, not account sign-in. Changes persist on this computer.
-                Payments, live Instagram authorization, and publishing are not
-                enabled.
+                {PUBLIC_DEMO
+                  ? "This is the full demo interface with fictional browser-local records and selectable roles. Changes and uploaded media stay in this browser. No real payments, shared server accounting, live Instagram authorization or publishing."
+                  : "This is a local demo with sample organizations and selectable roles, not account sign-in. Changes persist on this computer. Payments, live Instagram authorization, and publishing are not enabled."}
               </p>
             </div>
           </div>

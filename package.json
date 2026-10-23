@@ -19,6 +19,7 @@
     "format:check": "prettier --check src server tests *.json *.ts index.html README.md docs/DEMO.md"
   },
   "dependencies": {
+    "@noble/hashes": "^2.0.1",
     "express": "^5.2.1",
     "lucide-react": "^1.48.0",
     "multer": "^2.4.0",

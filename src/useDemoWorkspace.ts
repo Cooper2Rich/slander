@@ -1,9 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
+import { PUBLIC_DEMO } from "./runtime";
 import type { DemoAccess, DemoOptions, Role, Workspace } from "./types";
 
 export function useDemoWorkspace() {
   const [access, setAccess] = useState<DemoAccess>(() => {
+    if (PUBLIC_DEMO) {
+      try {
+        const selected = JSON.parse(
+          localStorage.getItem("slander-public-access-v1") || "null",
+        );
+        if (
+          selected &&
+          ["admin", "nonprofit", "creator"].includes(selected.role)
+        )
+          return selected;
+      } catch {
+        /* Fall back to the role picker for an old browser preference. */
+      }
+    }
     const saved = localStorage.getItem("slander-role");
     return {
       role:
@@ -20,6 +35,10 @@ export function useDemoWorkspace() {
     nonprofits: [],
     creators: [],
   });
+  useEffect(() => {
+    if (PUBLIC_DEMO)
+      localStorage.setItem("slander-public-access-v1", JSON.stringify(access));
+  }, [access]);
   const [loaded, setLoaded] = useState<{ key: string; data: Workspace } | null>(
     null,
   );
