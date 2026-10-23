@@ -33,30 +33,36 @@ export function migrateIdentities(state) {
 }
 export function readAccess(req, state, requireSelection = true) {
   const role = req.get("x-demo-role");
-  if (!["admin", "nonprofit", "creator"].includes(role))
+  if (!["admin", "owner", "nonprofit", "creator"].includes(role))
     throw new AppError("Select a demo view first.", 403);
   const access = {
     role,
     nonprofitId: req.get("x-demo-nonprofit") || null,
     creatorId: req.get("x-demo-creator") || null,
+    organizationId: req.get("x-demo-organization") || null,
   };
   if (requireSelection && role !== "admin") {
     const exists =
       role === "nonprofit"
-        ? state.nonprofits.some((n) => n.id === access.nonprofitId)
-        : state.creators.some((c) => c.id === access.creatorId);
+        ? state.organizations.some(
+            (n) => n.id === access.nonprofitId && n.type === "nonprofit",
+          )
+        : role === "owner"
+          ? state.organizations.some((o) => o.id === access.organizationId)
+          : state.creators.some((c) => c.id === access.creatorId);
     if (!exists)
       throw new AppError(
         `Select a ${role === "nonprofit" ? "nonprofit" : "creator profile"} to continue.`,
         403,
       );
   }
+  if (role === "nonprofit") access.organizationId = access.nonprofitId;
   return access;
 }
 export function canViewProject(project, access) {
   if (access.role === "admin") return true;
-  if (access.role === "nonprofit")
-    return project.nonprofitId === access.nonprofitId;
+  if (access.role === "nonprofit" || access.role === "owner")
+    return project.ownerOrganizationId === access.organizationId;
   return project.status === "active";
 }
 export function requireProject(state, id, access, manage = false) {
@@ -86,7 +92,10 @@ export function requirePost(state, id, access, action) {
     throw new AppError("You can only edit your own submissions.", 403);
   return post;
 }
-function publicPost(post) {
+function publicPost(post, records) {
+  const media = post.media.startsWith("/api/media/")
+    ? records?.get("media", post.media.slice(11))
+    : records?.byMediaPath(post.media);
   return {
     id: post.id,
     projectId: post.projectId,
@@ -95,7 +104,9 @@ function publicPost(post) {
     creator: post.creator,
     format: post.format,
     caption: post.caption,
-    media: post.media,
+    media: media
+      ? `/api/media/${media.id}?postId=${post.id}&snapshotId=${post.snapshotId}`
+      : post.media,
     mediaType: post.mediaType,
     status: post.status,
     createdAt: post.createdAt,
@@ -105,7 +116,7 @@ function publicPost(post) {
     feedback: "",
   };
 }
-export function scopedWorkspace(state, access) {
+export function scopedWorkspace(state, access, records) {
   const projects = state.projects.filter((p) => canViewProject(p, access));
   const projectIds = new Set(projects.map((p) => p.id));
   const visible = state.posts.filter((p) => projectIds.has(p.projectId));
@@ -137,7 +148,7 @@ export function scopedWorkspace(state, access) {
       .filter((p) => currentEligibility(p, getProject(state, p.projectId)))
       .map((p) =>
         access.role === "creator" && p.creatorId !== access.creatorId
-          ? publicPost(p)
+          ? publicPost(p, records)
           : posts.find((post) => post.id === p.id),
       ),
     eligibleCounts: eligibleCounts(

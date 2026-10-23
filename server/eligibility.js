@@ -4,7 +4,12 @@ import { z } from "zod";
 import { submissionsOpen, utcDate } from "../src/calendar.ts";
 export { submissionsOpen, utcDate };
 
-export const RULE_VERSION = "creative-eligibility-v2";
+export const RULE_VERSION = "creative-eligibility-v3";
+const recordContexts = new WeakMap();
+export function bindEligibilityRecords(state, records) {
+  recordContexts.set(state, records);
+  return state;
+}
 export const COMPENSATION =
   "Creators receive 10% of eligible attributed donations; 90% belongs to the nonprofit before fees.";
 export const digest = (value) =>
@@ -154,6 +159,23 @@ export function eligibilityFacts(state, post, project, today = utcDate()) {
     withdrawn: !!post.withdrawnAt,
     holds,
   };
+  if (project.offerVersionId) {
+    const records = recordContexts.get(state);
+    const participation = records?.get(
+      "participations",
+      `${post.creatorId}:${project.offerVersionId}`,
+    );
+    const restriction = records?.restrictionFor(
+      project.id,
+      post.creatorId,
+      new Date().toISOString(),
+    );
+    facts.marketplace = {
+      termsId: project.offerVersionId,
+      participationId: participation?.id || null,
+      restrictionId: restriction?.id || null,
+    };
+  }
   return { ...facts, version: digest(facts) };
 }
 
@@ -195,6 +217,20 @@ export function evaluateSnapshot(snapshot, policy, facts) {
     fail(
       "CURRENT_TERMS_REQUIRED",
       "Accept the current campaign terms version.",
+    );
+  if (
+    facts.marketplace &&
+    (!facts.marketplace.participationId ||
+      facts.marketplace.termsId !== c.acceptedTermsVersion)
+  )
+    fail(
+      "ACCEPTED_PARTICIPATION_REQUIRED",
+      "Accept the current published campaign terms with your selected creator profile.",
+    );
+  if (facts.marketplace?.restrictionId)
+    fail(
+      "PARTICIPATION_HELD",
+      "Existing identity/campaign restrictions require platform review.",
     );
   if (policy.factualClaims.some((claim) => !c.factualClaims?.includes(claim)))
     fail(
@@ -298,18 +334,32 @@ export function refreshEligibility(state) {
   state.creativeHolds ||= [];
   state.creativeAppeals ||= [];
   state.exports ||= [];
-  for (const project of state.projects)
+  for (const project of state.projects) {
+    const terms = project.offerVersionId
+      ? recordContexts.get(state)?.get("offer_versions", project.offerVersionId)
+      : null;
+    const config = project.eligibilityPolicy
+      ? Object.fromEntries(
+          Object.keys(policyInput.shape).map((key) => [
+            key,
+            project.eligibilityPolicy[key],
+          ]),
+        )
+      : undefined;
     configurePolicy(
       project,
-      project.eligibilityPolicy
-        ? Object.fromEntries(
-            Object.keys(policyInput.shape).map((key) => [
-              key,
-              project.eligibilityPolicy[key],
-            ]),
-          )
-        : undefined,
+      terms
+        ? {
+            ...config,
+            termsVersion: terms.id,
+            allowedChannels: [
+              ...new Set(terms.combinations.map((c) => c.channel)),
+            ],
+            destinations: terms.destinations,
+          }
+        : config,
     );
+  }
   for (const post of state.posts) {
     post.history ||= [];
     if (!post.snapshotId) {

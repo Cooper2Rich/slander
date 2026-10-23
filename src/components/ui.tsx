@@ -1,4 +1,6 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { WorkspaceContext } from "../context";
+import { accessHeaders } from "../api";
 import {
   ArrowUpRight,
   Check,
@@ -153,17 +155,52 @@ export function Media({
   post: Pick<Post, "media" | "mediaType" | "title">;
   className?: string;
 }) {
+  const workspace = useContext(WorkspaceContext);
+  const [source, setSource] = useState("");
+  const access = workspace?.access;
+  const scoped =
+    post.media.startsWith("/api/media/") || post.media.startsWith("/uploads/");
+  useEffect(() => {
+    if (!scoped) return;
+    const controller = new AbortController();
+    let url = "";
+    setSource("");
+    void fetch(post.media, {
+      headers: accessHeaders(access),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Media unavailable");
+        const blob = await response.blob();
+        if (!controller.signal.aborted) {
+          url = URL.createObjectURL(blob);
+          setSource(url);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      controller.abort();
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [
+    post.media,
+    scoped,
+    access?.role,
+    access?.creatorId,
+    access?.nonprofitId,
+  ]);
+  const src = scoped ? source : post.media;
   return post.mediaType === "video" ? (
     <video
       className={className}
-      src={post.media}
+      src={src || undefined}
       controls
       playsInline
       preload="metadata"
       aria-label={post.title}
     />
   ) : (
-    <img className={className} src={post.media} alt={post.title} />
+    <img className={className} src={src || undefined} alt={post.title} />
   );
 }
 export function FormatLabel({ format }: { format: string }) {

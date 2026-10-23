@@ -1,15 +1,24 @@
 import express from "express";
 import multer from "multer";
 import { randomUUID } from "node:crypto";
-import { mkdirSync, existsSync, readFileSync, unlinkSync } from "node:fs";
-import { join, resolve, basename } from "node:path";
+import { mkdirSync, readFileSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
+import { marketplaceRoutes } from "./marketplace-routes.js";
+import {
+  migrateOrganizations,
+  assignOrganizations,
+  enforceFixedRate,
+} from "./marketplace.js";
+import {
+  mediaSignature,
+  registerMedia,
+  migrateMedia,
+  mediaRoutes,
+  verifyMediaReference,
+} from "./private-media.js";
 import { ZodError } from "zod";
 import { z } from "zod";
-import {
-  configurePolicy,
-  refreshEligibility,
-  mediaDigest,
-} from "./eligibility.js";
+import { configurePolicy, refreshEligibility } from "./eligibility.js";
 import {
   holdCreative,
   appealCreative,
@@ -60,8 +69,8 @@ export function createApp(store, dataDir) {
           });
   app.get("/api/health", (_req, res) => res.json({ ok: true }));
   app.get("/api/demo-options", (_req, res) => {
-    const { nonprofits, creators } = store.read();
-    res.json({ nonprofits, creators });
+    const { nonprofits, creators, organizations } = store.read();
+    res.json({ nonprofits, creators, organizations });
   });
   app.post("/api/demo-creators", requireRole("creator"), (req, res) => {
     const name = z.string().trim().min(1).max(80).parse(req.body.name);
@@ -71,9 +80,10 @@ export function createApp(store, dataDir) {
   });
   app.get("/api/workspace", (req, res) => {
     const state = store.update(refreshEligibility);
-    res.json(scopedWorkspace(state, readAccess(req, state)));
+    res.json(scopedWorkspace(state, readAccess(req, state), store.records));
   });
   app.post("/api/projects", requireRole("admin"), (req, res) => {
+    enforceFixedRate(req.body);
     const data = projectSchema.parse(req.body);
     data.instagram = normalizeInstagram(data.instagram);
     const project = store.update((state) => {
@@ -91,6 +101,8 @@ export function createApp(store, dataDir) {
         }[data.cover],
         createdAt: new Date().toISOString(),
       };
+      migrateOrganizations(state);
+      assignOrganizations(state, project, req.body);
       state.projects.unshift(project);
       configurePolicy(project, data.policyConfig);
       addActivity(
@@ -106,8 +118,9 @@ export function createApp(store, dataDir) {
   });
   app.put(
     "/api/projects/:id",
-    requireRole("admin", "nonprofit"),
+    requireRole("admin", "owner", "nonprofit"),
     (req, res) => {
+      enforceFixedRate(req.body);
       const data = projectSchema.parse(req.body);
       data.instagram = normalizeInstagram(data.instagram);
       res.json(
@@ -115,7 +128,7 @@ export function createApp(store, dataDir) {
           const access = readAccess(req, state);
           const project = requireProject(state, req.params.id, access, true);
           if (
-            access.role === "nonprofit" &&
+            ["nonprofit", "owner"].includes(access.role) &&
             data.nonprofit !== project.nonprofit
           )
             throw new AppError(
@@ -123,6 +136,27 @@ export function createApp(store, dataDir) {
               403,
             );
           const nonprofit = ensureIdentity(state, "nonprofits", data.nonprofit);
+          migrateOrganizations(state);
+          if (
+            access.role !== "admin" &&
+            ((req.body.ownerOrganizationId &&
+              req.body.ownerOrganizationId !== project.ownerOrganizationId) ||
+              (req.body.beneficiaryOrganizationId &&
+                req.body.beneficiaryOrganizationId !==
+                  project.beneficiaryOrganizationId) ||
+              (req.body.sponsorOrganizationIds &&
+                JSON.stringify(req.body.sponsorOrganizationIds) !==
+                  JSON.stringify(project.sponsorOrganizationIds)))
+          )
+            throw new AppError(
+              "Only Admin can reassign campaign organizations.",
+              403,
+            );
+          assignOrganizations(state, project, {
+            ...req.body,
+            beneficiaryOrganizationId:
+              req.body.beneficiaryOrganizationId || nonprofit.id,
+          });
           const changedAccount = project.instagram !== data.instagram;
           Object.assign(project, data, {
             nonprofit: nonprofit.name,
@@ -166,6 +200,9 @@ export function createApp(store, dataDir) {
     "video/mp4": ".mp4",
     "video/quicktime": ".mov",
   };
+  store.update((state, records) => migrateMedia(state, records, uploadDir));
+  mediaRoutes(app, store, uploadDir, requireRole);
+  marketplaceRoutes(app, store, requireRole);
   const upload = multer({
     storage: multer.diskStorage({
       destination: uploadDir,
@@ -188,70 +225,25 @@ export function createApp(store, dataDir) {
     upload.single("media"),
     (req, res) => {
       if (!req.file) throw new AppError("Choose a photo or video to upload.");
-      const header = readFileSync(req.file.path).subarray(0, 16);
-      const actualType =
-        header[0] === 0xff && header[1] === 0xd8
-          ? "image/jpeg"
-          : header
-                .subarray(0, 8)
-                .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
-            ? "image/png"
-            : header.toString("ascii", 0, 4) === "RIFF" &&
-                header.toString("ascii", 8, 12) === "WEBP"
-              ? "image/webp"
-              : header.toString("ascii", 4, 8) === "ftyp"
-                ? "video"
-                : "";
-      if (
-        !actualType ||
-        (actualType === "video"
-          ? !req.file.mimetype.startsWith("video/")
-          : actualType !== req.file.mimetype)
-      ) {
+      if (!mediaSignature(readFileSync(req.file.path), req.file.mimetype)) {
         unlinkSync(req.file.path);
         throw new AppError(
           "This file does not match its image or video type. Choose a valid media file.",
         );
       }
+      const media = store.update((state, records) =>
+        registerMedia(records, req.file, readAccess(req, state)),
+      );
       res.status(201).json({
-        media: `/uploads/${req.file.filename}`,
+        media: `/api/media/${media.id}`,
         mediaType: req.file.mimetype.startsWith("video/") ? "video" : "image",
       });
     },
   );
-  app.use(
-    "/uploads",
-    express.static(uploadDir, {
-      setHeaders: (res) => res.set("X-Content-Type-Options", "nosniff"),
-    }),
-  );
-  const verifyMedia = (body) => {
-    const media = body.media;
-    const validSample =
-      /^\/images\/(forest|food|education|seedling)\.jpg$/.test(media);
-    const validUpload =
-      /^\/uploads\/[a-f0-9-]+\.(jpg|png|webp|mp4|mov)$/.test(media) &&
-      existsSync(join(uploadDir, basename(media)));
-    if (!validSample && !validUpload)
-      throw new AppError("Upload a media file or choose a sample image.");
-    const inferred = /\.(mp4|mov)$/.test(media) ? "video" : "image";
-    if (body.mediaType !== inferred)
-      throw new AppError("The media type does not match the selected file.");
-    const bytes = validUpload
-      ? readFileSync(join(uploadDir, basename(media)))
-      : readFileSync(resolve("public", media.slice(1)));
-    return {
-      verified: true,
-      bytes: bytes.length,
-      digest: mediaDigest(bytes),
-      source: validUpload ? "signature-verified-upload" : "approved-sample",
-    };
-  };
   app.post(
     "/api/projects/:id/posts",
     requireRole("admin", "creator"),
     (req, res) => {
-      const mediaEvidence = verifyMedia(req.body);
       res.status(201).json(
         store.update((state) => {
           const access = readAccess(req, state);
@@ -264,6 +256,14 @@ export function createApp(store, dataDir) {
                   "creators",
                   z.string().trim().min(1).max(80).parse(req.body.creator),
                 );
+          const mediaEvidence = verifyMediaReference(
+            state,
+            store.records,
+            uploadDir,
+            req.body,
+            access,
+            req.params.id,
+          );
           const post = addSubmission(
             state,
             req.params.id,
@@ -282,7 +282,7 @@ export function createApp(store, dataDir) {
   );
   app.post(
     "/api/posts/:id/review",
-    requireRole("admin", "nonprofit"),
+    requireRole("admin", "owner", "nonprofit"),
     (req, res) =>
       res.json(
         store.update((state) => {
@@ -379,11 +379,18 @@ export function createApp(store, dataDir) {
       ),
   );
   app.put("/api/posts/:id", requireRole("admin", "creator"), (req, res) => {
-    const mediaEvidence = verifyMedia(req.body);
     res.json(
       store.update((state) => {
         const access = readAccess(req, state);
         const post = requirePost(state, req.params.id, access, "edit");
+        const mediaEvidence = verifyMediaReference(
+          state,
+          store.records,
+          uploadDir,
+          req.body,
+          access,
+          post.projectId,
+        );
         return revisePost(
           state,
           req.params.id,

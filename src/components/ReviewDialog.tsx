@@ -11,7 +11,7 @@ import {
   Bookmark,
   MoreHorizontal,
 } from "lucide-react";
-import { api, downloadPost } from "../api";
+import { api, downloadPost, downloadMedia } from "../api";
 import { useWorkspace } from "../context";
 import type { Post } from "../types";
 import {
@@ -191,10 +191,18 @@ export function ReviewDialog({
                     <Download size={15} />
                     Post details
                   </button>
-                  <a href={post.media} className="text-button" download>
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() =>
+                      void downloadMedia(post.media, access).catch((error) =>
+                        notify(error.message),
+                      )
+                    }
+                  >
                     Save creative
                     <Download size={14} />
-                  </a>
+                  </button>
                 </div>
               )}
             </div>

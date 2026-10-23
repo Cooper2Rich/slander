@@ -77,6 +77,14 @@ test("project setup, upload, automatic eligibility, immutable revision and pairi
   await expect(
     page.getByText("Change your creative", { exact: true }),
   ).toBeVisible();
+  await expect
+    .poll(() =>
+      page
+        .getByRole("dialog")
+        .getByRole("img", { name: "Roots for the future", exact: true })
+        .evaluate((img: HTMLImageElement) => img.naturalWidth),
+    )
+    .toBeGreaterThan(0);
   await page
     .getByLabel("Instagram caption")
     .fill("Come plant a greener future with us. #CommunityGardens");
@@ -186,6 +194,17 @@ test("project setup, upload, automatic eligibility, immutable revision and pairi
   await page.getByRole("button", { name: "Post details" }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^slander-.+\.json$/);
+  const mediaDownloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Save creative" }).click();
+  const mediaDownload = await mediaDownloadPromise;
+  expect(mediaDownload.suggestedFilename()).toMatch(
+    /^slander-creative\.(jpeg|jpg)$/,
+  );
+  expect(await mediaDownload.failure()).toBeNull();
+  await page.screenshot({
+    path: `test-results/${testInfo.project.name}-private-media.png`,
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Close dialog" }).click();
   await page.goto("/projects/seat-at-the-table");
   await expect(

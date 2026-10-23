@@ -1,6 +1,6 @@
 import type { DemoAccess } from "./types";
 
-function accessHeaders(access?: DemoAccess) {
+export function accessHeaders(access?: DemoAccess) {
   return access
     ? {
         "x-demo-role": access.role,
@@ -10,6 +10,18 @@ function accessHeaders(access?: DemoAccess) {
         ...(access.creatorId ? { "x-demo-creator": access.creatorId } : {}),
       }
     : {};
+}
+
+export async function downloadMedia(path: string, access: DemoAccess) {
+  const response = await fetch(path, { headers: accessHeaders(access) });
+  if (!response.ok)
+    throw new Error("The creative media is unavailable in this view.");
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "slander-creative";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export async function api<T>(

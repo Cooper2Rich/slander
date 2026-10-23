@@ -1,50 +1,106 @@
 import { DatabaseSync } from "node:sqlite";
-import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { mkdirSync, existsSync, readdirSync, cpSync } from "node:fs";
+import { dirname, join, basename } from "node:path";
 import { seedData } from "./seed.js";
 import { migrateIdentities } from "./access.js";
-import { refreshEligibility } from "./eligibility.js";
+import { refreshEligibility, bindEligibilityRecords } from "./eligibility.js";
+import { migrateRecords, recordRepository } from "./records.js";
+import { migrateOrganizations } from "./marketplace.js";
 
-export function createStore(filename, seed = true) {
+export function createStore(filename, seed = true, { migrationHook } = {}) {
   if (filename !== ":memory:")
     mkdirSync(dirname(filename), { recursive: true });
+  const existed = filename !== ":memory:" && existsSync(filename);
   const db = new DatabaseSync(filename);
-  db.exec(
-    "PRAGMA journal_mode = WAL; CREATE TABLE IF NOT EXISTS workspace (id INTEGER PRIMARY KEY CHECK (id = 1), document TEXT NOT NULL)",
-  );
-  if (!db.prepare("SELECT id FROM workspace WHERE id = 1").get()) {
-    db.prepare("INSERT INTO workspace (id, document) VALUES (1, ?)").run(
-      JSON.stringify(
-        seed ? seedData() : { projects: [], posts: [], activity: [] },
-      ),
-    );
+  let migrationBackup = null;
+  if (
+    existed &&
+    !db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'",
+      )
+      .get()
+  ) {
+    const directory = dirname(filename);
+    migrationBackup = `${directory}-backup-v1-${Date.now()}`;
+    mkdirSync(migrationBackup);
+    for (const entry of readdirSync(directory)) {
+      if (
+        ![
+          basename(filename),
+          `${basename(filename)}-wal`,
+          `${basename(filename)}-shm`,
+        ].includes(entry)
+      )
+        cpSync(join(directory, entry), join(migrationBackup, entry), {
+          recursive: true,
+        });
+    }
+    // VACUUM snapshots committed WAL content as one consistent database file.
+    db.prepare("VACUUM INTO ?").run(join(migrationBackup, basename(filename)));
   }
+  db.exec("PRAGMA journal_mode = WAL");
+  let writing = false;
+  const records = recordRepository(db, () => writing);
   const store = {
+    migrationBackup,
+    records,
     read() {
-      return JSON.parse(
-        db.prepare("SELECT document FROM workspace WHERE id = 1").get()
-          .document,
+      return bindEligibilityRecords(
+        JSON.parse(
+          db.prepare("SELECT document FROM workspace WHERE id = 1").get()
+            .document,
+        ),
+        records,
       );
     },
-    update(fn) {
+    update(fn, initializing = false) {
       db.exec("BEGIN IMMEDIATE");
+      writing = true;
       try {
+        if (initializing) {
+          db.exec(
+            "CREATE TABLE IF NOT EXISTS workspace (id INTEGER PRIMARY KEY CHECK (id = 1), document TEXT NOT NULL)",
+          );
+          migrateRecords(db);
+          migrationHook?.("afterSchema");
+          if (!db.prepare("SELECT id FROM workspace WHERE id=1").get())
+            db.prepare("INSERT INTO workspace(id,document) VALUES(1,?)").run(
+              JSON.stringify(
+                seed ? seedData() : { projects: [], posts: [], activity: [] },
+              ),
+            );
+        }
         const state = this.read();
-        const result = fn(state);
+        const result = fn(state, records);
+        records.indexSnapshots(state);
+        records.indexCampaigns(state);
         db.prepare("UPDATE workspace SET document = ? WHERE id = 1").run(
           JSON.stringify(state),
         );
+        if (initializing) migrationHook?.("afterWorkspace");
         db.exec("COMMIT");
         return result;
       } catch (error) {
         db.exec("ROLLBACK");
         throw error;
+      } finally {
+        writing = false;
       }
     },
     close() {
       db.close();
     },
   };
-  store.update((state) => refreshEligibility(migrateIdentities(state)));
+  try {
+    store.update(
+      (state) =>
+        refreshEligibility(migrateOrganizations(migrateIdentities(state))),
+      true,
+    );
+  } catch (error) {
+    db.close();
+    throw error;
+  }
   return store;
 }
