@@ -431,6 +431,9 @@ body.public-demo {
 .public-demo .skip-link {
   color: #031b29;
 }
+.public-demo .icon-button {
+  color: var(--muted);
+}
 @media (max-width: 760px) {
   .public-demo .ripple-mark {
     width: 33px;
