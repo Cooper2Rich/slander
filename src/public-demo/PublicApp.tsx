@@ -310,8 +310,8 @@ export default function PublicApp() {
               </div>
               <div className="discovery-art">
                 <img
-                  src={demoAsset("images/coffee-midnight.png")}
-                  alt="Espresso in a candlelit coffee shop after dark"
+                  src={demoAsset("images/nocturne-midnight-filmed-v2.jpg")}
+                  alt="Fresh coffee being poured through a filter"
                 />
                 <span>
                   Nocturne Coffee.

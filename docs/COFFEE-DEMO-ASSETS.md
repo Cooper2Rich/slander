@@ -1,18 +1,32 @@
 # Nocturne Coffee demo assets
 
-Public-demo experiment on `demo-2`; no PRD change. Three completed 16.4-second portrait motion ads use generated photographs, animated editorial copy, scene transitions, closing CTAs, and original synthesized ambient audio. This is a fictional coffee shop, and performance/funding figures remain illustrative.
+Public-demo experiment on `demo-2`; no PRD change. The three current ads are 16.4-second landscape videos using continuous, real filmed coffee footage at its original playback speed, with Nocturne copy/CTAs and original synthesized ambient audio. Every frame of the underlying image comes from a playing video. The current ads do not use image pans, photo crossfades, looping or stretched short clips. Nocturne is a fictional coffee shop; performance/funding figures remain illustrative.
 
-| Film                              | Saved video                              | Saved background                      |
-| --------------------------------- | ---------------------------------------- | ------------------------------------- |
-| Your midnight ritual              | `public/videos/nocturne-midnight.webm`   | `public/images/coffee-midnight.png`   |
-| A little obsession, in every shot | `public/videos/nocturne-espresso.webm`   | `public/images/coffee-espresso.png`   |
-| A seat after dark                 | `public/videos/nocturne-afterhours.webm` | `public/images/coffee-afterhours.png` |
+| Film                              | Saved video                                        | Poster extracted from footage                     |
+| --------------------------------- | -------------------------------------------------- | ------------------------------------------------- |
+| Your midnight ritual              | `public/videos/nocturne-midnight-filmed-v2.webm`   | `public/images/nocturne-midnight-filmed-v2.jpg`   |
+| A little obsession, in every shot | `public/videos/nocturne-espresso-filmed-v2.webm`   | `public/images/nocturne-espresso-filmed-v2.jpg`   |
+| A seat after dark                 | `public/videos/nocturne-afterhours-filmed-v2.webm` | `public/images/nocturne-afterhours-filmed-v2.jpg` |
 
-Rebuild the videos with `node scripts/generate-coffee-videos.mjs`. The copy/scene definitions live in `src/public-demo/coffee-ads.js`. The renderer uses local Chromium, Canvas and Web Audio, with VP9 video and Opus audio. Images were generated with the built-in imagegen tool, not the CLI/API fallback. The originals remain in Codex's generated-images folder; the application consumes the saved workspace copies above.
+Rebuild with `node scripts/generate-coffee-videos.mjs`. Copy definitions live in `src/public-demo/coffee-ads.js`; source URLs, chosen start times and SHA-256 digests live in `scripts/coffee-footage.mjs`. The renderer downloads the selected sources if missing, verifies their digests, and caches them under ignored `outputs/coffee-footage/`. Local Chromium decodes the source videos and renders 1280×720 VP9/Opus files. Rendering rejects a clip with fewer than 16 seconds of source playback or fewer than 300 decoded source frames. The website serves bundled output files, without a third-party video dependency at runtime.
 
-The public demo appends the coffee project, finished creatives and **Nocturne Studio · fictional** creator once to existing browser workspaces, retaining earlier records, uploads, edits and viewer giving history. The public palette uses midnight charcoal, plum, lilac, ivory and muted amber; the local backend keeps its existing theme.
+Existing browser workspaces receive a new media revision for the old stock creatives, retaining historical snapshots, stable ad IDs, custom text, withdrawals, holds, and giving history. User-uploaded replacements are preserved. Original photo ads elsewhere in the demo remain images. The public palette uses dark purple accent panels, pale lavender buttons with dark text, and high-contrast body text. Normal text/control combinations are checked against a minimum 4.5:1 contrast ratio in public and creator views. The local backend keeps its existing theme.
 
-## Final image prompts
+## Filmed footage credits
+
+All three selected item pages identify the **Mixkit Stock Video Free License**, permitting commercial and personal use. See the [Mixkit license](https://mixkit.co/license/). The footage is used in a fictional demo advertisement, without suggesting that any depicted person or venue endorses Nocturne.
+
+| Ad              | Source clip                                                                                                                                       | Source duration | Selected continuous segment |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------------------- |
+| Midnight ritual | [Water poured into a coffee filter — Mixkit 816](https://mixkit.co/free-stock-video/water-poured-into-a-coffee-filter-816/)                       | 24 seconds      | 2.0–18.4 seconds            |
+| Espresso craft  | [Latte art — Mixkit 810](https://mixkit.co/free-stock-video/latte-art-810/)                                                                       | 34 seconds      | 3.0–19.4 seconds            |
+| After hours     | [A barista preparing coffee with milk and ice — Mixkit 796](https://mixkit.co/free-stock-video/a-barista-preparing-coffee-with-milk-and-ice-796/) | 17 seconds      | 0.0–16.4 seconds            |
+
+## Earlier generated artwork
+
+The image prompts below document the earlier photo-animation experiment. These images are retained as historical assets; the current filmed videos use none of them. They were created with the built-in imagegen tool and saved in `public/images/coffee-midnight.png`, `public/images/coffee-espresso.png`, and `public/images/coffee-afterhours.png`.
+
+### Original image prompts
 
 ### Midnight ritual
 

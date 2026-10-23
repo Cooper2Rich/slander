@@ -4,7 +4,7 @@
 
 No installation or sign-in required. The public demo opens to a **video discovery grid**: hover for a muted preview, click for an ad profile, see illustrative impressions/CTR/donations, and choose **Fund ad spend**. Create a separate **viewer profile** to simulate contributions and keep a giving history. Profiles and contributions stay in this browser; there are no passwords, external sign-ins, real charges, or live ad purchases.
 
-The featured **Nocturne Coffee** collection includes three finished **16.4-second** motion ads with ambient audio. Choose **Watch coffee collection**, or switch to Creator and select **Nocturne Studio · fictional** to see all three under My ads. The public demo uses a midnight/plum/amber palette. [Asset files, generation prompts and rebuild notes](docs/COFFEE-DEMO-ASSETS.md).
+The featured **Nocturne Coffee** collection includes three **16.4-second** ads made from real filmed coffee footage, with ambient audio. Choose **Watch coffee collection**, or switch to Creator and select **Nocturne Studio · fictional** to see all three under My ads. The public demo uses dark purple accents and light lavender buttons with contrast-checked text. [Asset files, footage credits and rebuild notes](docs/COFFEE-DEMO-ASSETS.md).
 
 Use **Preview as** to explore the workspaces. Creators have two navigation tabs: **My ads** (their own creatives, results, and archive) and **Campaigns**. Admin and Campaign Owner views include creatives, spending, archives, and activity. Project creation, uploads, revisions, scoped exceptions, campaign consent, tracked simulated gifts, reports, and sample statements remain available. These public-demo UX experiments do not amend the PRD or change the local backend's navigation and permissions.
 
@@ -43,7 +43,7 @@ Live payments, payouts, OAuth, social publishing, ad delivery, production identi
 
 ## Data and verification
 
-The GitHub Pages demo is built with `npm run build:public`; only the generated `public-site/` assets are published to `gh-pages`. Source lives on `demo-2`. Public discovery and simplified workspaces reuse project, eligibility, revision, scope and exception domain modules through browser adapters. Fictional records live in localStorage; uploaded media lives in IndexedDB. Nothing connects to the local API, database or files. Bundled motion-story previews are generated from sample images with `node scripts/generate-preview-videos.mjs`. Verify desktop/mobile workflows with `npm run test:public`. Clearing this site's browser storage starts a fresh fictional workspace.
+The GitHub Pages demo is built with `npm run build:public`; only the generated `public-site/` assets are published to `gh-pages`. Source lives on `demo-2`. Public discovery and simplified workspaces reuse project, eligibility, revision, scope and exception domain modules through browser adapters. Fictional records live in localStorage; uploaded media lives in IndexedDB. Nothing connects to the local API, database or files. Rebuild the filmed coffee ads with `node scripts/generate-coffee-videos.mjs`; source footage and credits are recorded in `scripts/coffee-footage.mjs`. Verify desktop/mobile workflows with `npm run test:public`. Clearing this site's browser storage starts a fresh fictional workspace.
 
 Data persists in `data/slander.sqlite`; uploads stay in `data/uploads`. `SLANDER_DATA_DIR` selects an isolated directory. Never delete data to refresh the demo. Startup migrates existing records and retains identifiers. Showcase initialization is explicit, never a startup side effect.
 

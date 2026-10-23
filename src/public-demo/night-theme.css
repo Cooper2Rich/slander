@@ -1,17 +1,19 @@
 /* Public-demo palette experiment. Local application keeps its existing theme. */
 html:has(body.public-demo) {
-  background: #100f16;
+  background: #100b18;
 }
 body.public-demo {
-  --ink: #f2edf8;
-  --muted: #b4aabd;
-  --line: #37303f;
-  --lime: #c7a8ef;
-  --green: #ab87dc;
-  --night: #100f16;
-  --surface: #1b1822;
-  --raised: #24202d;
-  --amber: #dfb987;
+  --ink: #f7efff;
+  --muted: #c2b2d0;
+  --line: #493159;
+  --lime: #d8b4fe;
+  --green: #6b3294;
+  --night: #100b18;
+  --surface: #1d1429;
+  --raised: #2d1b40;
+  --accent: #4c1d75;
+  --accent-strong: #5c2785;
+  --amber: #d7b7f1;
   color-scheme: dark;
   color: var(--ink);
   background: var(--night);
@@ -30,7 +32,7 @@ body.public-demo {
   accent-color: #bb96e7;
 }
 .public-demo .public-notice {
-  background: #261e34;
+  background: #32194a;
   color: #e6dcef;
   border-bottom: 1px solid #493455;
 }
@@ -51,9 +53,9 @@ body.public-demo {
   object-position: center 66%;
 }
 .public-demo .discovery-art span {
-  color: #f4e6d0;
-  background: #251b2de8;
-  border: 1px solid #8c6b4e;
+  color: #f4e7ff;
+  background: #311644f2;
+  border: 1px solid #8854ab;
   transform: none;
   backdrop-filter: blur(12px);
 }
@@ -153,31 +155,31 @@ body.public-demo {
   border: 1px solid #675076;
 }
 .public-demo .ad-play {
-  color: #f7e3c6;
-  background: #1d1428e0;
+  color: #eee0ff;
+  background: #321449ed;
 }
 .public-demo :is(.logo-dot, .title-dot, .eyebrow) {
   color: #d0a9f4;
 }
 .public-demo .profile-copy .profile-cause {
-  background: #28202f;
-  border: 1px solid #4c3658;
+  background: #351747;
+  border: 1px solid #6b3b89;
 }
 .public-demo .button.primary {
-  background: #c7a8ef;
-  border-color: #d4b7f5;
-  color: #23152f;
+  background: #d8b4fe;
+  border-color: #e5caff;
+  color: #241035;
 }
 .public-demo .button.primary:hover {
-  background: #d7bcf7;
+  background: #e8ceff;
 }
 .public-demo .button.secondary {
-  background: #28222f;
-  border-color: #5b486c;
-  color: #e4d7ef;
+  background: #c8a5ea;
+  border-color: #dbbdf4;
+  color: #241035;
 }
 .public-demo .button.secondary:hover {
-  background: #382b43;
+  background: #dbbdf4;
 }
 .public-demo .button.ghost {
   background: transparent;
@@ -188,8 +190,8 @@ body.public-demo {
   border-color: var(--line);
 }
 .public-demo .sidebar-note {
-  background: #2b2037;
-  border-color: #4b355c;
+  background: #351849;
+  border-color: #63347f;
 }
 .public-demo
   :is(
@@ -233,11 +235,11 @@ body.public-demo {
   color: #beb2ca;
 }
 .public-demo .nav-item.active {
-  background: #382548;
-  color: #eddcfb;
+  background: var(--accent);
+  color: #f8edff;
 }
 .public-demo .nav-item:hover {
-  background: #291f34;
+  background: #381c50;
 }
 .public-demo .nav-item.active .nav-count {
   background: #67417f;
@@ -260,7 +262,7 @@ body.public-demo {
   color: #ac9cb9;
 }
 .public-demo .tabs button.active {
-  background: #382548;
+  background: var(--accent);
 }
 .public-demo .tabs button:hover {
   background: #2d2239;
@@ -273,7 +275,7 @@ body.public-demo {
 }
 .public-demo
   :is(.tabs button.active, .market-tabs button[aria-selected="true"]) {
-  color: #e0bdfb;
+  color: #f3e2ff;
   border-color: #c7a8ef;
 }
 .public-demo :is(.workspace-hero, .market-intro, .showcase-banner) {
@@ -359,16 +361,16 @@ body.public-demo {
   gap: 24px;
   padding: 24px 28px;
   margin-bottom: 35px;
-  border: 1px solid #665071;
+  border: 1px solid #79479c;
   border-radius: 13px;
-  background: linear-gradient(110deg, #302139, #211b2a);
+  background: linear-gradient(110deg, #44205e, #251135);
 }
 .public-demo .collection-banner h2 {
   font:
     27px Georgia,
     serif;
   margin: 8px 0;
-  color: #f3dfc4;
+  color: #f4e7ff;
 }
 .public-demo .collection-banner p {
   color: #bfaecb;
@@ -380,16 +382,17 @@ body.public-demo {
   right: 13px;
   bottom: 15px;
   background: #1b1325e8;
-  color: #f0decc;
+  color: #f4e7ff;
   padding: 7px 10px;
   border-radius: 6px;
   font-size: 11px;
 }
 .public-demo .ad-card-media:has(.ad-duration) {
-  height: 320px;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
 .public-demo .ad-card-media:has(.ad-duration) video {
-  object-position: center 57%;
+  object-fit: contain;
 }
 @media (max-width: 760px) {
   .public-demo .discovery-art {

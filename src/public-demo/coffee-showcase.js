@@ -8,7 +8,7 @@ import { mediaEvidence } from "./media";
 
 // Append to old browser workspaces once. Preserve uploads, identities and gifts.
 export async function addCoffeeShowcase(value) {
-  if (value.coffeeShowcaseVersion === 1) return;
+  if (value.coffeeShowcaseVersion === 2) return;
   const ownerId = `${coffeeProjectId}-owner`;
   if (!value.creators.some((c) => c.id === coffeeCreatorId))
     value.creators.unshift({
@@ -30,9 +30,9 @@ export async function addCoffeeShowcase(value) {
       description:
         "Three finished films for a fictional neighborhood coffee shop. A midnight ritual, a carefully pulled espresso, and a place to stay awhile.",
       brief:
-        "An atmospheric coffee shop campaign in midnight, plum and amber. Explore the finished 16-second films or create your own story.",
+        "An atmospheric coffee shop campaign with dark purple accents and light lavender controls. Explore the finished 16-second films or create your own story.",
       cover: "forest",
-      coverMedia: "/images/coffee-midnight.png",
+      coverMedia: coffeeAds[0].poster,
       color: "purple",
       status: "active",
       startDate: "2026-01-01",
@@ -43,9 +43,30 @@ export async function addCoffeeShowcase(value) {
     configurePolicy(project);
     value.projects.unshift(project);
   }
+  if (project.coverMedia === "/images/coffee-midnight.png")
+    project.coverMedia = coffeeAds[0].poster;
   const created = [];
   for (const ad of coffeeAds) {
-    if (value.posts.some((p) => p.id === ad.id)) continue;
+    const existing = value.posts.find((p) => p.id === ad.id);
+    if (existing) {
+      if (existing.media === `/videos/${ad.id}.webm`) {
+        // A new media snapshot preserves the old evidence, user edits and any
+        // withdrawal/hold. IDs and viewer contributions remain unchanged.
+        const evidence = await mediaEvidence(ad.media);
+        existing.media = ad.media;
+        existing.revision += 1;
+        existing.updatedAt = new Date().toISOString();
+        snapshotPost(existing, evidence);
+        existing.history.push({
+          id: crypto.randomUUID(),
+          action: "media-upgraded",
+          actor: "Demo media upgrade",
+          note: "Replaced the photo animation with continuous filmed coffee footage.",
+          at: existing.updatedAt,
+        });
+      }
+      continue;
+    }
     const now = new Date().toISOString();
     const policy = project.eligibilityPolicy;
     const post = {
@@ -56,7 +77,7 @@ export async function addCoffeeShowcase(value) {
       creatorId: coffeeCreatorId,
       caption: ad.caption,
       format: "reel",
-      media: `/videos/${ad.id}.webm`,
+      media: ad.media,
       mediaType: "video",
       rights: true,
       channel: "instagram",
@@ -77,6 +98,6 @@ export async function addCoffeeShowcase(value) {
     created.push(post);
   }
   value.posts.unshift(...created);
-  value.coffeeShowcaseVersion = 1;
+  value.coffeeShowcaseVersion = 2;
   refreshEligibility(value);
 }

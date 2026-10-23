@@ -76,7 +76,7 @@ export async function prepareWorkspace() {
     await prepareSamples();
     const existing = JSON.parse(localStorage.getItem(key) || "null");
     if (existing?.version === 1) {
-      if (existing.coffeeShowcaseVersion !== 1) {
+      if (existing.coffeeShowcaseVersion !== 2) {
         await addCoffeeShowcase(existing);
         save(existing);
       }
@@ -201,7 +201,12 @@ function creator(access) {
     throw new Error("Switch to Creator and choose a profile first.");
 }
 function ownMedia(value, path, access) {
-  if (coffeeAds.some((ad) => path === `/videos/${ad.id}.webm`)) return;
+  if (
+    coffeeAds.some(
+      (ad) => path === ad.media || path === `/videos/${ad.id}.webm`,
+    )
+  )
+    return;
   if (/^\/images\/(forest|food|education|seedling)\.jpg$/.test(path)) return;
   const uploaded = value.uploads.find((m) => m.media === path);
   if (
@@ -311,7 +316,7 @@ export async function workspaceRequest(
               ? fixtures[p.id]
               : null;
           const coffee = coffeeAds.find(
-            (ad) => ad.id === p.id && p.media === `/videos/${ad.id}.webm`,
+            (ad) => ad.id === p.id && p.media === ad.media,
           );
           return {
             id: p.id,
@@ -320,10 +325,10 @@ export async function workspaceRequest(
             creator: p.creator,
             creatorId: p.creatorId,
             caption: p.caption,
-            media: sample ? `/videos/${p.id}.webm` : p.media,
-            mediaType: sample ? "video" : p.mediaType,
+            media: p.media,
+            mediaType: p.mediaType,
             poster: coffee
-              ? `/images/${coffee.image}.png`
+              ? coffee.poster
               : sample
                 ? p.media
                 : project.coverMedia || `/images/${project.cover}.jpg`,

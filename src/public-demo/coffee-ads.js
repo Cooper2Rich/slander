@@ -6,6 +6,8 @@ export const coffeeAds = [
     id: "nocturne-midnight",
     title: "Your midnight ritual",
     image: "coffee-midnight",
+    media: "/videos/nocturne-midnight-filmed-v2.webm",
+    poster: "/images/nocturne-midnight-filmed-v2.jpg",
     caption:
       "The city gets quiet. Your ritual begins. Discover a darker kind of coffee at Nocturne Coffee.",
     scenes: [
@@ -28,6 +30,8 @@ export const coffeeAds = [
     id: "nocturne-espresso",
     title: "A little obsession, in every shot",
     image: "coffee-espresso",
+    media: "/videos/nocturne-espresso-filmed-v2.webm",
+    poster: "/images/nocturne-espresso-filmed-v2.jpg",
     caption:
       "Ground with intention. Pulled with patience. Meet your next espresso obsession at Nocturne Coffee.",
     scenes: [
@@ -50,6 +54,8 @@ export const coffeeAds = [
     id: "nocturne-afterhours",
     title: "A seat after dark",
     image: "coffee-afterhours",
+    media: "/videos/nocturne-afterhours-filmed-v2.webm",
+    poster: "/images/nocturne-afterhours-filmed-v2.jpg",
     caption:
       "Rain outside. Warmth within. There is a seat for your next conversation at Nocturne Coffee.",
     scenes: [

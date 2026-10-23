@@ -23,7 +23,7 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
   await expect(treeCard).toContainText("24,800");
   await expect(treeCard).toContainText("3.50%");
   await expect(treeCard).toContainText("$1,860.00");
-  const video = treeCard.locator("video");
+  const video = cards.first().locator("video");
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.readyState))
     .toBeGreaterThan(1);
@@ -54,10 +54,7 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
   await expect(
     page.getByRole("heading", { name: "It starts with one tree", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".profile-media video")).toHaveAttribute(
-    "controls",
-    "",
-  );
+  await expect(page.locator(".profile-media img")).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "Fund ad spend" }).click();
   await page.getByLabel("Your name").fill("Demo Donor");

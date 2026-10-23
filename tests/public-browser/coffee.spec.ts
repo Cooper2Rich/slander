@@ -10,6 +10,7 @@ test("finished coffee collection has three playable films over 15 seconds, with 
   await expect(page.locator(".ad-duration")).toHaveCount(3);
   const videos = page.locator(".ad-card video");
   for (const video of await videos.all()) {
+    await expect(video).toHaveAttribute("src", /-filmed-v2\.webm$/);
     await expect
       .poll(() =>
         video.evaluate(
@@ -80,6 +81,144 @@ test("finished coffee collection has three playable films over 15 seconds, with 
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+
+test("old photo-based coffee ads receive a new filmed revision without losing edits, withdrawals or giving", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await expect(page.locator(".ad-card")).toHaveCount(6);
+  const previous = await page.evaluate(() => {
+    const key = "slander-public-workspace-v1",
+      state = JSON.parse(localStorage.getItem(key)!);
+    state.coffeeShowcaseVersion = 1;
+    for (const post of state.posts.filter((p: { id: string }) =>
+      p.id.startsWith("nocturne-"),
+    ))
+      post.media = `/videos/${post.id}.webm`;
+    const edited = state.posts.find(
+      (p: { id: string }) => p.id === "nocturne-midnight",
+    );
+    edited.title = "My edited coffee story";
+    const withdrawn = state.posts.find(
+      (p: { id: string }) => p.id === "nocturne-afterhours",
+    );
+    withdrawn.withdrawnAt = new Date().toISOString();
+    localStorage.setItem(key, JSON.stringify(state));
+    localStorage.setItem(
+      "slander-public-viewers-v1",
+      JSON.stringify({
+        profiles: [],
+        activeId: null,
+        support: [{ id: "kept-gift", adId: edited.id, amountCents: 4200 }],
+      }),
+    );
+    return {
+      revision: edited.revision,
+      snapshots: edited.snapshots.length,
+      withdrawnAt: withdrawn.withdrawnAt,
+    };
+  });
+  await page.reload();
+  await expect(page.locator(".ad-card")).toHaveCount(5);
+  await page.reload();
+  await expect(page.locator(".ad-card")).toHaveCount(5);
+  const saved = await page.evaluate(() => ({
+    workspace: JSON.parse(localStorage.getItem("slander-public-workspace-v1")!),
+    viewers: JSON.parse(localStorage.getItem("slander-public-viewers-v1")!),
+  }));
+  const edited = saved.workspace.posts.find(
+    (p: { id: string }) => p.id === "nocturne-midnight",
+  );
+  expect(edited.media).toContain("-filmed-v2.webm");
+  expect(edited.title).toBe("My edited coffee story");
+  expect(edited.revision).toBe(previous.revision + 1);
+  expect(edited.snapshots.length).toBe(previous.snapshots + 1);
+  expect(
+    saved.workspace.posts.find(
+      (p: { id: string }) => p.id === "nocturne-afterhours",
+    ).withdrawnAt,
+  ).toBe(previous.withdrawnAt);
+  expect(saved.viewers.support[0].amountCents).toBe(4200);
+});
+
+test("purple controls and text remain readable in public and creator views", async ({
+  page,
+}) => {
+  const check = async (selectors: string[]) => {
+    const results = await page.evaluate((selectors) => {
+      const rgba = (value: string) =>
+        (value.match(/[\d.]+/g) || []).map(Number);
+      const luminance = (rgb: number[]) =>
+        rgb
+          .slice(0, 3)
+          .map((v) => {
+            const c = v / 255;
+            return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+          })
+          .reduce((n, c, i) => n + c * [0.2126, 0.7152, 0.0722][i], 0);
+      return selectors.flatMap((selector) =>
+        Array.from(document.querySelectorAll<HTMLElement>(selector))
+          .filter(
+            (element) =>
+              element.getBoundingClientRect().width &&
+              !(element as HTMLButtonElement).disabled,
+          )
+          .map((element) => {
+            const foreground = rgba(getComputedStyle(element).color);
+            let background = [16, 11, 24];
+            const layers = [];
+            let parent: HTMLElement | null = element;
+            while (parent) {
+              layers.unshift(rgba(getComputedStyle(parent).backgroundColor));
+              parent = parent.parentElement;
+            }
+            for (const layer of layers) {
+              const alpha = layer[3] ?? 1;
+              background = background.map(
+                (c, i) => (layer[i] || 0) * alpha + c * (1 - alpha),
+              );
+            }
+            const a = luminance(foreground),
+              b = luminance(background);
+            return {
+              selector,
+              text: element.innerText.slice(0, 45),
+              contrast: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
+            };
+          }),
+      );
+    }, selectors);
+    expect(results.length).toBeGreaterThan(5);
+    for (const result of results)
+      expect(
+        result.contrast,
+        `${result.selector}: ${result.text}`,
+      ).toBeGreaterThanOrEqual(4.5);
+  };
+  await page.goto("./");
+  await expect(page.locator(".ad-card")).toHaveCount(6);
+  await check([
+    ".button.primary",
+    ".button.secondary",
+    ".metrics-note",
+    ".ad-stats dt",
+    ".ad-category",
+    ".ad-play",
+    ".demo-view-picker select",
+    ".public-notice",
+  ]);
+  await selectCreator(page, "Nocturne Studio · fictional");
+  await navigate(page, "My ads");
+  await check([
+    ".button.primary",
+    ".button.secondary",
+    ".metrics-note",
+    ".ad-stats dt",
+    ".nav-item.active",
+    ".tabs button.active",
+    ".role-switch select",
+  ]);
 });
 
 test("existing browser workspace upgrades once while preserving viewer history and creative edits", async ({

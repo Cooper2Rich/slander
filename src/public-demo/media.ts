@@ -93,7 +93,11 @@ export async function uploadMedia(body: unknown) {
 }
 export async function mediaEvidence(path: string) {
   let bytes: Uint8Array;
-  if (/^\/videos\/nocturne-(midnight|espresso|afterhours)\.webm$/.test(path)) {
+  if (
+    /^\/videos\/nocturne-(midnight|espresso|afterhours)(-filmed-v2)?\.webm$/.test(
+      path,
+    )
+  ) {
     const response = await fetch(demoAsset(path));
     if (!response.ok)
       throw new Error(
