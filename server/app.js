@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { marketplaceRoutes } from "./marketplace-routes.js";
+import { financeRoutes } from "./finance-routes.js";
 import {
   migrateOrganizations,
   assignOrganizations,
@@ -203,6 +204,7 @@ export function createApp(store, dataDir) {
   store.update((state, records) => migrateMedia(state, records, uploadDir));
   mediaRoutes(app, store, uploadDir, requireRole);
   marketplaceRoutes(app, store, requireRole);
+  financeRoutes(app, store, requireRole);
   const upload = multer({
     storage: multer.diskStorage({
       destination: uploadDir,

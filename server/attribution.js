@@ -168,7 +168,10 @@ export function freezeIntent(
 ) {
   getProject(state, campaignId);
   const data = z
-    .object({ distributionId: z.string().max(100).optional() })
+    .object({
+      distributionId: z.string().max(100).optional(),
+      amountCents: z.number().int().positive().safe().optional(),
+    })
     .strict()
     .parse(input);
   let binding = null,
@@ -191,6 +194,7 @@ export function freezeIntent(
         termsId: result.terms.id,
         creatorId: result.distribution.creatorId,
         snapshotId: result.distribution.snapshotId,
+        evaluationId: result.distribution.evaluationId,
         selectedAt: at,
       };
     else reason = result.reason || "CAMPAIGN_MISMATCH";
@@ -215,6 +219,7 @@ export function freezeIntent(
             termsId: result.terms.id,
             creatorId: result.distribution.creatorId,
             snapshotId: result.distribution.snapshotId,
+            evaluationId: result.distribution.evaluationId,
           };
           break;
         }
@@ -230,6 +235,7 @@ export function freezeIntent(
     mode: "simulated",
     effectiveAt: at,
     visitorId,
+    amountCents: data.amountCents ?? null,
     binding,
     state: binding ? "attributed" : "suspense",
     reason: binding ? null : reason,

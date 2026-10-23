@@ -13,16 +13,21 @@ export function createStore(filename, seed = true, { migrationHook } = {}) {
   const existed = filename !== ":memory:" && existsSync(filename);
   const db = new DatabaseSync(filename);
   let migrationBackup = null;
-  if (
-    existed &&
-    !db
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'",
-      )
-      .get()
-  ) {
+  const hasVersionTable = !!db
+    .prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'",
+    )
+    .get();
+  const oldVersion = hasVersionTable
+    ? db
+        .prepare(
+          "SELECT COALESCE(MAX(version),0) AS version FROM schema_migrations",
+        )
+        .get().version
+    : 0;
+  if (existed && oldVersion < 2) {
     const directory = dirname(filename);
-    migrationBackup = `${directory}-backup-v1-${Date.now()}`;
+    migrationBackup = `${directory}-backup-v${oldVersion === 0 ? 1 : 2}-${Date.now()}`;
     mkdirSync(migrationBackup);
     for (const entry of readdirSync(directory)) {
       if (
@@ -40,6 +45,7 @@ export function createStore(filename, seed = true, { migrationHook } = {}) {
     db.prepare("VACUUM INTO ?").run(join(migrationBackup, basename(filename)));
   }
   db.exec("PRAGMA journal_mode = WAL");
+  db.exec("PRAGMA foreign_keys = ON");
   let writing = false;
   const records = recordRepository(db, () => writing);
   const store = {
@@ -57,6 +63,7 @@ export function createStore(filename, seed = true, { migrationHook } = {}) {
     update(fn, initializing = false) {
       db.exec("BEGIN IMMEDIATE");
       writing = true;
+      records.beginWrite();
       try {
         if (initializing) {
           db.exec(
@@ -73,6 +80,7 @@ export function createStore(filename, seed = true, { migrationHook } = {}) {
         }
         const state = this.read();
         const result = fn(state, records);
+        records.validateWrite();
         records.indexSnapshots(state);
         records.indexCampaigns(state);
         db.prepare("UPDATE workspace SET document = ? WHERE id = 1").run(

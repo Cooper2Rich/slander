@@ -22,6 +22,7 @@ import {
   recordAttributionFixture,
   adjudicate,
 } from "./attribution.js";
+import { confirmSimulatedGift } from "./finance.js";
 
 export function marketplaceRoutes(app, store, requireRole) {
   const mutate = (req, fn) =>
@@ -309,6 +310,7 @@ export function marketplaceRoutes(app, store, requireRole) {
     );
     res.status(201).json({
       id: intent.id,
+      amountCents: intent.amountCents,
       state: intent.state,
       reason: intent.reason,
       attributionKind: intent.binding?.kind || null,
@@ -330,5 +332,21 @@ export function marketplaceRoutes(app, store, requireRole) {
       reason: intent.reason,
       simulationDisclosure: intent.simulationDisclosure,
     });
+  });
+  app.post("/api/giving/:campaignId/intents/:id/confirm", (req, res) => {
+    z.object({}).strict().parse(req.body);
+    const visitorId = visitor(req, res);
+    res.json(
+      store.update((s, r) => {
+        const intent = r.get("gift_intents", req.params.id);
+        if (
+          !intent ||
+          intent.visitorId !== visitorId ||
+          intent.campaignId !== req.params.campaignId
+        )
+          throw new AppError("Confirmation unavailable.", 404);
+        return confirmSimulatedGift(s, r, intent);
+      }),
+    );
   });
 }

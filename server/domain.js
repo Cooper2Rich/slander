@@ -36,6 +36,7 @@ export const projectSchema = z
     startDate: date,
     endDate: date,
     status: z.enum(["draft", "active", "archived"]),
+    goalCents: z.number().int().positive().safe().nullable().optional(),
     instagram: z.string().trim().max(150).default(""),
     policyConfig: policyInput.optional(),
   })

@@ -1,3 +1,4 @@
+import { migrateFinanceRecords, financeRepository } from "./finance-records.js";
 import { AppError } from "./domain.js";
 
 // New histories live in indexed SQLite rows, never in the baseline workspace JSON.
@@ -24,6 +25,10 @@ const tables = [
   "journal_entries",
   "reservations",
   "settlement_manifests",
+  "contributions",
+  "source_conflicts",
+  "source_event_results",
+  "reconciliation_runs",
 ];
 
 export function migrateRecords(db) {
@@ -53,22 +58,32 @@ export function migrateRecords(db) {
     db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS offer_version_unique ON offer_versions(campaign_id,json_extract(document,'$.version'));
       CREATE UNIQUE INDEX IF NOT EXISTS participation_unique ON participations(campaign_id,json_extract(document,'$.creatorId'),json_extract(document,'$.termsId'));
       CREATE UNIQUE INDEX IF NOT EXISTS source_evidence_unique ON source_events(mode,json_extract(document,'$.source'),json_extract(document,'$.sourceAccountId'),json_extract(document,'$.sourceEventId'));
-      CREATE UNIQUE INDEX IF NOT EXISTS journal_source_unique ON journal_transactions(mode,json_extract(document,'$.sourceEventId'));
       CREATE UNIQUE INDEX IF NOT EXISTS reservation_key_unique ON reservations(mode,json_extract(document,'$.idempotencyKey'));
       CREATE INDEX IF NOT EXISTS click_visitor ON tracking_clicks(campaign_id,mode,json_extract(document,'$.visitorId'),effective_at DESC,id DESC);
       CREATE INDEX IF NOT EXISTS media_path ON media(json_extract(document,'$.storagePath'));
       CREATE INDEX IF NOT EXISTS distribution_state_lookup ON distribution_events(campaign_id,mode,json_extract(document,'$.distributionId'),effective_at DESC);
       CREATE INDEX IF NOT EXISTS participation_restriction_lookup ON participation_restrictions(campaign_id,mode,json_extract(document,'$.creatorId'),effective_at DESC);
       INSERT OR IGNORE INTO schema_migrations(version) VALUES(1);`);
+    migrateFinanceRecords(db);
   }
 }
 
 export function recordRepository(db, writable) {
+  const dirtyTransactions = new Set();
+  const newTransactions = new Set();
   const check = (table) => {
     if (!tables.includes(table)) throw new Error("Unknown record table");
   };
   const decode = (row) => (row ? JSON.parse(row.document) : null);
   return {
+    ...financeRepository(db, writable),
+    beginWrite() {
+      dirtyTransactions.clear();
+      newTransactions.clear();
+    },
+    validateWrite() {
+      for (const id of dirtyTransactions) this.validateJournal(id);
+    },
     get(table, id) {
       check(table);
       return decode(
@@ -79,6 +94,11 @@ export function recordRepository(db, writable) {
       check(table);
       if (!writable())
         throw new Error("Records must share the workspace transaction owner");
+      if (
+        table === "journal_entries" &&
+        !newTransactions.has(row.transactionId)
+      )
+        throw new Error("Immutable journal transaction is already closed");
       db.prepare(
         `INSERT INTO ${table}(id,campaign_id,mode,effective_at,document) VALUES(?,?,?,?,?)`,
       ).run(
@@ -88,6 +108,9 @@ export function recordRepository(db, writable) {
         row.effectiveAt,
         JSON.stringify(row),
       );
+      if (table === "journal_transactions") dirtyTransactions.add(row.id);
+      if (table === "journal_transactions") newTransactions.add(row.id);
+      if (table === "journal_entries") dirtyTransactions.add(row.transactionId);
       return row;
     },
     page(
