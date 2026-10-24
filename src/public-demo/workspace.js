@@ -292,6 +292,14 @@ export async function workspaceRequest(
 ) {
   await prepareWorkspace();
   const value = state();
+  if (path === "/public/campaigns" && method === "GET") {
+    return {
+      handled: true,
+      data: value.projects
+        .filter((project) => project.status === "active")
+        .map((project) => ({ id: project.id, name: project.name })),
+    };
+  }
   if (path === "/public/ads" && method === "GET") {
     const fixtures = {
       "sample-1": { impressions: 24800, clicks: 868, donatedCents: 186000 },
@@ -382,20 +390,48 @@ export async function workspaceRequest(
   if (method === "GET" && path === "/workspace") {
     data = scopedWorkspace(value, a);
     if (a.role === "creator") {
-      // Only this creator's archive is returned; other creators' work stays out.
-      const ownArchived = value.posts.filter(
-        (p) =>
-          p.creatorId === a.creatorId &&
-          value.projects.some(
-            (project) =>
-              project.id === p.projectId && project.status === "archived",
-          ),
-      );
-      data.posts.push(...ownArchived);
+      // Retain only this creator's history, including ended/unpublished campaigns.
+      // Campaign discovery and other creators' private ads remain scoped normally.
+      const today = new Date().toISOString().slice(0, 10);
+      const ownPastAds = value.posts.filter((post) => {
+        const project = value.projects.find((p) => p.id === post.projectId);
+        return (
+          post.creatorId === a.creatorId &&
+          (post.withdrawnAt ||
+            !project ||
+            project.status !== "active" ||
+            project.endDate < today)
+        );
+      });
+      const visibleIds = new Set(data.posts.map((post) => post.id));
+      data.posts.push(...ownPastAds.filter((post) => !visibleIds.has(post.id)));
       data.approvedPosts = data.approvedPosts.filter(
         (p) => p.creatorId === a.creatorId,
       );
-      data.ownArchivedPosts = ownArchived.map((p) => p.id);
+      data.ownArchivedPosts = ownPastAds
+        .filter((post) =>
+          value.projects.some(
+            (project) =>
+              project.id === post.projectId && project.status === "archived",
+          ),
+        )
+        .map((post) => post.id);
+      data.ownPastAds = ownPastAds.map((post) => {
+        const project = value.projects.find((p) => p.id === post.projectId);
+        return {
+          postId: post.id,
+          campaign: project?.name || "Past campaign",
+          reason: post.withdrawnAt
+            ? "Withdrawn"
+            : !project
+              ? "Campaign unavailable"
+              : project.status === "archived"
+                ? "Campaign archived"
+                : project.status !== "active"
+                  ? "Campaign unpublished"
+                  : "Campaign ended",
+        };
+      });
     }
   } else if (method === "GET" && path === "/offers") {
     const p = getProject(value, campaignId);

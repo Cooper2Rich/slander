@@ -644,6 +644,35 @@
 .public-demo .public-leaderboard {
   margin-top: 20px;
 }
+.public-demo .campaign-board {
+  margin: 22px 0;
+}
+.public-demo .campaign-board h3 {
+  font-size: 15px;
+}
+.public-demo .leaderboard-scoring {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.public-demo .leaderboard-scoring summary {
+  color: var(--ink);
+  cursor: pointer;
+}
+.public-demo .leaderboard-scoring p {
+  margin-top: 10px;
+}
+.public-demo .past-ad-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--raised);
+  color: var(--ink);
+}
 .public-demo .public-leaderboard .section-toolbar {
   margin-bottom: 8px;
 }

@@ -12,6 +12,25 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
   await page.getByRole("link", { name: "Leaderboard", exact: true }).click();
   const rows = page.locator(".leaderboard-table tbody tr");
   await expect(rows).toHaveCount(6);
+  await expect(page.locator(".campaign-board")).toHaveCount(4);
+  await expect(
+    page.locator(".campaign-board").first().locator("tbody tr"),
+  ).toHaveCount(3);
+  await expect(
+    page.getByRole("columnheader", { name: "CTR", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByText("Scoring method & demo targets", { exact: true })
+    .click();
+  await expect(page.locator(".leaderboard-scoring")).toContainText(
+    "50,000 impressions",
+  );
+  await expect(page.locator(".leaderboard-scoring")).toContainText(
+    "2,000 total link clicks",
+  );
+  await expect(page.locator(".leaderboard-scoring")).toContainText(
+    "$2,500.00 raised",
+  );
   await expect
     .poll(() =>
       page
@@ -23,8 +42,15 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
   await expect(rows.first()).toContainText("Your midnight ritual");
   await page
     .getByLabel("Leaderboard campaign")
+    .selectOption("fictional-river-showcase-v1");
+  await expect(rows).toHaveCount(0);
+  await expect(page.locator(".campaign-board")).toContainText("0 / 25 ads");
+  await page
+    .getByLabel("Leaderboard campaign")
     .selectOption("nocturne-coffee-showcase-v1");
   await expect(rows).toHaveCount(3);
+  await expect(page.locator(".campaign-board")).toHaveCount(1);
+  await expect(rows.first().locator("td").last()).toHaveText("84.17");
   await page.getByLabel("Search leaderboard").fill("obsession");
   await expect(rows).toHaveCount(1);
   await expect(rows).toContainText("02");
@@ -39,6 +65,17 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
   await expect(page.locator(".profile-copy h1")).toHaveText(
     "Your midnight ritual",
   );
+  await page
+    .getByRole("link", { name: "Campaign leaderboard", exact: false })
+    .click();
+  await expect(page.getByLabel("Leaderboard campaign")).toHaveValue(
+    "nocturne-coffee-showcase-v1",
+  );
+  await page.reload();
+  await expect(page.getByLabel("Leaderboard campaign")).toHaveValue(
+    "nocturne-coffee-showcase-v1",
+  );
+  await expect(page.locator(".campaign-board")).toHaveCount(1);
 });
 
 test("admin creatives show video thumbnails and searchable creator names without bulky sidebar cards", async ({

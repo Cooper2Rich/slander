@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import { ArrowUpRight, Heart, Search } from "lucide-react";
 import App from "../App";
 import { Logo, Modal } from "../components/ui";
@@ -11,6 +17,8 @@ import {
   fundAd,
   fundedCents,
   loadAds,
+  loadPublicCampaigns,
+  type PublicCampaign,
   money,
   selectViewer,
   viewerState,
@@ -44,13 +52,24 @@ export default function PublicApp() {
   const [search, setSearch] = useState(""),
     [category, setCategory] = useState("All causes");
   const [support, setSupport] = useState<PublicAd | null>(null);
-  const [campaign, setCampaign] = useState("all");
+  const [campaigns, setCampaigns] = useState<PublicCampaign[]>([]);
+  const [params, setParams] = useSearchParams();
+  const campaign = params.get("campaign") || "all";
+  const setCampaign = (value: string) => {
+    const next = new URLSearchParams(params);
+    if (value === "all") next.delete("campaign");
+    else next.set("campaign", value);
+    setParams(next);
+  };
   const [version, setVersion] = useState(0);
   useEffect(() => {
     if (publicRoute) {
       setAds(null);
-      void loadAds()
-        .then(setAds)
+      void Promise.all([loadAds(), loadPublicCampaigns()])
+        .then(([loadedAds, loadedCampaigns]) => {
+          setAds(loadedAds);
+          setCampaigns(loadedCampaigns);
+        })
         .catch((e) => setError(e.message));
     }
   }, [publicRoute, location.pathname]);
@@ -192,6 +211,7 @@ export default function PublicApp() {
             </div>
             <PublicLeaderboard
               ads={ads}
+              campaigns={campaigns}
               campaign={campaign}
               onCampaign={setCampaign}
               search={search}
@@ -220,6 +240,12 @@ export default function PublicApp() {
                     <small>SUPPORTING</small>
                     <h2>{selected.project}</h2>
                     <p>{selected.nonprofit}</p>
+                    <Link
+                      className="text-button"
+                      to={`/leaderboard?campaign=${encodeURIComponent(selected.projectId)}`}
+                    >
+                      Campaign leaderboard <ArrowUpRight size={14} />
+                    </Link>
                   </div>
                   <AdStats ad={selected} />
                   <p className="metrics-note">

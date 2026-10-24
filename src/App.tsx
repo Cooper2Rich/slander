@@ -46,12 +46,16 @@ export default function App({
   demoViews = {},
 }: {
   demoViews?: Partial<
-    Record<"ArchivesPage" | "CreatorAds" | "SpendingPage", ComponentType>
+    Record<
+      "ArchivesPage" | "CreatorAds" | "CreatorPastAds" | "SpendingPage",
+      ComponentType
+    >
   >;
 }) {
   const {
     ArchivesPage = () => null,
     CreatorAds = () => null,
+    CreatorPastAds = () => null,
     SpendingPage = () => null,
   } = demoViews;
   const location = useLocation();
@@ -103,7 +107,9 @@ export default function App({
     PUBLIC_DEMO && location.pathname === "/spending"
       ? "Ad spending"
       : PUBLIC_DEMO && location.pathname === "/archives"
-        ? "Archives"
+        ? role === "creator"
+          ? "Past ads"
+          : "Archives"
         : PUBLIC_DEMO && role === "creator" && location.pathname === "/review"
           ? "My ads"
           : location.pathname.startsWith("/campaigns")
@@ -160,6 +166,7 @@ export default function App({
     : role === "creator"
       ? [
           { to: "/review", icon: Layers3, label: "My ads", count: pending },
+          { to: "/archives", icon: Inbox, label: "Past ads" },
           { to: "/projects", icon: FolderHeart, label: "Campaigns" },
         ]
       : [
@@ -480,11 +487,7 @@ export default function App({
                   <Route
                     path="/archives"
                     element={
-                      role === "creator" ? (
-                        <Navigate to="/review" replace />
-                      ) : (
-                        <ArchivesPage />
-                      )
+                      role === "creator" ? <CreatorPastAds /> : <ArchivesPage />
                     }
                   />
                 )}

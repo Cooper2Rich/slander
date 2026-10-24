@@ -118,7 +118,7 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
   expect(errors).toEqual([]);
 });
 
-test("creators have two tabs, own ads and own archive; public excludes archived or held ads", async ({
+test("creators have current and past ads; public excludes archived or held ads", async ({
   page,
 }, info) => {
   await page.goto("./");
@@ -126,7 +126,7 @@ test("creators have two tabs, own ads and own archive; public excludes archived 
   await navigate(page, "My ads");
   await expect(
     page.getByRole("navigation", { name: "Main navigation" }).getByRole("link"),
-  ).toHaveCount(2);
+  ).toHaveCount(3);
   await expect(page.locator(".creator-card")).toHaveCount(2);
   await expect(
     page.getByRole("heading", { name: "Small hands, big impact", exact: true }),
@@ -140,19 +140,19 @@ test("creators have two tabs, own ads and own archive; public excludes archived 
     localStorage.setItem(key, JSON.stringify(state));
   });
   await page.reload();
-  await page.getByRole("tab", { name: "My archive" }).click();
+  await page.getByRole("tab", { name: "Past ads" }).click();
   await expect(page.locator(".creator-card")).toHaveCount(1);
   await expect(
     page.getByRole("heading", { name: "It starts with one tree", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "View archive" }).click();
+  await page.getByRole("button", { name: "View past ad" }).click();
   await expect(page.getByRole("dialog")).toContainText(
     "Your archived creative",
   );
   await page.getByRole("button", { name: "Close dialog" }).click();
   await page.goto("./#/archives");
   await expect(
-    page.getByRole("heading", { name: "My ads.", exact: true }),
+    page.getByRole("heading", { name: "Past ads.", exact: true }),
   ).toBeVisible();
   await page.goto("./#/spending");
   await expect(

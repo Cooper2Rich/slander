@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowUpRight, Wallet } from "lucide-react";
 import { useWorkspace } from "../context";
 import { EmptyState, Media, Modal, StatusBadge } from "../components/ui";
@@ -15,31 +15,47 @@ import {
   type PublicAd,
 } from "./catalog";
 
-export function CreatorAds() {
-  const { posts, identity, search, access } = useWorkspace();
+export function CreatorPastAds() {
+  return <CreatorAds past />;
+}
+export function CreatorAds({ past = false }: { past?: boolean }) {
+  const {
+    posts,
+    projects,
+    identity,
+    search,
+    access,
+    ownPastAds = [],
+    ownArchivedPosts = [],
+  } = useWorkspace();
+  const navigate = useNavigate();
   const [ads, setAds] = useState<PublicAd[]>([]),
-    [tab, setTab] = useState("Current"),
     [selected, setSelected] = useState<Post | null>(null);
   useEffect(() => {
     void loadAds().then(setAds);
   }, [posts]);
-  const archived = useWorkspace().ownArchivedPosts || [];
+  const pastById = new Map(ownPastAds.map((record) => [record.postId, record]));
   const own = posts.filter((p) => p.creatorId === identity?.id);
   const filtered = own.filter(
     (p) =>
-      (tab === "My archive"
-        ? archived.includes(p.id) || !!p.withdrawnAt
-        : !archived.includes(p.id) && !p.withdrawnAt) &&
-      `${p.title} ${p.caption}`.toLowerCase().includes(search.toLowerCase()),
+      past === pastById.has(p.id) &&
+      `${p.title} ${p.caption} ${pastById.get(p.id)?.campaign || projects.find((project) => project.id === p.projectId)?.name || ""}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
   );
   return (
     <section className="creator-ads compact-ads" aria-label="Your ads">
       <div className="page-heading">
         <div>
           <h1>
-            My ads<span className="title-dot">.</span>
+            {past ? "Past ads" : "My ads"}
+            <span className="title-dot">.</span>
           </h1>
-          <p>Manage your ads, performance and archived work.</p>
+          <p>
+            {past
+              ? "Your ads from ended, archived or unpublished campaigns, plus withdrawn ads."
+              : "Manage your ads, performance and past work."}
+          </p>
         </div>
         <Link className="button primary" to="/projects">
           Create an ad <ArrowUpRight size={17} />
@@ -57,7 +73,7 @@ export function CreatorAds() {
               own.filter(
                 (p) =>
                   p.status === "approved" &&
-                  !archived.includes(p.id) &&
+                  !pastById.has(p.id) &&
                   !p.withdrawnAt,
               ).length
             }
@@ -75,13 +91,13 @@ export function CreatorAds() {
         role="tablist"
         aria-label="My ads sections"
       >
-        {["Current", "My archive"].map((t) => (
+        {["Current", "Past ads"].map((t) => (
           <button
             key={t}
             role="tab"
-            aria-selected={tab === t}
-            className={tab === t ? "active" : ""}
-            onClick={() => setTab(t)}
+            aria-selected={past === (t === "Past ads")}
+            className={past === (t === "Past ads") ? "active" : ""}
+            onClick={() => navigate(t === "Past ads" ? "/archives" : "/review")}
           >
             {t}
           </button>
@@ -98,13 +114,22 @@ export function CreatorAds() {
             <article key={post.id} className="ad-card creator-card">
               <div className="ad-card-media">
                 <AdMedia ad={{ ...post, poster: ad?.poster }} access={access} />
-                <StatusBadge status={post.status} />
+                {past ? (
+                  <span className="badge past-ad-badge">
+                    {pastById.get(post.id)?.reason}
+                  </span>
+                ) : (
+                  <StatusBadge status={post.status} />
+                )}
                 {ad?.durationSeconds && (
                   <span className="ad-duration">0:{ad.durationSeconds}</span>
                 )}
               </div>
               <div className="ad-card-copy">
                 <h3>{post.title}</h3>
+                {past && (
+                  <p className="ad-byline">{pastById.get(post.id)?.campaign}</p>
+                )}
                 <AdStats
                   ad={
                     ad || {
@@ -124,17 +149,11 @@ export function CreatorAds() {
                         ?.pause();
                       setSelected(post);
                     }}
-                    aria-label={
-                      archived.includes(post.id)
-                        ? undefined
-                        : `View ${post.title}`
-                    }
+                    aria-label={past ? undefined : `View ${post.title}`}
                   >
-                    {archived.includes(post.id)
-                      ? "View archive"
-                      : "View & edit"}
+                    {past ? "View past ad" : "View & edit"}
                   </button>
-                  {ad && (
+                  {ad && !past && (
                     <Link className="text-button" to={`/ads/${post.id}`}>
                       Public profile ↗
                     </Link>
@@ -148,13 +167,11 @@ export function CreatorAds() {
       {!filtered.length && (
         <EmptyState
           title={
-            tab === "My archive"
-              ? "Your archive is clear."
-              : "Your next good story starts here."
+            past ? "No past ads found." : "Your next good story starts here."
           }
           description={
-            tab === "My archive"
-              ? "Your withdrawn ads and ads from archived campaigns appear here."
+            past
+              ? "Your ads remain available here after withdrawal or when their campaign ends, is archived or is unpublished."
               : "Choose a campaign to create an ad. Your ads and results will appear here."
           }
           action={
@@ -165,17 +182,22 @@ export function CreatorAds() {
         />
       )}
       {selected &&
-        (archived.includes(selected.id) ? (
+        (past ? (
           <Modal
             title={selected.title}
-            subtitle="Your archived creative"
+            subtitle={
+              ownArchivedPosts.includes(selected.id)
+                ? "Your archived creative"
+                : "Your past ad"
+            }
             onClose={() => setSelected(null)}
           >
             <div className="form-content">
               <Media post={selected} />
               <p>{selected.caption}</p>
               <p className="metrics-note">
-                Archived campaign · retained for your records.
+                {pastById.get(selected.id)?.reason} · retained for your records.
+                Revision {selected.revision}.
               </p>
             </div>
           </Modal>

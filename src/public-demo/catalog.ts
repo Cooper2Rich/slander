@@ -1,4 +1,9 @@
 import { workspaceRequest } from "./workspace.js";
+export type PublicCampaign = { id: string; name: string };
+export async function loadPublicCampaigns(): Promise<PublicCampaign[]> {
+  const result = await workspaceRequest("/public/campaigns");
+  return result.data as PublicCampaign[];
+}
 
 export type PublicAd = {
   id: string;

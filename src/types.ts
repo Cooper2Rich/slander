@@ -105,6 +105,7 @@ export interface Activity {
 }
 export interface Workspace {
   ownArchivedPosts?: string[];
+  ownPastAds?: { postId: string; campaign: string; reason: string }[];
   projects: Project[];
   posts: Post[];
   approvedPosts: Post[];

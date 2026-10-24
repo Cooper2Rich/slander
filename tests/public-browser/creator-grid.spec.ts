@@ -109,7 +109,7 @@ test("compact creator cards adapt to the workspace and play private media in cur
     localStorage.setItem(key, JSON.stringify(state));
   });
   await page.reload();
-  await page.getByRole("tab", { name: "My archive" }).click();
+  await page.getByRole("tab", { name: "Past ads" }).click();
   await expect(cards).toHaveCount(3);
   await expect(video).toHaveAttribute("src", /^blob:/);
   await first
@@ -118,7 +118,7 @@ test("compact creator cards adapt to the workspace and play private media in cur
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.currentTime))
     .toBeGreaterThan(0.1);
-  await first.getByRole("button", { name: "View archive" }).click();
+  await first.getByRole("button", { name: "View past ad" }).click();
   await expect(page.getByRole("dialog")).toContainText(
     "Your archived creative",
   );
