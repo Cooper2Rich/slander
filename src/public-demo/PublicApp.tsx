@@ -27,6 +27,7 @@ import {
 import * as demoViews from "./WorkspaceViews";
 import { AdStats } from "./AdStats";
 import { PublicLeaderboard } from "./PublicLeaderboard";
+import type { LeaderboardPeriod } from "./leaderboard-periods";
 
 export function enterWorkspace(
   role: string,
@@ -55,6 +56,13 @@ export default function PublicApp() {
   const [campaigns, setCampaigns] = useState<PublicCampaign[]>([]);
   const [params, setParams] = useSearchParams();
   const campaign = params.get("campaign") || "all";
+  const period: LeaderboardPeriod =
+    params.get("period") === "daily" ? "daily" : "weekly";
+  const setPeriod = (value: LeaderboardPeriod) => {
+    const next = new URLSearchParams(params);
+    next.set("period", value);
+    setParams(next);
+  };
   const setCampaign = (value: string) => {
     const next = new URLSearchParams(params);
     if (value === "all") next.delete("campaign");
@@ -212,6 +220,8 @@ export default function PublicApp() {
             <PublicLeaderboard
               ads={ads}
               campaigns={campaigns}
+              period={period}
+              onPeriod={setPeriod}
               campaign={campaign}
               onCampaign={setCampaign}
               search={search}

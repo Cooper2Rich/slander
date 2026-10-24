@@ -31,6 +31,7 @@ import {
 import { prepareSamples, mediaEvidence, uploadMedia, mediaFile } from "./media";
 import { addCoffeeShowcase } from "./coffee-showcase.js";
 import { coffeeAds } from "./coffee-ads.js";
+import { samplePerformanceDays } from "./leaderboard-periods";
 
 export const campaignId = "fictional-river-showcase-v1";
 export const creatorId = `${campaignId}-creator`;
@@ -341,6 +342,10 @@ export async function workspaceRequest(
                 ? p.media
                 : project.coverMedia || `/images/${project.cover}.jpg`,
             durationSeconds: coffee ? 16 : undefined,
+            performanceDays:
+              coffee || sample
+                ? samplePerformanceDays(p.id, coffee || sample)
+                : undefined,
             project: project.name,
             nonprofit: project.nonprofit,
             category: project.category,

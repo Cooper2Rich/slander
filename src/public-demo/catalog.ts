@@ -1,4 +1,5 @@
 import { workspaceRequest } from "./workspace.js";
+import type { DailyMetrics } from "./leaderboard-periods";
 export type PublicCampaign = { id: string; name: string };
 export async function loadPublicCampaigns(): Promise<PublicCampaign[]> {
   const result = await workspaceRequest("/public/campaigns");
@@ -22,6 +23,7 @@ export type PublicAd = {
   impressions: number | null;
   clicks: number | null;
   donatedCents: number | null;
+  performanceDays?: DailyMetrics[];
 };
 export async function loadAds(): Promise<PublicAd[]> {
   const result = await workspaceRequest("/public/ads");
