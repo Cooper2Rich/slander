@@ -14,6 +14,7 @@ Capture Cooper's latest decisions here for later organization into the requireme
 
 - **Daily winner:** Include a winner for the ad campaign each day, using the same scoring weights and tie-breakers as the weekly winner, applied to that day's results. The daily winner payout remains **TBD** without inventing an amount or payout obligation. Exact daily measurement boundaries remain unspecified.
 - **Daily and weekly scores:** Use **40% impressions, 30% total link clicks, and 30% funds raised** for both daily and weekly winners. CTR remains excluded from scoring and tie-breaking. Total link clicks are the click metric; do not substitute CTR.
+- **Leaderboard updates:** Automatically refresh the daily and weekly leaderboard results every **10 minutes**. Display a visible countdown timer showing the minutes and seconds remaining until the next scheduled update. After each scheduled update, the timer counts down to the following update.
 - **Daily and weekly score ties:** Compare the unrounded scores first. If they tie, compare the following in order within the applicable daily or weekly period, advancing only while still tied:
 
   1. Most total link clicks.
