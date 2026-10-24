@@ -16,32 +16,11 @@ test("current leaders move while completed daily and weekly winners stay fixed",
   for (const label of ["Impressions", "Link clicks", "Funding"]) {
     await expect(rows.first().locator(`[data-label="${label}"]`)).toBeVisible();
   }
-  await page.clock.runFor(6100);
+  await page.clock.runFor(600001);
   await expect(rows.first()).toContainText("A little obsession");
   await expect(board.getByLabel("Up 1 place", { exact: true })).toHaveCount(1);
   await expect(board.getByLabel("Down 1 place", { exact: true })).toHaveCount(
     1,
-  );
-  await rows.first().hover();
-  const hoveredStep = await page
-    .locator(".public-leaderboard")
-    .getAttribute("data-simulation-step");
-  await page.clock.runFor(6100);
-  await expect(page.locator(".public-leaderboard")).toHaveAttribute(
-    "data-simulation-step",
-    hoveredStep!,
-  );
-  await page
-    .getByRole("heading", { name: "Leaderboard.", exact: true })
-    .hover();
-  await page.getByRole("button", { name: "Pause demo movement" }).click();
-  const step = await page
-    .locator(".public-leaderboard")
-    .getAttribute("data-simulation-step");
-  await page.clock.runFor(13000);
-  await expect(page.locator(".public-leaderboard")).toHaveAttribute(
-    "data-simulation-step",
-    step!,
   );
   await page.getByRole("tab", { name: "Daily", exact: true }).click();
   await expect(board.locator(".leaderboard-leading")).toContainText(
@@ -59,7 +38,7 @@ test("current leaders move while completed daily and weekly winners stay fixed",
   await page.getByLabel("Past weekly winners").selectOption("2026-10-12");
   await expect(board.locator(".winner-badge")).toHaveText("Weekly winner");
   const result = await rows.allTextContents();
-  await page.clock.runFor(20000);
+  await page.clock.runFor(600000);
   expect(await rows.allTextContents()).toEqual(result);
   await page.reload();
   await expect(
@@ -76,21 +55,45 @@ test("current leaders move while completed daily and weekly winners stay fixed",
   ).toBe(true);
 });
 
-test("scheduled refresh countdown repeats every ten minutes independently of demo movement", async ({
+test("rankings and countdown share a repeating ten-minute deadline across periods and delayed timers", async ({
   page,
-}) => {
+}, info) => {
   await page.clock.install({ time: new Date("2026-10-24T18:00:00Z") });
-  await page.goto("./#/leaderboard");
-  await page.getByRole("button", { name: "Pause demo movement" }).click();
-  await expect(page.locator(".leaderboard-countdown")).toHaveText(
-    "Next refresh 10:00",
+  await page.clock.pauseAt(new Date("2026-10-24T18:01:00Z"));
+  await page.goto(
+    "./#/leaderboard?campaign=nocturne-coffee-showcase-v1&period=daily",
   );
-  await page.clock.runFor(599001);
-  await expect(page.locator(".leaderboard-countdown")).toHaveText(
-    "Next refresh 00:01",
-  );
+  const countdown = page.getByRole("timer", {
+    name: "Time until next leaderboard update",
+  });
+  const board = page.locator(".campaign-board");
+  const rows = board.locator("tbody tr");
+  const schedule = page.locator(".public-leaderboard");
+  await expect(rows).toHaveCount(3);
+  await expect(countdown).toHaveText("Next update 10:00");
+  await page.clock.runFor(6100);
+  await expect(schedule).toHaveAttribute("data-simulation-step", "0");
+  await expect(countdown).toHaveText("Next update 09:54");
+  await page.getByRole("tab", { name: "Weekly", exact: true }).click();
+  await expect(countdown).toHaveText("Next update 09:54");
+  const before = await rows.allTextContents();
+  await page.clock.runFor(592901);
+  await expect(countdown).toHaveText("Next update 00:01");
+  expect(await rows.allTextContents()).toEqual(before);
+  await expect(schedule).toHaveAttribute("data-simulation-step", "0");
   await page.clock.runFor(1000);
-  await expect(page.locator(".leaderboard-countdown")).toHaveText(
-    "Next refresh 10:00",
-  );
+  await expect(countdown).toHaveText("Next update 10:00");
+  await expect(schedule).toHaveAttribute("data-simulation-step", "1");
+  await expect(rows.first()).toContainText("A little obsession");
+  await page.clock.runFor(600000);
+  await expect(countdown).toHaveText("Next update 10:00");
+  await expect(schedule).toHaveAttribute("data-simulation-step", "2");
+  await expect(rows.first()).toContainText("A seat after dark");
+  await page.clock.fastForward(1220000);
+  await expect(countdown).toHaveText("Next update 09:40");
+  await expect(schedule).toHaveAttribute("data-simulation-step", "4");
+  await page.screenshot({
+    path: `test-results/leaderboard-countdown-${info.project.name}.png`,
+    fullPage: true,
+  });
 });

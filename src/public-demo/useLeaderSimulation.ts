@@ -7,62 +7,46 @@ import {
 } from "./leaderboard-periods";
 import { simulateLeaders } from "./leaderboard-simulation";
 
-export const DEMO_UPDATE_INTERVAL = 6000;
-const REFRESH_INTERVAL = 600000;
+export const LEADERBOARD_UPDATE_INTERVAL = 10 * 60 * 1000;
 export function useLeaderSimulation(
   ads: PublicAd[] | null,
   period: LeaderboardPeriod,
   enabled: boolean,
 ) {
-  const [updates, setUpdates] = useState({ period, tick: 0 });
-  const [paused, setPaused] = useState(
-    () => matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
-  const [interacting, setInteracting] = useState(false);
-  const [refresh, setRefresh] = useState(() => ({
+  const [schedule, setSchedule] = useState(() => ({
     at: Date.now(),
-    remaining: 600,
+    tick: 0,
+    remaining: LEADERBOARD_UPDATE_INTERVAL / 1000,
   }));
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !ads) return;
     const timer = window.setInterval(() => {
       const now = Date.now();
-      setRefresh((old) =>
-        now - old.at >= REFRESH_INTERVAL
-          ? { at: now, remaining: 600 }
-          : {
-              ...old,
-              remaining: Math.ceil((REFRESH_INTERVAL - (now - old.at)) / 1000),
-            },
-      );
+      setSchedule((old) => {
+        const elapsed = Math.max(0, now - old.at);
+        const updates = Math.floor(elapsed / LEADERBOARD_UPDATE_INTERVAL);
+        return {
+          at: old.at + updates * LEADERBOARD_UPDATE_INTERVAL,
+          tick: old.tick + updates,
+          remaining: Math.ceil(
+            (LEADERBOARD_UPDATE_INTERVAL -
+              (elapsed % LEADERBOARD_UPDATE_INTERVAL)) /
+              1000,
+          ),
+        };
+      });
     }, 1000);
     return () => clearInterval(timer);
-  }, [enabled]);
-  const tick = updates.period === period ? updates.tick : 0;
-  useEffect(() => {
-    if (!enabled || !ads || paused || interacting) return;
-    const timer = window.setInterval(() => {
-      if (document.visibilityState === "hidden") return;
-      setUpdates((old) => ({
-        period,
-        tick: old.period === period ? old.tick + 1 : 1,
-      }));
-    }, DEMO_UPDATE_INTERVAL);
-    return () => clearInterval(timer);
-  }, [enabled, ads, period, paused, interacting]);
+  }, [enabled, ads]);
   const measurement = leaderboardWindow(period);
   const base = useMemo(
     () => (ads || []).map((ad) => periodAd(ad, measurement)),
-    [ads, measurement.startsOn, measurement.through, period, refresh.at],
+    [ads, measurement.startsOn, measurement.through, period, schedule.at],
   );
   return {
-    ads: simulateLeaders(base, tick),
-    previous: simulateLeaders(base, Math.max(0, tick - 1)),
-    tick,
-    paused,
-    interacting,
-    setPaused,
-    setInteracting,
-    countdown: `${String(Math.floor(refresh.remaining / 60)).padStart(2, "0")}:${String(refresh.remaining % 60).padStart(2, "0")}`,
+    ads: simulateLeaders(base, schedule.tick),
+    previous: simulateLeaders(base, Math.max(0, schedule.tick - 1)),
+    tick: schedule.tick,
+    countdown: `${String(Math.floor(schedule.remaining / 60)).padStart(2, "0")}:${String(schedule.remaining % 60).padStart(2, "0")}`,
   };
 }

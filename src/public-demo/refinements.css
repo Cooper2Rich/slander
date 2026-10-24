@@ -665,10 +665,6 @@
   font-size: 11px;
   color: var(--muted);
 }
-.public-demo .simulation-controls .button {
-  min-height: 30px;
-  padding: 5px 9px;
-}
 .public-demo .past-winner-filters {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

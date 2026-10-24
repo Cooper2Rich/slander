@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, Trophy, Pause, Play } from "lucide-react";
+import { TrendingUp, Trophy } from "lucide-react";
 import { count, money, type PublicAd, type PublicCampaign } from "./catalog";
 import { DEMO_TARGETS, rankPublicAds, scorePublicAd } from "./ranking";
 import {
@@ -195,29 +195,14 @@ export function PublicLeaderboard({
               label="Leaderboard period"
             />
             <div className="simulation-controls">
-              <span className="leaderboard-countdown">
-                Next refresh {simulation.countdown}
-              </span>
-              <span>
-                {simulation.paused
-                  ? "Simulation paused"
-                  : simulation.interacting
-                    ? "Paused while viewing an ad"
-                    : "Simulated updates every 6s"}
-              </span>
-              <button
-                className="button ghost"
-                aria-label={
-                  simulation.paused
-                    ? "Resume demo movement"
-                    : "Pause demo movement"
-                }
-                aria-pressed={simulation.paused}
-                onClick={() => simulation.setPaused(!simulation.paused)}
+              <span
+                className="leaderboard-countdown"
+                role="timer"
+                aria-label="Time until next leaderboard update"
               >
-                {simulation.paused ? <Play size={13} /> : <Pause size={13} />}
-                {simulation.paused ? "Resume" : "Pause"}
-              </button>
+                Next update {simulation.countdown}
+              </span>
+              <span>Simulated updates every 10 minutes</span>
             </div>
           </div>
           <p className="leaderboard-date">
@@ -232,8 +217,7 @@ export function PublicLeaderboard({
           <p className="leaderboard-note">
             Current leaders only. Results are still in progress; no winner has
             been declared. Movement and metrics are simulated, with no real
-            funding changes. Scheduled leaderboard refreshes run every 10
-            minutes.
+            funding changes.
           </p>
         </>
       ) : (
@@ -333,17 +317,7 @@ export function PublicLeaderboard({
                   : `${board.ranked.length} ${board.ranked.length === 1 ? "winner" : "winners"}`}
               </span>
             </div>
-            <div
-              className="leaderboard-table-wrap"
-              onPointerEnter={() => simulation.setInteracting(true)}
-              onPointerMove={() => simulation.setInteracting(true)}
-              onPointerLeave={() => simulation.setInteracting(false)}
-              onFocus={() => simulation.setInteracting(true)}
-              onBlur={(event) => {
-                if (!event.currentTarget.contains(event.relatedTarget))
-                  simulation.setInteracting(false);
-              }}
-            >
+            <div className="leaderboard-table-wrap">
               <table className="leaderboard-table">
                 <caption className="sr-only">
                   {current ? "Current leaders" : `Past ${period} winners`} for{" "}
