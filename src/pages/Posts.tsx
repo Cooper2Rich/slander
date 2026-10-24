@@ -18,6 +18,8 @@ import {
 } from "../components/ui";
 import { ReviewDialog } from "../components/ReviewDialog";
 import { Leaderboard } from "../components/Leaderboard";
+import { PUBLIC_DEMO } from "../runtime";
+import { AdMedia } from "../public-demo/AdMedia";
 
 export function PostList({
   posts,
@@ -26,7 +28,7 @@ export function PostList({
   posts: Post[];
   showProject?: boolean;
 }) {
-  const { projects, role } = useWorkspace();
+  const { projects, role, access } = useWorkspace();
   const [selected, setSelected] = useState<Post | null>(null);
   return (
     <>
@@ -40,7 +42,9 @@ export function PostList({
               onClick={() => setSelected(post)}
             >
               <div className="post-thumbnail">
-                {post.mediaType === "video" ? (
+                {PUBLIC_DEMO ? (
+                  <AdMedia ad={post} access={access} previewOnly />
+                ) : post.mediaType === "video" ? (
                   <ImageIcon size={26} />
                 ) : (
                   <Media post={post} />
@@ -52,6 +56,9 @@ export function PostList({
                   {showProject ? project.name : post.creator} <span>·</span>{" "}
                   <FormatLabel format={post.format} />
                 </p>
+                {PUBLIC_DEMO && (
+                  <p className="creative-byline">By {post.creator}</p>
+                )}
               </div>
               <div className="post-author">
                 <Avatar name={post.creator} index={i} />
@@ -122,7 +129,9 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
         ? role === "creator"
           ? "Eligible library & counts"
           : "Eligible creatives"
-        : "All submissions";
+        : PUBLIC_DEMO
+          ? "Creatives"
+          : "All submissions";
   return (
     <>
       <div className="page-heading">
@@ -147,7 +156,7 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
                 ? "Scoped holds and appeals for platform exception handling. Eligible content needs no owner action."
                 : mode === "approved"
                   ? "Your eligible creatives, with a clear path to Instagram handoff."
-                  : "Follow automatic eligibility for every current creative."}
+                  : "Browse ads by creator, campaign and eligibility status."}
           </p>
         </div>
         <span className="big-count">
@@ -236,9 +245,11 @@ export function PostsPage({ mode }: { mode: "review" | "approved" | "all" }) {
           title={
             search || projectFilter !== "all" || status !== "all"
               ? "No matching stories."
-              : mode === "review"
-                ? "A clear inbox. A good feeling."
-                : "The next good story is on its way."
+              : PUBLIC_DEMO
+                ? "No creatives found."
+                : mode === "review"
+                  ? "A clear inbox. A good feeling."
+                  : "The next good story is on its way."
           }
           description={
             search || projectFilter !== "all" || status !== "all"

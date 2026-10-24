@@ -60,11 +60,13 @@ export function ProjectsPage() {
             <span className="title-dot">.</span>
           </h1>
           <p>
-            {role === "nonprofit"
-              ? `${identity?.name} — your projects, creators, and eligibility in one place.`
-              : role === "creator"
-                ? `Welcome, ${identity?.name}. Find your next project and follow your own submissions.`
-                : "A little creativity. A lot of good. Bring your next story to life."}
+            {PUBLIC_DEMO
+              ? "Manage projects, creative briefs and submissions."
+              : role === "nonprofit"
+                ? `${identity?.name} — your projects, creators, and eligibility in one place.`
+                : role === "creator"
+                  ? `Welcome, ${identity?.name}. Find your next project and follow your own submissions.`
+                  : "A little creativity. A lot of good. Bring your next story to life."}
           </p>
         </div>
         {role === "admin" && (
@@ -74,55 +76,57 @@ export function ProjectsPage() {
           </button>
         )}
       </div>
-      <section className="workspace-hero">
-        <div className="hero-copy">
-          <span className="hero-kicker">
-            <span />
-            CREATED TO MAKE A DIFFERENCE
-          </span>
-          <h2>
-            Good stories.
-            <br />
-            <span>Greater impact.</span>
-          </h2>
-          <p>
-            Give your mission a voice. Bring creators together
-            <br className="desktop-br" /> to turn meaningful stories into
-            real-world change.
-          </p>
-          <Link className="hero-link" to="/posts">
-            {role !== "creator"
-              ? "View campaign creatives"
-              : "Explore your submissions"}
-            <ArrowUpRight size={17} />
-          </Link>
-        </div>
-        <div className="hero-art">
-          <img
-            src={demoAsset(
-              PUBLIC_DEMO
-                ? "images/coffee-afterhours.png"
-                : "images/seedling.jpg",
-            )}
-            alt={
-              PUBLIC_DEMO
-                ? "A candlelit neighborhood coffee shop"
-                : "Garden tools and young plants ready for planting"
-            }
-          />
-          <div className="hero-image-shade" />
-          <span className="hero-sticker">
-            <Sprout size={22} />
-            Made for
-            <br />
-            <strong>more good.</strong>
-          </span>
-          <div className="hero-art-caption">
-            <span>SMALL ACTS. LASTING CHANGE.</span>
-            <span>↗</span>
+      {!PUBLIC_DEMO && (
+        <section className="workspace-hero">
+          <div className="hero-copy">
+            <span className="hero-kicker">
+              <span />
+              CREATED TO MAKE A DIFFERENCE
+            </span>
+            <h2>
+              Good stories.
+              <br />
+              <span>Greater impact.</span>
+            </h2>
+            <p>
+              Give your mission a voice. Bring creators together
+              <br className="desktop-br" /> to turn meaningful stories into
+              real-world change.
+            </p>
+            <Link className="hero-link" to="/posts">
+              {role !== "creator"
+                ? "View campaign creatives"
+                : "Explore your submissions"}
+              <ArrowUpRight size={17} />
+            </Link>
           </div>
-        </div>
-      </section>
+          <div className="hero-art">
+            <img
+              src={demoAsset(
+                PUBLIC_DEMO
+                  ? "images/coffee-afterhours.png"
+                  : "images/seedling.jpg",
+              )}
+              alt={
+                PUBLIC_DEMO
+                  ? "A candlelit neighborhood coffee shop"
+                  : "Garden tools and young plants ready for planting"
+              }
+            />
+            <div className="hero-image-shade" />
+            <span className="hero-sticker">
+              <Sprout size={22} />
+              Made for
+              <br />
+              <strong>more good.</strong>
+            </span>
+            <div className="hero-art-caption">
+              <span>SMALL ACTS. LASTING CHANGE.</span>
+              <span>↗</span>
+            </div>
+          </div>
+        </section>
+      )}
       <section className="stats-row" aria-label="Workspace summary">
         <div>
           <span className="stat-icon green">
@@ -137,7 +141,9 @@ export function ProjectsPage() {
                 .padStart(2, "0")}
             </strong>
           </div>
-          <span className="stat-note">Making things happen</span>
+          {!PUBLIC_DEMO && (
+            <span className="stat-note">Making things happen</span>
+          )}
         </div>
         <Link to="/review">
           <span className="stat-icon amber">
@@ -161,7 +167,7 @@ export function ProjectsPage() {
             <strong>{approved.toString().padStart(2, "0")}</strong>
           </div>
           <span className="stat-note">
-            Ready for the next chapter
+            {PUBLIC_DEMO ? "View creatives" : "Ready for the next chapter"}
             <ArrowUpRight size={14} />
           </span>
         </Link>
@@ -326,7 +332,11 @@ export function ProjectsPage() {
         </div>
       ) : (
         <EmptyState
-          title="A little room for something new."
+          title={
+            PUBLIC_DEMO
+              ? "No projects found."
+              : "A little room for something new."
+          }
           description={
             search
               ? "No projects match your search. Try a different name or cause."
@@ -348,7 +358,9 @@ export function ProjectsPage() {
       <div className="page-bottom-note">
         <Sprout size={16} />
         <span>
-          Every project starts with a purpose. Every creator helps it grow.
+          {PUBLIC_DEMO
+            ? "Projects and creators in this workspace."
+            : "Every project starts with a purpose. Every creator helps it grow."}
         </span>
         <span className="sample-note">
           Sample organizations · Demo workspace

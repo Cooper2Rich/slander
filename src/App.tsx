@@ -1,4 +1,9 @@
-import { useEffect, useState, type ComponentType } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  type ComponentType,
+} from "react";
 import {
   NavLink,
   Navigate,
@@ -70,7 +75,7 @@ export default function App({
   const [toast, setToast] = useState("");
   const [help, setHelp] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     setMobileNav(false);
     setSearch("");
   }, [location.pathname]);
@@ -103,19 +108,21 @@ export default function App({
           ? "My ads"
           : location.pathname.startsWith("/campaigns")
             ? "Campaigns"
-            : location.pathname === "/review"
-              ? role === "creator"
-                ? "My creatives"
-                : "Platform exceptions"
-              : location.pathname === "/approved"
+            : PUBLIC_DEMO && location.pathname === "/posts"
+              ? "Creatives"
+              : location.pathname === "/review"
                 ? role === "creator"
-                  ? "Eligible library & counts"
-                  : "Eligible creatives"
-                : location.pathname === "/activity"
-                  ? "Activity"
-                  : location.pathname === "/posts"
-                    ? "All submissions"
-                    : "Projects";
+                  ? "My creatives"
+                  : "Platform exceptions"
+                : location.pathname === "/approved"
+                  ? role === "creator"
+                    ? "Eligible library & counts"
+                    : "Eligible creatives"
+                  : location.pathname === "/activity"
+                    ? "Activity"
+                    : location.pathname === "/posts"
+                      ? "All submissions"
+                      : "Projects";
   useEffect(() => {
     document.title = `${title} · ${APP_NAME}`;
   }, [title]);
@@ -203,9 +210,14 @@ export default function App({
           <Logo />
         </NavLink>
         <div className="workspace-identity">
-          <span className="workspace-symbol">
-            <Sparkles size={19} />
-          </span>
+          <Avatar
+            name={
+              role === "admin"
+                ? "Demo Administrator"
+                : identity?.name || "Select profile"
+            }
+            index={2}
+          />
           <div>
             <strong>
               {role === "admin"
@@ -257,53 +269,57 @@ export default function App({
             ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-note">
-            <span className="note-doodle">✳</span>
-            <h3>
-              Built for the
-              <br />
-              good you do.
-            </h3>
-            <p>
-              Your mission deserves
-              <br />
-              to be heard.
-            </p>
-            <button onClick={() => setHelp(true)}>
-              Take a quick tour
-              <ArrowUpRight size={14} />
-            </button>
-          </div>
+          {!PUBLIC_DEMO && (
+            <div className="sidebar-note">
+              <span className="note-doodle">✳</span>
+              <h3>
+                Built for the
+                <br />
+                good you do.
+              </h3>
+              <p>
+                Your mission deserves
+                <br />
+                to be heard.
+              </p>
+              <button onClick={() => setHelp(true)}>
+                Take a quick tour
+                <ArrowUpRight size={14} />
+              </button>
+            </div>
+          )}
           <button className="help-button" onClick={() => setHelp(true)}>
             <CircleHelp size={18} />
             How this demo works
             <ArrowUpRight size={15} />
           </button>
-          <div className="sidebar-user">
-            <Avatar
-              name={
-                role === "admin"
-                  ? "Demo Administrator"
-                  : identity?.name || "Select Profile"
-              }
-              index={2}
-            />
-            <div>
-              <strong>
-                {role === "admin"
-                  ? "Administrator"
-                  : identity?.name || "Select your profile"}
-              </strong>
-              <small>
-                {role === "admin"
-                  ? "Admin View"
-                  : role === "nonprofit"
-                    ? "Campaign Owner"
-                    : "Creator"}
-              </small>
+          {!PUBLIC_DEMO && (
+            <div className="sidebar-user">
+              <Avatar
+                name={
+                  role === "admin"
+                    ? "Demo Administrator"
+                    : identity?.name || "Select Profile"
+                }
+                index={2}
+              />
+              <div>
+                <strong>
+                  {role === "admin"
+                    ? "Administrator"
+                    : identity?.name || "Select your profile"}
+                </strong>
+                <small>
+                  {role === "admin"
+                    ? "Admin View"
+                    : role === "nonprofit"
+                      ? "Campaign Owner"
+                      : "Creator"}
+                </small>
+              </div>
+              <span className="online-dot" />
             </div>
-            <span className="online-dot" />
-          </div>
+          )}
         </div>
       </aside>
       <div className="main-shell">
@@ -326,7 +342,11 @@ export default function App({
                 <Search size={17} />
                 <input
                   aria-label="Search workspace"
-                  placeholder="Search workspace..."
+                  placeholder={
+                    PUBLIC_DEMO
+                      ? "Search ads, creators, campaigns…"
+                      : "Search workspace..."
+                  }
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -391,7 +411,7 @@ export default function App({
           {!workspace && !needsSelection && !error && (
             <div className="loading-state">
               <Logo small />
-              <p>Making room for good things…</p>
+              <p>Loading workspace…</p>
             </div>
           )}
           {workspace && (
@@ -484,7 +504,11 @@ export default function App({
           )}
         </main>
         <footer className="app-footer">
-          <span>Stories for good. A little louder.</span>
+          <span>
+            {PUBLIC_DEMO
+              ? "Fictional demo workspace"
+              : "Stories for good. A little louder."}
+          </span>
           <span>
             {APP_NAME.toUpperCase()} © {new Date().getFullYear()}
           </span>

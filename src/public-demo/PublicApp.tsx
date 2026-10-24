@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ArrowUpRight, Heart, Search } from "lucide-react";
 import App from "../App";
 import { Logo, Modal } from "../components/ui";
@@ -18,6 +18,7 @@ import {
 } from "./catalog";
 import * as demoViews from "./WorkspaceViews";
 import { AdStats } from "./AdStats";
+import { PublicLeaderboard } from "./PublicLeaderboard";
 
 export function enterWorkspace(
   role: string,
@@ -35,6 +36,7 @@ export default function PublicApp() {
   const publicRoute =
     location.pathname === "/" ||
     location.pathname === "/explore" ||
+    location.pathname === "/leaderboard" ||
     location.pathname.startsWith("/ads/") ||
     location.pathname === "/viewer";
   const [ads, setAds] = useState<PublicAd[] | null>(null),
@@ -42,6 +44,7 @@ export default function PublicApp() {
   const [search, setSearch] = useState(""),
     [category, setCategory] = useState("All causes");
   const [support, setSupport] = useState<PublicAd | null>(null);
+  const [campaign, setCampaign] = useState("all");
   const [version, setVersion] = useState(0);
   useEffect(() => {
     if (publicRoute) {
@@ -52,8 +55,9 @@ export default function PublicApp() {
     }
   }, [publicRoute, location.pathname]);
   useEffect(() => {
-    if (publicRoute) document.title = "Discover stories · Ripple";
-  }, [publicRoute]);
+    if (publicRoute)
+      document.title = `${location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · Ripple`;
+  }, [publicRoute, location.pathname]);
   if (!publicRoute) return <App demoViews={demoViews} />;
   const adId = location.pathname.startsWith("/ads/")
     ? decodeURIComponent(location.pathname.slice(5))
@@ -87,8 +91,11 @@ export default function PublicApp() {
           <Logo />
         </Link>
         <nav aria-label="Public navigation">
-          <Link to="/explore">Discover ads</Link>
-          <Link to="/viewer">{viewer ? "My giving" : "Viewer account"}</Link>
+          <NavLink to="/explore">Discover ads</NavLink>
+          <NavLink to="/leaderboard">Leaderboard</NavLink>
+          <NavLink to="/viewer">
+            {viewer ? "My giving" : "Viewer account"}
+          </NavLink>
         </nav>
         <label className="demo-view-picker">
           <span>Preview as</span>
@@ -109,19 +116,14 @@ export default function PublicApp() {
         {location.pathname === "/viewer" ? (
           <>
             <div className="discovery-heading">
-              <span className="eyebrow">YOUR GENEROSITY. YOUR IMPACT.</span>
-              <h1>
-                {viewer
-                  ? `Hello, ${viewer.name}.`
-                  : "A little support goes a long way."}
-              </h1>
+              <h1>{viewer ? `Hello, ${viewer.name}.` : "Viewer account"}</h1>
               <p>
                 A viewer profile lets you support ad spend and follow your
                 giving. Browse anytime without an account.
               </p>
             </div>
             {viewer ? (
-              <section className="market-panel">
+              <section className="market-panel giving-history">
                 <div className="section-toolbar">
                   <h2>My giving</h2>
                   <button
@@ -158,7 +160,7 @@ export default function PublicApp() {
                   ))}
                 {!state.support.some((s) => s.viewerId === viewer.id) && (
                   <p>
-                    Your first supported story is waiting.{" "}
+                    No contributions yet.{" "}
                     <Link to="/explore">Discover ads ↗</Link>
                   </p>
                 )}
@@ -166,6 +168,34 @@ export default function PublicApp() {
             ) : (
               <ViewerForm onDone={update} />
             )}
+          </>
+        ) : location.pathname === "/leaderboard" ? (
+          <>
+            <div className="discovery-toolbar">
+              <div>
+                <h1>
+                  Leaderboard<span className="title-dot">.</span>
+                </h1>
+                <p className="view-description">
+                  Compare ad performance across campaigns.
+                </p>
+              </div>
+              <label className="discovery-search">
+                <Search size={17} />
+                <input
+                  aria-label="Search leaderboard"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Ad, creator or campaign"
+                />
+              </label>
+            </div>
+            <PublicLeaderboard
+              ads={ads}
+              campaign={campaign}
+              onCampaign={setCampaign}
+              search={search}
+            />
           </>
         ) : adId ? (
           selected ? (
@@ -241,7 +271,7 @@ export default function PublicApp() {
                       aria-label="Search ads"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search ads or creators"
+                      placeholder="Ad, creator or campaign"
                     />
                   </label>
                   <select
@@ -303,6 +333,17 @@ export default function PublicApp() {
                       >
                         <h3>{ad.title}</h3>
                       </Link>
+                      <p className="ad-description">
+                        {ad.caption.length > 132
+                          ? `${ad.caption.slice(0, 129).trimEnd()}…`
+                          : ad.caption}
+                      </p>
+                      <p className="ad-support-copy">
+                        Help this ad reach more people.
+                      </p>
+                      <p className="ad-byline">
+                        {ad.creator} · {ad.project}
+                      </p>
                       <AdStats ad={ad} />
                       <button
                         className="button primary full"

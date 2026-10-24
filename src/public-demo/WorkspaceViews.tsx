@@ -36,11 +36,10 @@ export function CreatorAds() {
     <section className="creator-ads compact-ads" aria-label="Your ads">
       <div className="page-heading">
         <div>
-          <span className="eyebrow">YOUR STORIES. YOUR IMPACT.</span>
           <h1>
             My ads<span className="title-dot">.</span>
           </h1>
-          <p>Everything you’ve created, how it’s doing, and what comes next.</p>
+          <p>Manage your ads, performance and archived work.</p>
         </div>
         <Link className="button primary" to="/projects">
           Create an ad <ArrowUpRight size={17} />
@@ -196,7 +195,6 @@ export function SpendingPage() {
     <>
       <div className="page-heading">
         <div>
-          <span className="eyebrow">GIVE EVERY STORY ROOM TO GROW</span>
           <h1>Ad spending.</h1>
           <p>
             Contributions reserved for ad distribution, separate from gifts to
@@ -262,7 +260,6 @@ export function ArchivesPage() {
     <>
       <div className="page-heading">
         <div>
-          <span className="eyebrow">A RECORD OF THE GOOD</span>
           <h1>Archives.</h1>
           <p>Past projects and their creative records in your workspace.</p>
         </div>

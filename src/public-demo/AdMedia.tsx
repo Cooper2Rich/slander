@@ -9,10 +9,12 @@ export function AdMedia({
   ad,
   full = false,
   access,
+  previewOnly = false,
 }: {
   ad: Pick<Post, "media" | "mediaType" | "title"> & { poster?: string };
   full?: boolean;
   access?: DemoAccess;
+  previewOnly?: boolean;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const [source, setSource] = useState("");
@@ -68,18 +70,28 @@ export function AdMedia({
         muted={!full && !watching}
         loop={!full && !watching}
         controls={full || watching}
-        tabIndex={full || watching ? undefined : 0}
+        tabIndex={previewOnly ? -1 : full || watching ? undefined : 0}
         playsInline
         preload="metadata"
         aria-label={ad.title}
+        aria-hidden={previewOnly || undefined}
         onPointerEnter={(event) => {
           if (event.pointerType === "mouse") preview();
         }}
         onPointerLeave={stop}
         onFocus={preview}
         onBlur={stop}
+        onTimeUpdate={() => {
+          if (
+            !full &&
+            !watching &&
+            video.current &&
+            video.current.currentTime > 4
+          )
+            video.current.currentTime = 0;
+        }}
       />
-      {!full && !watching && (
+      {!full && !watching && !previewOnly && (
         <button
           className="inline-play"
           aria-label={`Play ${ad.title}`}

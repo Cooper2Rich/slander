@@ -124,12 +124,18 @@ export function CampaignsPage() {
         <div>
           <span className="eyebrow">A LITTLE CREATIVITY. A LOT OF GOOD.</span>
           <h1>
-            {offer ? "Good stories move people." : "Find your next good story."}
+            {PUBLIC_DEMO
+              ? offer?.name || "Campaigns"
+              : offer
+                ? "Good stories move people."
+                : "Find your next good story."}
           </h1>
           <p>
-            {offer
-              ? offer.name
-              : "Discover a cause, create something meaningful, and see where every simulated dollar goes."}
+            {PUBLIC_DEMO
+              ? "Manage campaign terms, funding and performance."
+              : offer
+                ? offer.name
+                : "Discover a cause, create something meaningful, and see where every simulated dollar goes."}
           </p>
         </div>
         <span className="market-mode">
@@ -180,12 +186,14 @@ export function CampaignsPage() {
       )}
       {!id && (
         <>
-          <div className="market-intro">
-            <strong>01 Discover a campaign</strong>
-            <span>02 Accept clear terms</span>
-            <span>03 Create & share</span>
-            <span>04 Follow the impact</span>
-          </div>
+          {(!PUBLIC_DEMO || role === "creator") && (
+            <div className="market-intro">
+              <strong>01 Discover a campaign</strong>
+              <span>02 Accept clear terms</span>
+              <span>03 Create & share</span>
+              <span>04 Follow the impact</span>
+            </div>
+          )}
           <div className="offer-grid">
             {offers
               .filter((o) =>
@@ -267,12 +275,15 @@ export function CampaignsPage() {
                 />
                 <div className="market-panel">
                   <span className="eyebrow">THE MISSION</span>
-                  <h2>Make room for a better tomorrow.</h2>
+                  <h2>
+                    {PUBLIC_DEMO
+                      ? "Campaign brief"
+                      : "Make room for a better tomorrow."}
+                  </h2>
                   <p>
-                    Help {offer.beneficiary.name} tell a story that inspires
-                    people to give. The showcase supplies a sample creative with
-                    clear rights and disclosures, so you can walk the whole
-                    journey.
+                    {PUBLIC_DEMO
+                      ? `Creative brief and sample media for ${offer.beneficiary.name}. Rights and disclosure requirements are included.`
+                      : `Help ${offer.beneficiary.name} tell a story that inspires people to give. The showcase supplies a sample creative with clear rights and disclosures, so you can walk the whole journey.`}
                   </p>
                   <Link to={`/projects/${offer.id}`} className="text-button">
                     Open full creative brief <ArrowUpRight size={16} />
@@ -281,7 +292,11 @@ export function CampaignsPage() {
               </section>
               <div className="market-panel terms-panel">
                 <span className="eyebrow">CLEAR TERMS. SHARED PURPOSE.</span>
-                <h2>Your creativity, fairly credited.</h2>
+                <h2>
+                  {PUBLIC_DEMO
+                    ? "Campaign terms"
+                    : "Your creativity, fairly credited."}
+                </h2>
                 <div className="split-amount">
                   <strong>
                     10<span>%</span>
@@ -410,7 +425,9 @@ export function CampaignsPage() {
               <div className="section-heading">
                 <Wallet />
                 <div>
-                  <h2>Every dollar has a purpose.</h2>
+                  <h2>
+                    {PUBLIC_DEMO ? "Funding" : "Every dollar has a purpose."}
+                  </h2>
                   <p>Settled simulated funding, separated by its agreed use.</p>
                 </div>
               </div>
@@ -472,7 +489,9 @@ export function CampaignsPage() {
               <div className="section-heading">
                 <BarChart3 />
                 <div>
-                  <h2>The good, in numbers.</h2>
+                  <h2>
+                    {PUBLIC_DEMO ? "Performance" : "The good, in numbers."}
+                  </h2>
                   <p>
                     Local financial results plus a clearly separate grading
                     illustration.
@@ -543,7 +562,11 @@ export function CampaignsPage() {
           {tab === "Settlement" && (
             <div className="market-panel statement-panel">
               <span className="eyebrow">CLEAR RECORDS. NO REAL TRANSFERS.</span>
-              <h2>A week’s work, made visible.</h2>
+              <h2>
+                {PUBLIC_DEMO
+                  ? "Weekly statement"
+                  : "A week’s work, made visible."}
+              </h2>
               <p>
                 {PUBLIC_DEMO
                   ? "Export a fictional statement for this browser's sample week. It illustrates allocation totals; it is not a server journal, approved batch, or payment."

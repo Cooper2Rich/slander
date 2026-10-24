@@ -21,10 +21,7 @@ export function ActivityPage() {
           <h1>
             Workspace activity<span className="title-dot">.</span>
           </h1>
-          <p>
-            Follow the projects, people, and decisions moving your mission
-            forward.
-          </p>
+          <p>Project updates, creative checks and workspace changes.</p>
         </div>
       </div>
       {filtered.length ? (
