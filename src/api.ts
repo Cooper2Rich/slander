@@ -1,5 +1,6 @@
 import type { DemoAccess } from "./types";
 import { APP_NAME, demoAsset } from "./runtime";
+import { DemoUpdateRequiredError } from "./public-demo/update-recovery";
 
 export function accessHeaders(access?: DemoAccess) {
   return access
@@ -49,7 +50,9 @@ export async function api<T>(
   body?: unknown,
 ): Promise<T> {
   if (import.meta.env.MODE === "public") {
-    const { publicApi } = await import("./public-demo/api");
+    const { publicApi } = await import("./public-demo/api").catch((cause) => {
+      throw new DemoUpdateRequiredError(cause);
+    });
     return (await publicApi(path, access, method, body)) as T;
   }
   const form = body instanceof FormData;

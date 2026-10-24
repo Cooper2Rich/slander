@@ -930,6 +930,21 @@
   color: var(--ink);
   border-color: var(--line);
 }
+.public-demo .load-error {
+  flex-direction: column;
+  align-items: flex-start;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 16px;
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.public-demo .load-error p {
+  font-size: 13px;
+  line-height: 1.6;
+}
 @media (max-width: 760px) {
   .public-demo .main-content {
     padding: 20px 16px;

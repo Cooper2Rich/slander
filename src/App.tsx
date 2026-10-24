@@ -41,6 +41,7 @@ import { ProjectDetail } from "./pages/ProjectDetail";
 import { ActivityPage } from "./pages/Activity";
 import { CampaignsPage, GivingPage } from "./pages/Campaigns";
 import { APP_NAME, PUBLIC_DEMO } from "./runtime";
+import { reloadPublicDemo } from "./public-demo/update-recovery";
 
 export default function App({
   demoViews = {},
@@ -70,6 +71,7 @@ export default function App({
     needsSelection,
     workspace,
     error,
+    reloadRequired,
     refresh,
     load,
     loadOptions,
@@ -396,12 +398,21 @@ export default function App({
           {error && (
             <div className="load-error" role="alert">
               <p>{error}</p>
-              <button className="button secondary" onClick={load}>
-                Try again
+              {reloadRequired && (
+                <p>
+                  Your saved profiles, ads and contributions stay in this
+                  browser.
+                </p>
+              )}
+              <button
+                className="button secondary"
+                onClick={reloadRequired ? reloadPublicDemo : load}
+              >
+                {reloadRequired ? "Reload demo" : "Try again"}
               </button>
             </div>
           )}
-          {needsSelection && (
+          {needsSelection && !reloadRequired && (
             <IdentityPicker
               key={role}
               access={access}

@@ -10,6 +10,7 @@
     "dev": "node server/index.js --dev",
     "build": "tsc -b && vite build",
     "build:public": "tsc -b && node scripts/build-public.mjs",
+    "stage:public": "node scripts/stage-public.mjs",
     "test:public": "npm run build:public && playwright test --config playwright.public.config.ts",
     "start": "node server/index.js",
     "test": "node --test tests/*.test.js",

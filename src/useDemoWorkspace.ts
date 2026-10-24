@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { PUBLIC_DEMO } from "./runtime";
+import { DemoUpdateRequiredError } from "./public-demo/update-recovery";
 import type { DemoAccess, DemoOptions, Role, Workspace } from "./types";
 
 export function useDemoWorkspace() {
@@ -45,6 +46,7 @@ export function useDemoWorkspace() {
   const [failure, setFailure] = useState<{
     key: string;
     message: string;
+    reloadRequired: boolean;
   } | null>(null);
   const key = `${access.role}:${access.nonprofitId || access.creatorId || ""}`;
   const currentKey = useRef(key);
@@ -67,7 +69,11 @@ export function useDemoWorkspace() {
   );
   const load = useCallback(() => {
     void Promise.all([loadOptions(), refresh()]).catch((e) =>
-      setFailure({ key, message: e.message }),
+      setFailure({
+        key,
+        message: e.message,
+        reloadRequired: PUBLIC_DEMO && e instanceof DemoUpdateRequiredError,
+      }),
     );
   }, [key, loadOptions, refresh]);
   useEffect(() => {
@@ -99,6 +105,7 @@ export function useDemoWorkspace() {
     needsSelection,
     workspace: loaded?.key === key && !needsSelection ? loaded.data : null,
     error: failure?.key === key ? failure.message : "",
+    reloadRequired: failure?.key === key && failure.reloadRequired,
     refresh,
     load,
     loadOptions,
