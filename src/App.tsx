@@ -26,7 +26,7 @@ import {
   Menu,
   Search,
   ShieldCheck,
-  Sparkles,
+  Megaphone,
   X,
   Trophy,
 } from "lucide-react";
@@ -135,7 +135,7 @@ export default function App({
     document.title = `${title} · ${APP_NAME}`;
   }, [title]);
   const legacyNav = [
-    { to: "/campaigns", icon: Sparkles, label: "Campaigns" },
+    { to: "/campaigns", icon: Megaphone, label: "Campaigns" },
     {
       to: "/projects",
       icon: FolderHeart,
@@ -169,10 +169,10 @@ export default function App({
       ? [
           { to: "/review", icon: Layers3, label: "My ads", count: pending },
           { to: "/archives", icon: Inbox, label: "Past ads" },
-          { to: "/projects", icon: FolderHeart, label: "Campaigns" },
+          { to: "/projects", icon: Megaphone, label: "Campaigns" },
         ]
       : [
-          { to: "/campaigns", icon: Sparkles, label: "Campaigns" },
+          { to: "/campaigns", icon: Megaphone, label: "Campaigns" },
           { to: "/projects", icon: FolderHeart, label: "Projects" },
           { to: "/posts", icon: Layers3, label: "Creatives" },
           { to: "/spending", icon: Trophy, label: "Ad spending" },
