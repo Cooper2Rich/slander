@@ -5,7 +5,7 @@ test("finished coffee collection has three playable films over 15 seconds, with 
   page,
 }, info) => {
   await page.goto("./");
-  await page.getByRole("button", { name: "Watch coffee collection" }).click();
+  await page.getByLabel("Filter by cause").selectOption("Coffee & culture");
   await expect(page.locator(".ad-card")).toHaveCount(3);
   await expect(page.locator(".ad-duration")).toHaveCount(3);
   const videos = page.locator(".ad-card video");
@@ -234,7 +234,6 @@ test("Ripple blue and seafoam controls and text remain readable in public and cr
     ".ad-stats dt",
     ".inline-play",
     ".ad-duration",
-    ".coffee-filter",
     ".demo-view-picker select",
     ".public-notice",
   ]);

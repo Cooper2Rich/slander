@@ -352,15 +352,6 @@ export default function PublicApp() {
                 <p className="metrics-note">
                   Hover to preview · Play for sound · Sample metrics.
                 </p>
-                <button
-                  className="button ghost coffee-filter"
-                  onClick={() => {
-                    setCategory("Coffee & culture");
-                    setSearch("");
-                  }}
-                >
-                  Watch coffee collection
-                </button>
               </div>
               <div className="ad-grid">
                 {filtered?.map((ad) => (
