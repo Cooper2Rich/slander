@@ -1,12 +1,27 @@
 # Slander Rebuild Product Requirements Document
 
-Version 2.2 | Prepared for Cooper Rich | October 21, 2026
+Version 2.2 with October 24 addendum | Prepared for Cooper Rich | October 24, 2026
 
 - **Status:** Blocked
-- **Source:** Existing local demo, original September 24 PRD, rebuild PRD version 1.0, and Cooper's October 21 instructions in this chat.
-- **Last updated:** 2026-10-21
+- **Source:** Existing local demo, original September 24 PRD, rebuild PRD version 1.0, and Cooper's October 21 and October 24 instructions in this chat.
+- **Last updated:** 2026-10-24
 
 This is the **second PRD**, revising `outputs/Slander-Rebuild-PRD.md`. It is the current specification for the rebuild and marketplace extension. `docs/PRD.md` remains historical source material; conflicting historical rules do not override this document. Status describes readiness for unattended implementation of the entire contract: new requirements do not yet have implemented acceptance tests, and live operation needs later provider and launch decisions. The provider-free product design is specified here and can progress without selecting a third-party service. No Ralph loop is authorized or started.
+
+## October 24, 2026 addendum - daily winner and weekly scoring (pending organization)
+
+Capture Cooper's latest decisions here for later organization into the requirements. This addendum takes precedence over conflicting grading weights, CTR requirements, and tie behavior elsewhere in this PRD, including REQ-215. The older grading text remains below pending reconciliation; it must not override these decisions. The existing version 2.2 audit predates this addendum and does not validate it.
+
+- **Daily winner:** Include a winner for the ad campaign each day. The daily winner payout has not been determined; leave it TBD without inventing an amount or payout obligation. The daily selection formula and daily measurement boundaries remain unspecified; do not assume the weekly formula applies to daily results.
+- **Weekly score:** Retain **40% impressions, 30% total link clicks, and 30% funds raised**. CTR remains excluded from scoring and tie-breaking. Total link clicks are the click metric; do not substitute CTR.
+- **Weekly score ties:** Compare the unrounded scores first. If they tie, compare the following in order, advancing only while still tied:
+
+  1. Most total link clicks.
+  2. Most funds raised.
+  3. Most impressions.
+  4. If all three are equal, declare a tie.
+
+Display rounding must not create a tie between unequal unrounded scores. These decisions do not specify a new normalization method or alter the protected 10% creator commission, 90% beneficiary allocation before fees, or separate seed guarantees. Further organization and reconciliation of the detailed grading requirements are deferred as requested.
 
 ## Objective
 

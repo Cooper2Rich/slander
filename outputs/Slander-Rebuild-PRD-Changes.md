@@ -4,6 +4,16 @@ Date: October 21, 2026 | Version history: 1.0 to 2.0 to 2.1 to 2.2
 
 Updated document: `outputs/Slander-Rebuild-PRD.md`.
 
+## October 24, 2026 - daily winner and weekly scoring addendum (pending organization)
+
+Captured Cooper's latest instructions at the beginning of the second PRD for later organization. That addendum supersedes conflicting grading weights, CTR requirements, and tie behavior in the older body and this historical log.
+
+- Include a daily ad campaign winner; payout is TBD. Daily selection formula and measurement boundaries remain unspecified.
+- Weekly score stays 40% impressions, 30% total link clicks, and 30% funds raised. CTR is excluded from scoring and tie-breaking.
+- Compare unrounded weekly scores. On a tie, compare total link clicks, then funds raised, then impressions; declare a tie if all three are equal. Display rounding does not create a tie.
+- Preserved protected commission, beneficiary allocation, and seed guarantees. No payout amount, normalization method, or daily scoring formula was invented.
+- Detailed requirement reorganization is deferred. The existing version 2.2 audit remains historical and does not validate the addendum.
+
 ## Version 2.2 - proposed grading policy made official
 
 Cooper explicitly approved the proposed grading system on October 21, 2026. This entry supersedes earlier proposal-only and old-weight descriptions in this historical change log.
