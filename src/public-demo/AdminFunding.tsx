@@ -3,6 +3,11 @@ import { Link, Navigate } from "react-router-dom";
 import { useWorkspace } from "../context";
 import { loadAds, viewerState, money, type PublicAd } from "./catalog";
 import { campaignFundingReport } from "./funding-report";
+import {
+  FinancialSampleControl,
+  useFinancialSamples,
+} from "./FinancialSamples";
+import { dateLabel } from "../components/ui";
 
 export function AdminFunding() {
   const {
@@ -11,7 +16,9 @@ export function AdminFunding() {
     projects,
     posts,
     search,
+    sampleFinancials,
   } = useWorkspace();
+  const { enabled } = useFinancialSamples();
   const [ads, setAds] = useState<PublicAd[]>([]);
   const [error, setError] = useState("");
   const [sort, setSort] = useState("growth");
@@ -21,11 +28,21 @@ export function AdminFunding() {
       .catch((e) => setError(e.message));
   }, []);
   if (role !== "admin") return <Navigate to="/projects" replace />;
-  const support = viewerState().support.map((s) => ({
+  const support = [
+    ...(enabled ? sampleFinancials?.contributions || [] : []),
+    ...viewerState().support,
+  ].map((s) => ({
     ...s,
     projectId: s.projectId || posts.find((p) => p.id === s.adId)?.projectId,
   }));
-  const rows = campaignFundingReport(managedCampaigns, projects, ads, support);
+  const rows = campaignFundingReport(
+    managedCampaigns,
+    projects,
+    ads,
+    support,
+    new Date(),
+    enabled ? sampleFinancials?.payments || [] : [],
+  );
   const totals = rows.reduce(
     (sum, row) => ({
       gross: sum.gross + row.grossCents,
@@ -78,6 +95,7 @@ export function AdminFunding() {
         </div>
       </div>
       {error && <p role="alert">{error}</p>}
+      <FinancialSampleControl />
       <div className="funding-summary">
         {[
           { label: "Ad funds", amount: totals.gross + unassigned },
@@ -99,13 +117,9 @@ export function AdminFunding() {
       </div>
       <p className="metrics-note">
         Allocations are recorded for new ad-fund contributions and rounded per
-        contribution. They are not completed payouts. Actual payouts: {money(0)}
-        . Project setup pricing remains pending.
-      </p>
-      <p className="metrics-note">
-        Application fees accrue at 5% of new ad funds. No application payments
-        have been completed in this demo; outstanding fees remain separate from
-        paid amounts.
+        contribution. Application fees accrue at 5%. Sample payments are
+        fictional; saved contributions have no completed transfers. Project
+        setup pricing remains pending.
       </p>
       {(totals.legacy > 0 || unassigned > 0) && (
         <p className="info-banner">
@@ -210,6 +224,29 @@ export function AdminFunding() {
         ))}
       </div>
       {!visible.length && <p>No campaigns match your search.</p>}
+      {enabled && visible.some((row) => row.appPayments.length > 0) && (
+        <section className="sample-payment-history">
+          <h2 className="earnings-section-title">
+            Sample application payment history
+          </h2>
+          <div className="earnings-list">
+            {visible.flatMap((row) =>
+              row.appPayments.map((payment) => (
+                <article className="earnings-row" key={payment.id}>
+                  <div>
+                    <h3>{row.campaign.name}</h3>
+                    <p>
+                      {dateLabel(payment.at)} · Completed · fictional
+                      application payment
+                    </p>
+                  </div>
+                  <strong>{money(payment.amountCents)}</strong>
+                </article>
+              )),
+            )}
+          </div>
+        </section>
+      )}
     </section>
   );
 }

@@ -1360,6 +1360,32 @@
   margin-top: 8px;
   line-height: 1.5;
 }
+.public-demo .financial-sample-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+.public-demo .financial-sample-control label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  cursor: pointer;
+}
+.public-demo .financial-sample-control input {
+  padding: 0;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--brand-mid);
+}
 .public-demo .managed-campaign:hover {
   border-color: var(--brand-mid);
 }

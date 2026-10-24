@@ -8,6 +8,7 @@ import type { Post } from "../types";
 import { AdStats } from "./AdStats";
 import { AdMedia } from "./AdMedia";
 import { useCreatorEarnings } from "./CreatorEarnings";
+import { FinancialSampleControl } from "./FinancialSamples";
 import { loadAds, money, viewerState, type PublicAd } from "./catalog";
 
 export function CreatorPastAds() {
@@ -57,6 +58,7 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
           Create an ad <ArrowUpRight size={17} />
         </Link>
       </div>
+      <FinancialSampleControl />
       <div className="creator-summary">
         <div>
           <small>My ads</small>

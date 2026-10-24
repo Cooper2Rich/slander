@@ -114,6 +114,9 @@ test("public preview works without an API server and persists only browser sampl
   });
   await page.getByRole("link", { name: "Return to project" }).click();
   await navigate(page, "Earnings");
+  await page
+    .getByRole("checkbox", { name: "Include sample activity" })
+    .uncheck();
   await expect(page.locator(".earnings-summary > div").first()).toContainText(
     "$10.00",
   );

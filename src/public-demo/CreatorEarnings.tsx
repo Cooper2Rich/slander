@@ -5,13 +5,20 @@ import { useWorkspace } from "../context";
 import { EmptyState } from "../components/ui";
 import { money } from "./catalog";
 import type { CreatorEarningsReport } from "./creator-earnings";
+import {
+  FinancialSampleControl,
+  useFinancialSamples,
+} from "./FinancialSamples";
+import { dateLabel } from "../components/ui";
 
 export function useCreatorEarnings() {
   const { access, posts } = useWorkspace();
+  const { enabled } = useFinancialSamples();
   const [loaded, setLoaded] = useState<{
     creatorId: string;
     report?: CreatorEarningsReport;
     error?: string;
+    samples: boolean;
   }>();
   useEffect(() => {
     let current = true;
@@ -19,15 +26,17 @@ export function useCreatorEarnings() {
       if (access.role !== "creator" || !access.creatorId) return;
       try {
         const report = await api<CreatorEarningsReport>(
-          "/creator-earnings",
+          enabled ? "/creator-earnings" : "/creator-earnings?samples=0",
           access,
         );
-        if (current) setLoaded({ creatorId: access.creatorId, report });
+        if (current)
+          setLoaded({ creatorId: access.creatorId, report, samples: enabled });
       } catch (error) {
         if (current)
           setLoaded({
             creatorId: access.creatorId,
             error: (error as Error).message,
+            samples: enabled,
           });
       }
     }
@@ -39,8 +48,10 @@ export function useCreatorEarnings() {
       window.removeEventListener("storage", load);
       window.removeEventListener("focus", load);
     };
-  }, [access, posts]);
-  return loaded?.creatorId === access.creatorId ? loaded : undefined;
+  }, [access, posts, enabled]);
+  return loaded?.creatorId === access.creatorId && loaded.samples === enabled
+    ? loaded
+    : undefined;
 }
 
 export function CreatorEarnings() {
@@ -64,6 +75,7 @@ export function CreatorEarnings() {
         </Link>
       </div>
       {loaded?.error && <p role="alert">{loaded.error}</p>}
+      <FinancialSampleControl />
       <div
         className="creator-summary earnings-summary"
         aria-label="Your earnings"
@@ -80,8 +92,9 @@ export function CreatorEarnings() {
         ))}
       </div>
       <p className="metrics-note">
-        Earnings use saved commission records, including past ads. The demo has
-        no completed payouts or money transfers.
+        Earnings include past ads. Sample payments illustrate completed payouts;
+        saved contributions have no completed transfers. All amounts are
+        demo-only.
       </p>
       <div className="earnings-sources">
         <span>
@@ -132,6 +145,22 @@ export function CreatorEarnings() {
               : "Your recorded 10% share appears here when your ads receive new contributions."
           }
         />
+      )}
+      {!!report?.payments.length && (
+        <section className="sample-payment-history">
+          <h2 className="earnings-section-title">Sample payout history</h2>
+          <div className="earnings-list">
+            {report.payments.map((payment) => (
+              <article className="earnings-row" key={payment.id}>
+                <div>
+                  <h3>{payment.title}</h3>
+                  <p>{dateLabel(payment.at)} · Completed · fictional payment</p>
+                </div>
+                <strong>{money(payment.amountCents)}</strong>
+              </article>
+            ))}
+          </div>
+        </section>
       )}
     </section>
   );

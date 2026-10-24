@@ -32,6 +32,7 @@ import { prepareSamples, mediaEvidence, uploadMedia, mediaFile } from "./media";
 import { addCoffeeShowcase } from "./coffee-showcase.js";
 import { coffeeAds } from "./coffee-ads.js";
 import { samplePerformanceDays } from "./leaderboard-periods";
+import { ensureSampleFinancials } from "./sample-finances";
 import {
   ensureCampaignHierarchy,
   requireCampaign,
@@ -85,6 +86,11 @@ export async function prepareWorkspace() {
     if (existing?.version === 1) {
       if (existing.coffeeShowcaseVersion !== 2) {
         await addCoffeeShowcase(existing);
+        save(existing);
+      }
+      if (!existing.sampleFinancials) {
+        ensureCampaignHierarchy(existing);
+        ensureSampleFinancials(existing);
         save(existing);
       }
       return;
@@ -175,6 +181,8 @@ export async function prepareWorkspace() {
       evidence: "Demo fixture only; this is not a real complaint.",
     });
     await addCoffeeShowcase(ready);
+    ensureCampaignHierarchy(ready);
+    ensureSampleFinancials(ready);
     save(ready);
   })().catch((error) => {
     preparing = undefined;
@@ -453,6 +461,20 @@ export async function workspaceRequest(
   let data;
   if (method === "GET" && path === "/workspace") {
     data = scopedWorkspace(value, a);
+    if (a.role === "admin") data.sampleFinancials = value.sampleFinancials;
+    else if (a.role === "creator" && value.sampleFinancials) {
+      const contributions = value.sampleFinancials.contributions.filter(
+        (c) => c.creatorId === a.creatorId,
+      );
+      const ids = new Set(contributions.map((c) => c.id));
+      data.sampleFinancials = {
+        version: value.sampleFinancials.version,
+        contributions,
+        payments: value.sampleFinancials.payments.filter(
+          (p) => p.recipient === "creator" && ids.has(p.contributionId),
+        ),
+      };
+    }
     data.projectRequests = value.projectRequests
       .filter(
         (request) =>

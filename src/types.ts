@@ -107,6 +107,7 @@ export interface Activity {
   at: string;
 }
 export interface Workspace {
+  sampleFinancials?: import("./public-demo/sample-finances").SampleFinancials;
   managedCampaigns?: ManagedCampaign[];
   projectRequests?: ProjectRequest[];
   campaignScope?: ManagedCampaign;

@@ -1,5 +1,5 @@
 import type { DemoAccess } from "../types";
-import type { Post } from "../types";
+import type { Workspace } from "../types";
 import { viewerState } from "./catalog";
 import { creatorEarningsReport } from "./creator-earnings";
 import {
@@ -66,18 +66,26 @@ export async function publicApi(
   if (workspace.handled) return workspace.data;
   const state = read(),
     input = (body || {}) as Record<string, unknown>;
-  if (method === "GET" && path === "/creator-earnings") {
+  if (
+    method === "GET" &&
+    ["/creator-earnings", "/creator-earnings?samples=0"].includes(path)
+  ) {
     if (access?.role !== "creator" || !access.creatorId)
       throw new Error("Choose a creator profile to view your earnings.");
     const scoped = await workspaceRequest("/workspace", access);
+    const data = scoped.data as Workspace;
+    const samples = path.includes("samples=0")
+      ? undefined
+      : data.sampleFinancials;
     return creatorEarningsReport(
       access.creatorId,
-      (scoped.data as { posts: Post[] }).posts,
-      viewerState().support,
+      data.posts,
+      [...(samples?.contributions || []), ...viewerState().support],
       state.intents.map((intent) => ({
         ...intent,
         creatorId: intent.creatorId || creatorId,
       })),
+      samples?.payments || [],
     );
   }
   if (method === "GET" && path === `/campaigns/${campaignId}/finance`) {

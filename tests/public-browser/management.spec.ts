@@ -176,6 +176,9 @@ test("Admin funding uses recorded 10/5/85 allocations and campaign archives reta
   });
   await page.getByLabel("Demo role").selectOption("admin");
   await navigate(page, "Funding");
+  await page
+    .getByRole("checkbox", { name: "Include sample activity" })
+    .uncheck();
   const summary = page.locator(".funding-summary > div");
   await expect(summary.nth(0)).toContainText("$125.00");
   await expect(summary.nth(1)).toContainText("$10.00");

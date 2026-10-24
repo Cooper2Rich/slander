@@ -2,6 +2,7 @@ import type { ManagedCampaign, Project } from "../types";
 import type { PublicAd, Support } from "./catalog";
 import { leaderboardWindow, periodAd } from "./leaderboard-periods.ts";
 import { recordedAdFundAllocation } from "./ad-fund-policy.ts";
+import { samplePaymentsFor, type SamplePayment } from "./sample-finances.ts";
 
 export function campaignFundingReport(
   campaigns: ManagedCampaign[],
@@ -9,6 +10,7 @@ export function campaignFundingReport(
   ads: PublicAd[],
   support: Support[],
   now = new Date(),
+  payments: SamplePayment[] = [],
 ) {
   const today = leaderboardWindow("daily", now);
   const previous = leaderboardWindow(
@@ -67,9 +69,24 @@ export function campaignFundingReport(
         allocation.beneficiaryCents += a.beneficiaryCents;
       } else allocation.legacyCents += contribution.amountCents;
     }
+    const appPayments = samplePaymentsFor(
+      contributions,
+      payments,
+      "application",
+    );
+    allocation.appPaidCents = appPayments.reduce(
+      (sum, p) => sum + p.amountCents,
+      0,
+    );
+    allocation.paidCents = samplePaymentsFor(
+      contributions,
+      payments,
+      "creator",
+    ).reduce((sum, p) => sum + p.amountCents, 0);
     return {
       campaign,
       ...allocation,
+      appPayments,
       appOutstandingCents: allocation.appUseFeeCents - allocation.appPaidCents,
       currentRaised,
       previousRaised,

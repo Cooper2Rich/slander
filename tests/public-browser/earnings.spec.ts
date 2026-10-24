@@ -34,6 +34,9 @@ test("creators see their earned commissions and retained past-ad earnings; Admin
     .click();
   await selectCreator(page, "Nocturne Studio · fictional");
   await navigate(page, "My ads");
+  await page
+    .getByRole("checkbox", { name: "Include sample activity" })
+    .uncheck();
   await expect(page.locator(".creator-earnings-link")).toContainText("$10.00");
   await expect(
     page
