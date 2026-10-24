@@ -12,9 +12,9 @@ This is the **second PRD**, revising `outputs/Slander-Rebuild-PRD.md`. It is the
 
 Capture Cooper's latest decisions here for later organization into the requirements. This addendum takes precedence over conflicting grading weights, CTR requirements, and tie behavior elsewhere in this PRD, including REQ-215. The older grading text remains below pending reconciliation; it must not override these decisions. The existing version 2.2 audit predates this addendum and does not validate it.
 
-- **Daily winner:** Include a winner for the ad campaign each day. The daily winner payout has not been determined; leave it TBD without inventing an amount or payout obligation. The daily selection formula and daily measurement boundaries remain unspecified; do not assume the weekly formula applies to daily results.
-- **Weekly score:** Retain **40% impressions, 30% total link clicks, and 30% funds raised**. CTR remains excluded from scoring and tie-breaking. Total link clicks are the click metric; do not substitute CTR.
-- **Weekly score ties:** Compare the unrounded scores first. If they tie, compare the following in order, advancing only while still tied:
+- **Daily winner:** Include a winner for the ad campaign each day, using the same scoring weights and tie-breakers as the weekly winner, applied to that day's results. The daily winner payout remains **TBD** without inventing an amount or payout obligation. Exact daily measurement boundaries remain unspecified.
+- **Daily and weekly scores:** Use **40% impressions, 30% total link clicks, and 30% funds raised** for both daily and weekly winners. CTR remains excluded from scoring and tie-breaking. Total link clicks are the click metric; do not substitute CTR.
+- **Daily and weekly score ties:** Compare the unrounded scores first. If they tie, compare the following in order within the applicable daily or weekly period, advancing only while still tied:
 
   1. Most total link clicks.
   2. Most funds raised.

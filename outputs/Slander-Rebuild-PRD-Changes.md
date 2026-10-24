@@ -8,10 +8,10 @@ Updated document: `outputs/Slander-Rebuild-PRD.md`.
 
 Captured Cooper's latest instructions at the beginning of the second PRD for later organization. That addendum supersedes conflicting grading weights, CTR requirements, and tie behavior in the older body and this historical log.
 
-- Include a daily ad campaign winner; payout is TBD. Daily selection formula and measurement boundaries remain unspecified.
-- Weekly score stays 40% impressions, 30% total link clicks, and 30% funds raised. CTR is excluded from scoring and tie-breaking.
-- Compare unrounded weekly scores. On a tie, compare total link clicks, then funds raised, then impressions; declare a tie if all three are equal. Display rounding does not create a tie.
-- Preserved protected commission, beneficiary allocation, and seed guarantees. No payout amount, normalization method, or daily scoring formula was invented.
+- Include a daily ad campaign winner; payout remains TBD. Cooper clarified that daily winners use the same scoring weights and tie-breakers as weekly winners, applied to daily results. Exact daily measurement boundaries remain unspecified.
+- Daily and weekly scores use 40% impressions, 30% total link clicks, and 30% funds raised. CTR is excluded from scoring and tie-breaking.
+- Compare unrounded scores within the applicable daily or weekly period. On a tie, compare total link clicks, then funds raised, then impressions; declare a tie if all three are equal. Display rounding does not create a tie.
+- Preserved protected commission, beneficiary allocation, and seed guarantees. No payout amount or normalization method was invented.
 - Detailed requirement reorganization is deferred. The existing version 2.2 audit remains historical and does not validate the addendum.
 
 ## Version 2.2 - proposed grading policy made official
