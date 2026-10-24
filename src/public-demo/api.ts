@@ -1,4 +1,7 @@
 import type { DemoAccess } from "../types";
+import type { Post } from "../types";
+import { viewerState } from "./catalog";
+import { creatorEarningsReport } from "./creator-earnings";
 import {
   workspaceRequest,
   attributionFor,
@@ -63,6 +66,20 @@ export async function publicApi(
   if (workspace.handled) return workspace.data;
   const state = read(),
     input = (body || {}) as Record<string, unknown>;
+  if (method === "GET" && path === "/creator-earnings") {
+    if (access?.role !== "creator" || !access.creatorId)
+      throw new Error("Choose a creator profile to view your earnings.");
+    const scoped = await workspaceRequest("/workspace", access);
+    return creatorEarningsReport(
+      access.creatorId,
+      (scoped.data as { posts: Post[] }).posts,
+      viewerState().support,
+      state.intents.map((intent) => ({
+        ...intent,
+        creatorId: intent.creatorId || creatorId,
+      })),
+    );
+  }
   if (method === "GET" && path === `/campaigns/${campaignId}/finance`) {
     if (access?.role === "nonprofit")
       throw new Error(

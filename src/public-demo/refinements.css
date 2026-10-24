@@ -1283,6 +1283,83 @@
   color: var(--muted);
   font-size: 11px;
 }
+
+.public-demo .creator-summary > .creator-earnings-link {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+}
+.public-demo .creator-earnings-link:hover {
+  border-color: var(--brand-mid);
+}
+.public-demo .ad-earnings {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 10px 0;
+}
+.public-demo .ad-earnings strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.public-demo .earnings-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 18px 0;
+}
+.public-demo .earnings-sources strong {
+  color: var(--text);
+  margin-left: 8px;
+}
+.public-demo .earnings-section-title {
+  font-size: 16px;
+  margin: 24px 0 14px;
+}
+.public-demo .earnings-list {
+  display: grid;
+  gap: 10px;
+}
+.public-demo .earnings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.public-demo .earnings-row h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.public-demo .earnings-row :is(p, small) {
+  margin: 4px 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.public-demo .earnings-row > div:last-child {
+  flex-shrink: 0;
+  text-align: right;
+}
+.public-demo .earnings-row strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+}
+.public-demo .funding-summary strong + small {
+  margin-top: 8px;
+  line-height: 1.5;
+}
 .public-demo .managed-campaign:hover {
   border-color: var(--brand-mid);
 }

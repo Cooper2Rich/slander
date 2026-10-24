@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { selectCreator, selectOwner, openRiverCampaign } from "./helpers";
+import {
+  navigate,
+  selectCreator,
+  selectOwner,
+  openRiverCampaign,
+} from "./helpers";
 
 test("earlier campaign-preview consent, creative and gift survive the full-site upgrade", async ({
   page,
@@ -108,6 +113,17 @@ test("public preview works without an API server and persists only browser sampl
     fullPage: true,
   });
   await page.getByRole("link", { name: "Return to project" }).click();
+  await navigate(page, "Earnings");
+  await expect(page.locator(".earnings-summary > div").first()).toContainText(
+    "$10.00",
+  );
+  await expect(page.locator(".earnings-sources")).toContainText(
+    "Recorded cause-gift commissions $10.00",
+  );
+  await page.screenshot({
+    path: `test-results/creator-earnings-${info.project.name}.png`,
+    fullPage: true,
+  });
   await page.getByLabel("Demo role").selectOption("admin");
   await openRiverCampaign(page);
   await page.getByRole("tab", { name: "Funding" }).click();

@@ -7,6 +7,7 @@ import {
 import { allocateAdFund } from "../src/public-demo/ad-fund-policy.ts";
 import { campaignFundingReport } from "../src/public-demo/funding-report.ts";
 import { rankPublicAds } from "../src/public-demo/ranking.ts";
+import { creatorEarningsReport } from "../src/public-demo/creator-earnings.ts";
 const admin = { role: "admin" },
   owner = { role: "owner", organizationId: "a" };
 const fresh = () => ({
@@ -246,6 +247,8 @@ test("funding reports aggregate projects by campaign, preserve legacy funds and 
   assert.equal(rows[0].grossCents, 12500);
   assert.equal(rows[0].beneficiaryCents, 8500);
   assert.equal(rows[0].appUseFeeCents, 500);
+  assert.equal(rows[0].appPaidCents, 0);
+  assert.equal(rows[0].appOutstandingCents, 500);
   assert.equal(rows[0].legacyCents, 2500);
   assert.equal(rows[0].paidCents, 0);
   assert.equal(rows[0].growthCents, 10000);
@@ -253,4 +256,71 @@ test("funding reports aggregate projects by campaign, preserve legacy funds and 
   assert.equal(rows[1].growthCents, null);
   assert.equal(rankPublicAds(ads, "parent").length, 2);
   assert.deepEqual(support, before);
+});
+
+test("creator earnings use saved attribution and commissions, retain past ads, and exclude other creators and unsupported history", () => {
+  const posts = [
+    { id: "ad", creatorId: "creator-a", title: "Past ad" },
+    { id: "other", creatorId: "creator-b", title: "Other ad" },
+  ];
+  const contribution = (id, creatorId, adId, amountCents) => ({
+    id,
+    creatorId,
+    adId,
+    title: "Saved title",
+    amountCents,
+    allocation: allocateAdFund(amountCents),
+  });
+  const support = [
+    contribution("one", "creator-a", "ad", 10000),
+    contribution("two", "creator-b", "other", 20000),
+    contribution("retained", "creator-a", "unavailable-ad", 7500),
+    { id: "legacy", adId: "ad", amountCents: 5000, title: "Legacy" },
+    {
+      ...contribution("bad", "creator-a", "ad", 1000),
+      allocation: {
+        policy: "ad-fund-10-5-85-v1",
+        creatorCents: 9000,
+        appUseFeeCents: 50,
+        beneficiaryCents: 850,
+      },
+    },
+    contribution("unattributed", undefined, "ad", 2000),
+  ];
+  const gifts = [
+    {
+      id: "gift",
+      creatorId: "creator-a",
+      attributed: true,
+      result: { creatorCents: 333 },
+    },
+    { id: "pending", creatorId: "creator-a", attributed: true },
+    {
+      id: "other",
+      creatorId: "creator-b",
+      attributed: true,
+      result: { creatorCents: 700 },
+    },
+    {
+      id: "no-attribution",
+      creatorId: "creator-a",
+      attributed: false,
+      result: { creatorCents: 700 },
+    },
+  ];
+  const before = structuredClone({ posts, support, gifts });
+  const report = creatorEarningsReport("creator-a", posts, support, gifts);
+  assert.equal(report.adFundCents, 1750);
+  assert.equal(report.causeGiftCents, 333);
+  assert.equal(report.earnedCents, 2083);
+  assert.equal(report.pendingCents, 2083);
+  assert.equal(report.paidCents, 0);
+  assert.equal(report.legacyCents, 8000);
+  assert.equal(report.ads.length, 2);
+  assert.equal(report.ads.find((a) => a.adId === "ad").earnedCents, 1000);
+  assert.deepEqual(
+    creatorEarningsReport("creator-c", posts, support, gifts).ads,
+    [],
+  );
+  assert.deepEqual({ posts, support, gifts }, before);
 });

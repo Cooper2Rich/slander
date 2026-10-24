@@ -53,6 +53,7 @@ export default function App({
       | "ArchivesPage"
       | "CreatorAds"
       | "CreatorPastAds"
+      | "CreatorEarnings"
       | "SpendingPage"
       | "CampaignWorkspace"
       | "AdminProjectRedirect"
@@ -66,6 +67,7 @@ export default function App({
     ArchivesPage = () => null,
     CreatorAds = () => null,
     CreatorPastAds = () => null,
+    CreatorEarnings = () => null,
     SpendingPage = () => null,
     AdminCampaigns = () => null,
     CampaignWorkspace = () => null,
@@ -131,47 +133,49 @@ export default function App({
       ? /^\/campaigns\/([^/]+)/.exec(location.pathname)?.[1]
       : undefined;
   const title =
-    PUBLIC_DEMO && location.pathname === "/funding"
-      ? "Funding"
-      : PUBLIC_DEMO && location.pathname === "/project-requests"
-        ? "Project requests"
-        : selectedCampaignId
-          ? location.pathname.endsWith("/spending")
-            ? "Ad spending"
-            : location.pathname.endsWith("/archives")
-              ? "Archived projects"
-              : location.pathname.endsWith("/creatives")
-                ? "Creatives"
-                : "Projects"
-          : PUBLIC_DEMO && location.pathname === "/spending"
-            ? "Ad spending"
-            : PUBLIC_DEMO && location.pathname === "/archives"
-              ? role === "creator"
-                ? "Past ads"
-                : role === "admin"
-                  ? "Archived campaigns"
-                  : "Archived projects"
-              : PUBLIC_DEMO &&
-                  role === "creator" &&
-                  location.pathname === "/review"
-                ? "My ads"
-                : location.pathname.startsWith("/campaigns")
-                  ? "Campaigns"
-                  : PUBLIC_DEMO && location.pathname === "/posts"
-                    ? "Creatives"
-                    : location.pathname === "/review"
-                      ? role === "creator"
-                        ? "My creatives"
-                        : "Platform exceptions"
-                      : location.pathname === "/approved"
+    PUBLIC_DEMO && location.pathname === "/earnings"
+      ? "Earnings"
+      : PUBLIC_DEMO && location.pathname === "/funding"
+        ? "Funding"
+        : PUBLIC_DEMO && location.pathname === "/project-requests"
+          ? "Project requests"
+          : selectedCampaignId
+            ? location.pathname.endsWith("/spending")
+              ? "Ad spending"
+              : location.pathname.endsWith("/archives")
+                ? "Archived projects"
+                : location.pathname.endsWith("/creatives")
+                  ? "Creatives"
+                  : "Projects"
+            : PUBLIC_DEMO && location.pathname === "/spending"
+              ? "Ad spending"
+              : PUBLIC_DEMO && location.pathname === "/archives"
+                ? role === "creator"
+                  ? "Past ads"
+                  : role === "admin"
+                    ? "Archived campaigns"
+                    : "Archived projects"
+                : PUBLIC_DEMO &&
+                    role === "creator" &&
+                    location.pathname === "/review"
+                  ? "My ads"
+                  : location.pathname.startsWith("/campaigns")
+                    ? "Campaigns"
+                    : PUBLIC_DEMO && location.pathname === "/posts"
+                      ? "Creatives"
+                      : location.pathname === "/review"
                         ? role === "creator"
-                          ? "Eligible library & counts"
-                          : "Eligible creatives"
-                        : location.pathname === "/activity"
-                          ? "Activity"
-                          : location.pathname === "/posts"
-                            ? "All submissions"
-                            : "Projects";
+                          ? "My creatives"
+                          : "Platform exceptions"
+                        : location.pathname === "/approved"
+                          ? role === "creator"
+                            ? "Eligible library & counts"
+                            : "Eligible creatives"
+                          : location.pathname === "/activity"
+                            ? "Activity"
+                            : location.pathname === "/posts"
+                              ? "All submissions"
+                              : "Projects";
   useEffect(() => {
     document.title = `${title} · ${APP_NAME}`;
   }, [title]);
@@ -210,6 +214,7 @@ export default function App({
       ? [
           { to: "/review", icon: Layers3, label: "My ads", count: pending },
           { to: "/archives", icon: Inbox, label: "Past ads" },
+          { to: "/earnings", icon: Wallet, label: "Earnings" },
           { to: "/projects", icon: FolderHeart, label: "Projects" },
         ]
       : role === "admin"
@@ -592,6 +597,7 @@ export default function App({
                       element={<ProjectRequestsPage />}
                     />
                     <Route path="/funding" element={<AdminFunding />} />
+                    <Route path="/earnings" element={<CreatorEarnings />} />
                   </>
                 ) : (
                   <>

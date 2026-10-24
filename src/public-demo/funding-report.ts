@@ -1,6 +1,7 @@
 import type { ManagedCampaign, Project } from "../types";
 import type { PublicAd, Support } from "./catalog";
 import { leaderboardWindow, periodAd } from "./leaderboard-periods.ts";
+import { recordedAdFundAllocation } from "./ad-fund-policy.ts";
 
 export function campaignFundingReport(
   campaigns: ManagedCampaign[],
@@ -52,20 +53,15 @@ export function campaignFundingReport(
       beneficiaryCents: 0,
       legacyCents: 0,
       paidCents: 0,
+      appPaidCents: 0,
     };
     for (const contribution of contributions) {
       allocation.grossCents += contribution.amountCents;
-      const a = contribution.allocation;
-      const fields = a && [
-        a.creatorCents,
-        a.appUseFeeCents,
-        a.beneficiaryCents,
-      ];
-      if (
-        a?.policy === "ad-fund-10-5-85-v1" &&
-        fields?.every((n) => Number.isSafeInteger(n) && n >= 0) &&
-        fields.reduce((sum, n) => sum + n, 0) === contribution.amountCents
-      ) {
+      const a = recordedAdFundAllocation(
+        contribution.amountCents,
+        contribution.allocation,
+      );
+      if (a) {
         allocation.creatorCents += a.creatorCents;
         allocation.appUseFeeCents += a.appUseFeeCents;
         allocation.beneficiaryCents += a.beneficiaryCents;
@@ -74,6 +70,7 @@ export function campaignFundingReport(
     return {
       campaign,
       ...allocation,
+      appOutstandingCents: allocation.appUseFeeCents - allocation.appPaidCents,
       currentRaised,
       previousRaised,
       growthCents:

@@ -7,13 +7,8 @@ import { ReviewDialog } from "../components/ReviewDialog";
 import type { Post } from "../types";
 import { AdStats } from "./AdStats";
 import { AdMedia } from "./AdMedia";
-import {
-  fundedCents,
-  loadAds,
-  money,
-  viewerState,
-  type PublicAd,
-} from "./catalog";
+import { useCreatorEarnings } from "./CreatorEarnings";
+import { loadAds, money, viewerState, type PublicAd } from "./catalog";
 
 export function CreatorPastAds() {
   return <CreatorAds past />;
@@ -29,6 +24,7 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
     ownArchivedPosts = [],
   } = useWorkspace();
   const navigate = useNavigate();
+  const earnings = useCreatorEarnings();
   const [ads, setAds] = useState<PublicAd[]>([]),
     [selected, setSelected] = useState<Post | null>(null);
   useEffect(() => {
@@ -79,13 +75,16 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
             }
           </strong>
         </div>
-        <div>
-          <small>My ad spend funded here</small>
+        <Link className="creator-earnings-link" to="/earnings">
+          <small>My earnings · demo ↗</small>
           <strong>
-            {money(own.reduce((n, p) => n + fundedCents(p.id), 0))}
+            {earnings?.report ? money(earnings.report.earnedCents) : "—"}
           </strong>
-        </div>
+        </Link>
       </div>
+      {earnings?.error && (
+        <p role="alert">Earnings unavailable: {earnings.error}</p>
+      )}
       <div
         className="tabs creator-tabs"
         role="tablist"
@@ -139,6 +138,18 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
                     }
                   }
                 />
+                <p className="ad-earnings">
+                  Earned · ad funds{" "}
+                  <strong>
+                    {earnings?.report
+                      ? money(
+                          earnings.report.ads.find(
+                            (row) => row.adId === post.id,
+                          )?.earnedCents || 0,
+                        )
+                      : "—"}
+                  </strong>
+                </p>
                 <div className="creator-card-actions">
                   <button
                     className="button secondary"
@@ -208,7 +219,7 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
   );
 }
 export function SpendingPage() {
-  const { posts, role } = useWorkspace();
+  const { posts } = useWorkspace();
   const support = viewerState().support.filter((s) =>
     posts.some((p) => p.id === s.adId),
   );

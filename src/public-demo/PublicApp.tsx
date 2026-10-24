@@ -28,6 +28,7 @@ import * as demoViews from "./WorkspaceViews";
 import * as managementViews from "./CampaignManagement";
 import { ProjectRequestsPage } from "./ProjectRequests";
 import { AdminFunding } from "./AdminFunding";
+import { CreatorEarnings } from "./CreatorEarnings";
 import { AdStats } from "./AdStats";
 import { PublicLeaderboard } from "./PublicLeaderboard";
 import type { LeaderboardPeriod } from "./leaderboard-periods";
@@ -36,6 +37,7 @@ const workspaceViews = {
   ...managementViews,
   ProjectRequestsPage,
   AdminFunding,
+  CreatorEarnings,
 };
 
 export function enterWorkspace(

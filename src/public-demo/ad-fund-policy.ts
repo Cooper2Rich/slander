@@ -20,3 +20,21 @@ export function allocateAdFund(amountCents: number): AdFundAllocation {
     beneficiaryCents: amountCents - creatorCents - appUseFeeCents,
   };
 }
+
+export function recordedAdFundAllocation(
+  amountCents: number,
+  allocation?: AdFundAllocation,
+): AdFundAllocation | null {
+  if (!Number.isSafeInteger(amountCents) || amountCents <= 0 || !allocation)
+    return null;
+  const fields = [
+    allocation.creatorCents,
+    allocation.appUseFeeCents,
+    allocation.beneficiaryCents,
+  ];
+  return allocation.policy === "ad-fund-10-5-85-v1" &&
+    fields.every((n) => Number.isSafeInteger(n) && n >= 0) &&
+    fields.reduce((sum, n) => sum + n, 0) === amountCents
+    ? allocation
+    : null;
+}

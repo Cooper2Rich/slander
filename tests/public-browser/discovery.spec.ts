@@ -126,7 +126,7 @@ test("creators have current and past ads; public excludes archived or held ads",
   await navigate(page, "My ads");
   await expect(
     page.getByRole("navigation", { name: "Main navigation" }).getByRole("link"),
-  ).toHaveCount(3);
+  ).toHaveCount(4);
   await expect(page.locator(".creator-card")).toHaveCount(2);
   await expect(
     page.getByRole("heading", { name: "Small hands, big impact", exact: true }),

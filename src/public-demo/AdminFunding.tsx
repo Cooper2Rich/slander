@@ -33,8 +33,18 @@ export function AdminFunding() {
       nonprofit: sum.nonprofit + row.beneficiaryCents,
       fee: sum.fee + row.appUseFeeCents,
       legacy: sum.legacy + row.legacyCents,
+      appPaid: sum.appPaid + row.appPaidCents,
+      appOutstanding: sum.appOutstanding + row.appOutstandingCents,
     }),
-    { gross: 0, creator: 0, nonprofit: 0, fee: 0, legacy: 0 },
+    {
+      gross: 0,
+      creator: 0,
+      nonprofit: 0,
+      fee: 0,
+      legacy: 0,
+      appPaid: 0,
+      appOutstanding: 0,
+    },
   );
   const assigned = rows.reduce((sum, row) => sum + row.grossCents, 0);
   const unassigned =
@@ -47,11 +57,13 @@ export function AdminFunding() {
     )
     .sort(
       (a, b) =>
-        (sort === "nonprofit"
-          ? b.beneficiaryCents - a.beneficiaryCents
-          : sort === "funding"
-            ? b.grossCents - a.grossCents
-            : (b.growthCents ?? -Infinity) - (a.growthCents ?? -Infinity)) ||
+        (sort === "app-fees"
+          ? b.appUseFeeCents - a.appUseFeeCents
+          : sort === "nonprofit"
+            ? b.beneficiaryCents - a.beneficiaryCents
+            : sort === "funding"
+              ? b.grossCents - a.grossCents
+              : (b.growthCents ?? -Infinity) - (a.growthCents ?? -Infinity)) ||
         a.campaign.name.localeCompare(b.campaign.name),
     );
   return (
@@ -59,7 +71,10 @@ export function AdminFunding() {
       <div className="page-heading">
         <div>
           <h1>Funding.</h1>
-          <p>Compare campaign growth, ad-fund allocations and payout status.</p>
+          <p>
+            Compare campaign growth, creator allocations and application
+            payments.
+          </p>
         </div>
       </div>
       {error && <p role="alert">{error}</p>}
@@ -68,11 +83,17 @@ export function AdminFunding() {
           { label: "Ad funds", amount: totals.gross + unassigned },
           { label: "Creator allocations · 10%", amount: totals.creator },
           { label: "Nonprofit allocations · 85%", amount: totals.nonprofit },
-          { label: "Application-use fees · 5%", amount: totals.fee },
+          { label: "Application fees accrued · 5%", amount: totals.fee },
         ].map(({ label, amount }) => (
           <div key={label}>
             <small>{label}</small>
             <strong>{money(amount)}</strong>
+            {label === "Application fees accrued · 5%" && (
+              <small>
+                Paid: {money(totals.appPaid)} · Outstanding:{" "}
+                {money(totals.appOutstanding)}
+              </small>
+            )}
           </div>
         ))}
       </div>
@@ -80,6 +101,11 @@ export function AdminFunding() {
         Allocations are recorded for new ad-fund contributions and rounded per
         contribution. They are not completed payouts. Actual payouts: {money(0)}
         . Project setup pricing remains pending.
+      </p>
+      <p className="metrics-note">
+        Application fees accrue at 5% of new ad funds. No application payments
+        have been completed in this demo; outstanding fees remain separate from
+        paid amounts.
       </p>
       {(totals.legacy > 0 || unassigned > 0) && (
         <p className="info-banner">
@@ -107,6 +133,7 @@ export function AdminFunding() {
           <option value="growth">Fastest growth · funds raised</option>
           <option value="funding">Most ad funds</option>
           <option value="nonprofit">Highest nonprofit allocation</option>
+          <option value="app-fees">Highest application fees</option>
         </select>
       </div>
       <div className="funding-campaign-list">
@@ -164,12 +191,13 @@ export function AdminFunding() {
                 <dd>{money(row.beneficiaryCents)}</dd>
               </div>
               <div>
-                <dt>App-use fee</dt>
+                <dt>Application fees accrued</dt>
                 <dd>{money(row.appUseFeeCents)}</dd>
               </div>
               <div>
-                <dt>Paid out</dt>
-                <dd>{money(row.paidCents)}</dd>
+                <dt>Paid to application</dt>
+                <dd>{money(row.appPaidCents)}</dd>
+                <small>Outstanding: {money(row.appOutstandingCents)}</small>
               </div>
             </dl>
             {row.legacyCents > 0 && (
