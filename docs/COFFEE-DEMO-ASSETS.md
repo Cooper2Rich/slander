@@ -14,6 +14,8 @@ Existing browser workspaces receive a new media revision for the old stock creat
 
 ## Filmed footage credits
 
+The October 24 preview update repairs an earlier duration patch that shifted WebM byte offsets and made players skip the opening segment. The films retain their original footage and audio. The generator now preserves Chromium's native duration and seek index. Playback URLs carry a media revision to refresh previously cached copies; browser checks verify that five-second previews return to the opening frame.
+
 All three selected item pages identify the **Mixkit Stock Video Free License**, permitting commercial and personal use. See the [Mixkit license](https://mixkit.co/license/). The footage is used in a fictional demo advertisement, without suggesting that any depicted person or venue endorses Nocturne.
 
 | Ad              | Source clip                                                                                                                                       | Source duration | Selected continuous segment |

@@ -10,6 +10,7 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
     "reach more people",
   );
   await page.getByRole("link", { name: "Leaderboard", exact: true }).click();
+  await page.getByRole("button", { name: "Pause demo movement" }).click();
   const rows = page.locator(".leaderboard-table tbody tr");
   await expect(rows).toHaveCount(6);
   await expect(page.locator(".campaign-board")).toHaveCount(4);

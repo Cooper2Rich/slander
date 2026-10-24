@@ -86,7 +86,7 @@ export function samplePerformanceDays(
         "sample-3": 0.25,
       } as Record<string, number>
     )[id] ?? 0.5;
-  return Array.from({ length: elapsed + 1 }, (_, index) => {
+  const current = Array.from({ length: elapsed + 1 }, (_, index) => {
     const valueForDay = (value: number | null) => {
       if (value === null) return null;
       const today = elapsed === 0 ? value : Math.floor(value * share);
@@ -104,4 +104,23 @@ export function samplePerformanceDays(
       donatedCents: valueForDay(totals.donatedCents),
     };
   });
+  const historical = Array.from({ length: 28 }, (_, index) => {
+    const date = new Date(Date.parse(window.startsOn) - (index + 1) * DAY)
+      .toISOString()
+      .slice(0, 10);
+    const seed = [...`${id}:${date}`].reduce(
+      (sum, char) => (sum * 31 + char.charCodeAt(0)) >>> 0,
+      17,
+    );
+    const factor = 500 + (seed % 5500);
+    const portion = (value: number | null) =>
+      value === null ? null : Math.floor((value * factor) / 10000);
+    return {
+      date,
+      impressions: portion(totals.impressions),
+      clicks: portion(totals.clicks),
+      donatedCents: portion(totals.donatedCents),
+    };
+  });
+  return [...current, ...historical];
 }

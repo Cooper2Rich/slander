@@ -649,6 +649,41 @@
 }
 .public-demo .campaign-board h3 {
   font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.public-demo .leaderboard-view-bar,
+.public-demo .simulation-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.public-demo .simulation-controls {
+  font-size: 11px;
+  color: var(--muted);
+}
+.public-demo .simulation-controls .button {
+  min-height: 30px;
+  padding: 5px 9px;
+}
+.public-demo .past-winner-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.public-demo .past-winner-filters label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.public-demo .past-winner-filters select {
+  min-width: 0;
+  width: 100%;
 }
 .public-demo .leaderboard-period-bar {
   display: flex;
@@ -682,6 +717,40 @@
 }
 .public-demo .leaderboard-winner td:first-child {
   box-shadow: inset 3px 0 var(--lime);
+}
+.public-demo .leaderboard-table .leaderboard-leading {
+  background: #162936;
+}
+.public-demo .leaderboard-table .leaderboard-leading:hover {
+  background: #1c3442;
+}
+.public-demo .leaderboard-leading td:first-child {
+  box-shadow: inset 3px 0 #91d8ee;
+}
+.public-demo .leader-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  color: #91d8ee;
+  font-size: 11px;
+  font-weight: 600;
+}
+.public-demo .rank-movement {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  margin-top: 4px;
+}
+.public-demo .rank-movement.up {
+  color: var(--lime);
+}
+.public-demo .rank-movement.down {
+  color: #f1b5a0;
+}
+.public-demo .rank-movement.unchanged {
+  color: var(--muted);
 }
 .public-demo .winner-badge {
   display: inline-flex;
@@ -759,11 +828,30 @@
   gap: 12px;
   min-width: 220px;
 }
-.public-demo .leaderboard-ad img {
+.public-demo .leaderboard-thumbnail {
+  flex: 0 0 64px;
   width: 64px;
   height: 40px;
-  object-fit: cover;
+  overflow: hidden;
   border-radius: 5px;
+  background: var(--raised);
+}
+.public-demo .leaderboard-thumbnail :is(img, video) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.public-demo .leaderboard-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.public-demo .unavailable-ad {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--muted);
+  font-size: 11px;
 }
 .public-demo .leaderboard-ad strong {
   font-size: 13px;
@@ -1074,24 +1162,60 @@
   .public-demo .leaderboard-table td {
     padding: 10px;
   }
-  .public-demo .leaderboard-table :is(th, td):nth-child(3),
-  .public-demo .leaderboard-table :is(th, td):nth-child(4),
-  .public-demo .leaderboard-table :is(th, td):nth-child(5) {
-    display: none;
+  .public-demo .leaderboard-table,
+  .public-demo .leaderboard-table tbody {
+    display: block;
+  }
+  .public-demo .leaderboard-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .public-demo .leaderboard-table tbody tr {
+    display: grid;
+    grid-template-columns: 32px repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    padding: 6px;
+  }
+  .public-demo .leaderboard-table td {
+    border: 0;
+    padding: 6px 4px;
+    min-width: 0;
+  }
+  .public-demo .leaderboard-table td:nth-child(2) {
+    grid-column: 2 / -1;
+  }
+  .public-demo .leaderboard-table td:nth-child(3) {
+    grid-column: 2;
+  }
+  .public-demo .leaderboard-table td[data-label] {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+  .public-demo .leaderboard-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
   }
   .public-demo .leaderboard-ad {
     min-width: 0;
     gap: 8px;
   }
-  .public-demo .leaderboard-ad img {
-    width: 40px;
-    height: 32px;
+  .public-demo .leaderboard-thumbnail {
+    flex-basis: 48px;
+    width: 48px;
+    height: 34px;
   }
   .public-demo .leaderboard-ad > svg {
     display: none;
   }
-  .public-demo .leaderboard-table td:last-child {
-    white-space: nowrap;
+  .public-demo .past-winner-filters {
+    grid-template-columns: 1fr;
   }
 }
 @media (max-width: 639px) {

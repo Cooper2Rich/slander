@@ -1,13 +1,82 @@
-import { Link } from "react-router-dom";
-import { ArrowUpRight, Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { TrendingUp, Trophy, Pause, Play } from "lucide-react";
 import { count, money, type PublicAd, type PublicCampaign } from "./catalog";
-import { demoAsset } from "../runtime";
 import { DEMO_TARGETS, rankPublicAds, scorePublicAd } from "./ranking";
 import {
   leaderboardWindow,
-  periodAd,
   type LeaderboardPeriod,
 } from "./leaderboard-periods";
+import {
+  completedWindow,
+  loadPastResults,
+  pastPeriods,
+  type PastResult,
+} from "./leaderboard-history";
+import { useLeaderSimulation } from "./useLeaderSimulation";
+import { LeaderRow } from "./LeaderRow";
+
+function LeaderTabs<T extends string>({
+  items,
+  value,
+  onChange,
+  label,
+}: {
+  items: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+  label: string;
+}) {
+  return (
+    <div
+      className="tabs leaderboard-period-tabs"
+      role="tablist"
+      aria-label={label}
+    >
+      {items.map((item, index) => (
+        <button
+          key={item.value}
+          role="tab"
+          aria-selected={item.value === value}
+          tabIndex={item.value === value ? 0 : -1}
+          className={item.value === value ? "active" : ""}
+          onClick={() => onChange(item.value)}
+          onKeyDown={(event) => {
+            const next =
+              event.key === "Home"
+                ? 0
+                : event.key === "End"
+                  ? items.length - 1
+                  : event.key === "ArrowRight"
+                    ? (index + 1) % items.length
+                    : event.key === "ArrowLeft"
+                      ? (index - 1 + items.length) % items.length
+                      : -1;
+            if (next < 0) return;
+            event.preventDefault();
+            onChange(items[next].value);
+            event.currentTarget.parentElement
+              ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+              [next]?.focus();
+          }}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const dateLabel = (date: string) =>
+  new Date(date + "T00:00:00Z").toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+const rangeLabel = (period: LeaderboardPeriod, start: string, end: string) =>
+  period === "daily"
+    ? dateLabel(start)
+    : `${dateLabel(start)} – ${dateLabel(new Date(Date.parse(end) - 86400000).toISOString().slice(0, 10))}`;
 
 export function PublicLeaderboard({
   ads,
@@ -17,6 +86,10 @@ export function PublicLeaderboard({
   campaign,
   onCampaign,
   search,
+  view,
+  onView,
+  historyDate,
+  onHistory,
 }: {
   ads: PublicAd[] | null;
   campaigns: PublicCampaign[];
@@ -25,29 +98,53 @@ export function PublicLeaderboard({
   campaign: string;
   onCampaign: (value: string) => void;
   search: string;
+  view: "current" | "past";
+  onView: (value: "current" | "past") => void;
+  historyDate: string;
+  onHistory: (period: LeaderboardPeriod, date: string) => void;
 }) {
-  const window = leaderboardWindow(period);
-  const periodAds = (ads || []).map((ad) => periodAd(ad, window));
-  const periodName = period === "daily" ? "Daily" : "Weekly";
-  const dateLabel = (date: string) =>
-    new Date(date + "T00:00:00Z").toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      timeZone: "UTC",
-    });
-  const range =
-    period === "daily"
-      ? dateLabel(window.startsOn)
-      : `${dateLabel(window.startsOn)} – ${dateLabel(new Date(Date.parse(window.endsBefore) - 86400000).toISOString().slice(0, 10))}`;
+  const current = view === "current";
+  const simulation = useLeaderSimulation(ads, period, current);
+  const [history, setHistory] = useState<PastResult[]>([]);
+  const [historyError, setHistoryError] = useState("");
+  useEffect(() => {
+    if (!ads) return;
+    try {
+      setHistory(loadPastResults(ads, campaigns));
+      setHistoryError("");
+    } catch {
+      setHistoryError(
+        "Past demo results could not be loaded. Your saved records have been kept.",
+      );
+    }
+  }, [ads, campaigns]);
+  const selectedDate = historyDate || pastPeriods(period)[0];
+  const measurement = current
+    ? leaderboardWindow(period)
+    : completedWindow(period, selectedDate);
+  const available = new Map((ads || []).map((ad) => [ad.id, ad]));
   const boards = campaigns
     .filter(({ id }) => campaign === "all" || campaign === id)
     .map(({ id, name }) => {
-      const ranked = rankPublicAds(periodAds, id);
+      const saved = history.find(
+        (record) =>
+          record.campaignId === id &&
+          record.period === period &&
+          record.date === selectedDate,
+      );
+      const ranked = current
+        ? rankPublicAds(simulation.ads, id)
+        : measurement
+          ? saved?.winners || []
+          : [];
+      const previous = new Map(
+        rankPublicAds(simulation.previous, id).map((ad) => [ad.id, ad.rank]),
+      );
       return {
         id,
-        name,
+        name: !current && saved ? saved.campaignName : name,
         ranked,
+        previous,
         winnerCount: ranked.filter((ad) => ad.rank === 1).length,
         visible: ranked.filter((ad) =>
           `${ad.title} ${ad.creator} ${ad.project}`
@@ -57,11 +154,21 @@ export function PublicLeaderboard({
       };
     });
   return (
-    <section className="public-leaderboard" aria-label="Campaign leaderboard">
-      <div className="section-toolbar">
-        <h2>
-          <Trophy size={17} /> Top 25 per campaign
-        </h2>
+    <section
+      className="public-leaderboard"
+      aria-label="Campaign leaderboard"
+      data-simulation-step={simulation.tick}
+    >
+      <div className="leaderboard-view-bar">
+        <LeaderTabs
+          items={[
+            { value: "current", label: "Current leaderboard" },
+            { value: "past", label: "Past winners" },
+          ]}
+          value={view}
+          onChange={onView}
+          label="Leaderboard views"
+        />
         <select
           aria-label="Leaderboard campaign"
           value={campaign}
@@ -75,81 +182,138 @@ export function PublicLeaderboard({
           ))}
         </select>
       </div>
-      <div className="leaderboard-period-bar">
-        <div
-          className="tabs leaderboard-period-tabs"
-          role="tablist"
-          aria-label="Leaderboard period"
-        >
-          {(["daily", "weekly"] as const).map((value) => (
-            <button
-              key={value}
-              role="tab"
-              aria-selected={period === value}
-              tabIndex={period === value ? 0 : -1}
-              className={period === value ? "active" : ""}
-              onClick={() => onPeriod(value)}
-              onKeyDown={(event) => {
-                const next =
-                  event.key === "Home"
-                    ? "daily"
-                    : event.key === "End"
-                      ? "weekly"
-                      : ["ArrowLeft", "ArrowRight"].includes(event.key)
-                        ? value === "daily"
-                          ? "weekly"
-                          : "daily"
-                        : null;
-                if (!next) return;
-                event.preventDefault();
-                onPeriod(next);
-                event.currentTarget.parentElement
-                  ?.querySelector<HTMLButtonElement>(`[data-period="${next}"]`)
-                  ?.focus();
-              }}
-              data-period={value}
-            >
-              {value === "daily" ? "Daily" : "Weekly"}
-            </button>
-          ))}
-        </div>
-        <p className="leaderboard-date">
-          {range} · UTC{period === "weekly" ? " · week to date" : ""}
-        </p>
-      </div>
-      <p className="leaderboard-note">
-        PRD scoring: impressions 40% · total link clicks 30% · funds raised 30%.
-        Illustrative {period} results · highlighted winners are demo results,
-        not payouts.
-      </p>
+      {current ? (
+        <>
+          <div className="leaderboard-period-bar">
+            <LeaderTabs
+              items={[
+                { value: "daily", label: "Daily" },
+                { value: "weekly", label: "Weekly" },
+              ]}
+              value={period}
+              onChange={onPeriod}
+              label="Leaderboard period"
+            />
+            <div className="simulation-controls">
+              <span className="leaderboard-countdown">
+                Next refresh {simulation.countdown}
+              </span>
+              <span>
+                {simulation.paused
+                  ? "Simulation paused"
+                  : simulation.interacting
+                    ? "Paused while viewing an ad"
+                    : "Simulated updates every 6s"}
+              </span>
+              <button
+                className="button ghost"
+                aria-label={
+                  simulation.paused
+                    ? "Resume demo movement"
+                    : "Pause demo movement"
+                }
+                aria-pressed={simulation.paused}
+                onClick={() => simulation.setPaused(!simulation.paused)}
+              >
+                {simulation.paused ? <Play size={13} /> : <Pause size={13} />}
+                {simulation.paused ? "Resume" : "Pause"}
+              </button>
+            </div>
+          </div>
+          <p className="leaderboard-date">
+            {measurement &&
+              rangeLabel(
+                period,
+                measurement.startsOn,
+                measurement.endsBefore,
+              )}{" "}
+            · UTC · in progress
+          </p>
+          <p className="leaderboard-note">
+            Current leaders only. Results are still in progress; no winner has
+            been declared. Movement and metrics are simulated, with no real
+            funding changes. Scheduled leaderboard refreshes run every 10
+            minutes.
+          </p>
+        </>
+      ) : (
+        <>
+          <div className="past-winner-filters">
+            <label>
+              Past daily winners
+              <select
+                aria-label="Past daily winners"
+                value={period === "daily" ? selectedDate : ""}
+                onChange={(event) =>
+                  event.target.value && onHistory("daily", event.target.value)
+                }
+              >
+                <option value="">Choose a completed day</option>
+                {pastPeriods("daily").map((date) => (
+                  <option key={date} value={date}>
+                    {dateLabel(date)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Past weekly winners
+              <select
+                aria-label="Past weekly winners"
+                value={period === "weekly" ? selectedDate : ""}
+                onChange={(event) =>
+                  event.target.value && onHistory("weekly", event.target.value)
+                }
+              >
+                <option value="">Choose a completed week</option>
+                {pastPeriods("weekly").map((date) => (
+                  <option key={date} value={date}>
+                    {rangeLabel(
+                      "weekly",
+                      date,
+                      leaderboardWindow("weekly", new Date(date + "T12:00:00Z"))
+                        .endsBefore,
+                    )}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="leaderboard-date">
+            {measurement
+              ? rangeLabel(period, measurement.startsOn, measurement.endsBefore)
+              : "Choose a completed day or week"}{" "}
+            · UTC · completed sample period
+          </p>
+          <p className="leaderboard-note">
+            Fictional past winners from completed periods. Saved results stay
+            fixed while current leaders move; these records do not authorize
+            payouts.
+          </p>
+          {historyError && <p role="alert">{historyError}</p>}
+        </>
+      )}
       <details className="leaderboard-scoring">
         <summary>Scoring method & demo targets</summary>
         <p>
-          Each component is capped at 1 using √(result ÷ target). Score = 40 ×
-          impressions component + 30 × link-click component + 30 × funds-raised
-          component.
+          Impressions 40% · total link clicks 30% · funds raised 30%. Each
+          component uses min(1, √(result ÷ target)). Demo targets:{" "}
+          {count(DEMO_TARGETS.impressions)} impressions ·{" "}
+          {count(DEMO_TARGETS.clicks)} total link clicks ·{" "}
+          {money(DEMO_TARGETS.donatedCents)} raised.
         </p>
         <p>
-          Demo targets per campaign: {count(DEMO_TARGETS.impressions)}{" "}
-          impressions · {count(DEMO_TARGETS.clicks)} total link clicks ·{" "}
-          {money(DEMO_TARGETS.donatedCents)} raised. These are sample targets,
-          not official campaign settings. Missing inputs remain unranked; known
-          zeroes are scored. Both views use these same demo targets. Days run
-          midnight to midnight UTC; weeks run Monday to Sunday UTC. Weekly
-          results include elapsed days only. Dated sample metrics are
-          independent of live ad delivery.
-        </p>
-        <p>
-          Ties use unrounded score, then most total link clicks, funds raised,
-          and impressions. Ads still equal share a rank. CTR and ad-spend
-          contributions do not affect scores.
+          Compare unrounded scores, then total link clicks, funds raised and
+          impressions. Exact ties share rank. CTR and ad-spend contributions do
+          not affect scores. Missing inputs remain unranked. Days use midnight
+          UTC; weeks use Monday through Sunday UTC.
         </p>
       </details>
       {boards
         .filter(
           (board) =>
             !search.trim() ||
-            board.visible.length > 0 ||
+            board.visible.length ||
             board.name.toLowerCase().includes(search.trim().toLowerCase()),
         )
         .map((board) => (
@@ -159,63 +323,64 @@ export function PublicLeaderboard({
             key={board.id}
           >
             <div className="section-toolbar">
-              <h3>{board.name}</h3>
-              <span className="count-pill">{board.ranked.length} / 25 ads</span>
+              <h3>
+                {current ? <TrendingUp size={15} /> : <Trophy size={15} />}
+                {board.name}
+              </h3>
+              <span className="count-pill">
+                {current
+                  ? `${board.ranked.length} / 25 ads`
+                  : `${board.ranked.length} ${board.ranked.length === 1 ? "winner" : "winners"}`}
+              </span>
             </div>
-            <div className="leaderboard-table-wrap">
+            <div
+              className="leaderboard-table-wrap"
+              onPointerEnter={() => simulation.setInteracting(true)}
+              onPointerMove={() => simulation.setInteracting(true)}
+              onPointerLeave={() => simulation.setInteracting(false)}
+              onFocus={() => simulation.setInteracting(true)}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget))
+                  simulation.setInteracting(false);
+              }}
+            >
               <table className="leaderboard-table">
                 <caption className="sr-only">
-                  {periodName} top 25 ads for {board.name}
+                  {current ? "Current leaders" : `Past ${period} winners`} for{" "}
+                  {board.name}
                 </caption>
                 <thead>
                   <tr>
                     <th scope="col">Rank</th>
                     <th scope="col">Ad / creator</th>
                     <th scope="col">Impressions</th>
-                    <th scope="col">Link clicks</th>
-                    <th scope="col">Raised</th>
+                    <th scope="col">Total links clicked</th>
+                    <th scope="col">Funding</th>
                     <th scope="col">Score / 100</th>
                   </tr>
                 </thead>
                 <tbody>
                   {board.visible.map((ad) => (
-                    <tr
+                    <LeaderRow
                       key={ad.id}
-                      className={
-                        ad.rank === 1 ? "leaderboard-winner" : undefined
+                      ad={ad}
+                      current={current}
+                      movement={
+                        (board.previous.get(ad.id) ?? ad.rank) - ad.rank
                       }
-                    >
-                      <td className="rank-cell">
-                        {String(ad.rank).padStart(2, "0")}
-                      </td>
-                      <td>
-                        <Link className="leaderboard-ad" to={`/ads/${ad.id}`}>
-                          <img src={demoAsset(ad.poster)} alt="" />
-                          <span>
-                            <strong>{ad.title}</strong>
-                            <small>{ad.creator}</small>
-                            {ad.rank === 1 && (
-                              <span className="winner-badge">
-                                <Trophy size={12} />
-                                {board.winnerCount > 1
-                                  ? `Joint ${period} winner`
-                                  : `${periodName} winner`}
-                              </span>
-                            )}
-                          </span>
-                          <ArrowUpRight size={14} />
-                        </Link>
-                      </td>
-                      <td>{count(ad.impressions)}</td>
-                      <td>{count(ad.clicks)}</td>
-                      <td>{money(ad.donatedCents!)}</td>
-                      <td
-                        className="leaderboard-amount"
-                        title={String(ad.score)}
-                      >
-                        {ad.score.toFixed(2)}
-                      </td>
-                    </tr>
+                      available={
+                        available.get(ad.id)?.media === ad.media
+                          ? available.get(ad.id)
+                          : undefined
+                      }
+                      badge={
+                        current
+                          ? ad.rank === 1
+                            ? "Current leader"
+                            : ""
+                          : `${board.winnerCount > 1 ? "Joint " : ""}${period === "daily" ? "Daily" : "Weekly"} winner`
+                      }
+                    />
                   ))}
                 </tbody>
               </table>
@@ -225,32 +390,35 @@ export function PublicLeaderboard({
                 <h3>
                   {board.ranked.length
                     ? "No matching ads."
-                    : `No ${period} winner yet.`}
+                    : current
+                      ? "No ranked ads yet."
+                      : "No winner recorded."}
                 </h3>
                 <p>
-                  Ads need impressions, total link clicks and funds-raised data
-                  to receive a score.
+                  {current
+                    ? "Ads need impressions, total link clicks and funding data to receive a score."
+                    : "There is no complete sample result for this campaign and period."}
                 </p>
               </div>
             )}
-            {periodAds.some(
-              (ad) => ad.projectId === board.id && scorePublicAd(ad) === null,
-            ) && (
-              <p className="leaderboard-note">
-                Ads missing performance data are awaiting a ranking.
-              </p>
-            )}
+            {current &&
+              simulation.ads.some(
+                (ad) => ad.projectId === board.id && scorePublicAd(ad) === null,
+              ) && (
+                <p className="leaderboard-note">
+                  Ads missing performance data are awaiting a ranking.
+                </p>
+              )}
           </section>
         ))}
-      {!ads ? (
-        <p role="status">Loading leaderboard…</p>
-      ) : (
-        !boards.some((board) => board.visible.length > 0) && (
+      {!ads && <p role="status">Loading leaderboard…</p>}
+      {ads &&
+        !boards.some((board) => board.visible.length) &&
+        search.trim() && (
           <p className="leaderboard-note">
-            No matching ranked ads. Try another campaign or search.
+            No matching ads. Try another campaign or search.
           </p>
-        )
-      )}
+        )}
     </section>
   );
 }

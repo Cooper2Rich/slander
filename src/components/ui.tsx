@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { WorkspaceContext } from "../context";
 import { mediaResponse } from "../api";
 import { demoAsset, PUBLIC_DEMO } from "../runtime";
+import { useAdPreview } from "./useAdPreview";
 import {
   ArrowUpRight,
   Check,
@@ -222,8 +223,10 @@ export function Media({
     : post.media.startsWith("/images/") || post.media.startsWith("/videos/")
       ? demoAsset(post.media)
       : post.media;
+  const { video } = useAdPreview(src);
   return post.mediaType === "video" ? (
     <video
+      ref={video}
       className={className}
       src={src || undefined}
       controls={controls}

@@ -119,7 +119,10 @@ test("missing, partial and duplicate day buckets stay unranked; explicit zeroes 
     null,
   );
   const monday = new Date("2026-10-26T00:00:00Z");
-  assert.deepEqual(samplePerformanceDays("nocturne-midnight", totals, monday), [
-    { date: "2026-10-26", ...totals },
-  ]);
+  assert.deepEqual(
+    samplePerformanceDays("nocturne-midnight", totals, monday).filter(
+      (day) => day.date >= "2026-10-26",
+    ),
+    [{ date: "2026-10-26", ...totals }],
+  );
 });

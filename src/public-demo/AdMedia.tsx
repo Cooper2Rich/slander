@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Play } from "lucide-react";
 import { demoAsset } from "../runtime";
 import { mediaResponse } from "../api";
 import type { DemoAccess, Post } from "../types";
 import { mediaFile } from "./media";
+import { useAdPreview } from "../components/useAdPreview";
 
 export function AdMedia({
   ad,
@@ -16,7 +17,6 @@ export function AdMedia({
   access?: DemoAccess;
   previewOnly?: boolean;
 }) {
-  const video = useRef<HTMLVideoElement>(null);
   const [source, setSource] = useState("");
   const [watching, setWatching] = useState(false);
   const scoped =
@@ -47,20 +47,7 @@ export function AdMedia({
     };
   }, [ad.media, scoped, access?.role, access?.creatorId, access?.nonprofitId]);
   const src = scoped ? source : demoAsset(ad.media);
-  function preview() {
-    if (
-      !full &&
-      !watching &&
-      !matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      void video.current?.play().catch(() => {});
-  }
-  function stop() {
-    if (!full && !watching && video.current) {
-      video.current.pause();
-      video.current.currentTime = 0;
-    }
-  }
+  const { video, startFullPlayback } = useAdPreview(src);
   return ad.mediaType === "video" ? (
     <>
       <video
@@ -68,41 +55,21 @@ export function AdMedia({
         src={src || undefined}
         poster={ad.poster ? demoAsset(ad.poster) : undefined}
         muted={!full && !watching}
-        loop={!full && !watching}
+        loop={false}
         controls={full || watching}
-        tabIndex={previewOnly ? -1 : full || watching ? undefined : 0}
+        tabIndex={previewOnly || full || watching ? undefined : 0}
         playsInline
         preload="metadata"
         aria-label={ad.title}
         aria-hidden={previewOnly || undefined}
-        onPointerEnter={(event) => {
-          if (event.pointerType === "mouse") preview();
-        }}
-        onPointerLeave={stop}
-        onFocus={preview}
-        onBlur={stop}
-        onTimeUpdate={() => {
-          if (
-            !full &&
-            !watching &&
-            video.current &&
-            video.current.currentTime > 4
-          )
-            video.current.currentTime = 0;
-        }}
       />
       {!full && !watching && !previewOnly && (
         <button
           className="inline-play"
           aria-label={`Play ${ad.title}`}
           onClick={() => {
-            const player = video.current;
-            if (!player) return;
-            player.currentTime = 0;
-            player.muted = false;
-            player.loop = false;
             setWatching(true);
-            void player.play().catch(() => {});
+            startFullPlayback();
           }}
         >
           <Play size={14} fill="currentColor" /> Play

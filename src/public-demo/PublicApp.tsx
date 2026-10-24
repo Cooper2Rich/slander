@@ -58,6 +58,26 @@ export default function PublicApp() {
   const campaign = params.get("campaign") || "all";
   const period: LeaderboardPeriod =
     params.get("period") === "daily" ? "daily" : "weekly";
+  const leaderboardView = params.get("view") === "past" ? "past" : "current";
+  const historyDate = params.get("date") || "";
+  const setLeaderboardView = (value: "current" | "past") => {
+    const next = new URLSearchParams(params);
+    if (value === "current") {
+      next.delete("view");
+      next.delete("date");
+    } else {
+      next.set("view", "past");
+      next.delete("date");
+    }
+    setParams(next);
+  };
+  const selectHistory = (value: LeaderboardPeriod, date: string) => {
+    const next = new URLSearchParams(params);
+    next.set("view", "past");
+    next.set("period", value);
+    next.set("date", date);
+    setParams(next);
+  };
   const setPeriod = (value: LeaderboardPeriod) => {
     const next = new URLSearchParams(params);
     next.set("period", value);
@@ -221,6 +241,10 @@ export default function PublicApp() {
               ads={ads}
               campaigns={campaigns}
               period={period}
+              view={leaderboardView}
+              onView={setLeaderboardView}
+              historyDate={historyDate}
+              onHistory={selectHistory}
               onPeriod={setPeriod}
               campaign={campaign}
               onCampaign={setCampaign}

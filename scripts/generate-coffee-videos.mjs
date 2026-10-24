@@ -5,40 +5,7 @@ import { createHash } from "node:crypto";
 import { coffeeAds } from "../src/public-demo/coffee-ads.js";
 import { footageSources } from "./coffee-footage.mjs";
 
-// MediaRecorder omits duration. Add the standard EBML Duration field so normal
-// players have a finite timeline and can seek without first scanning the file.
-function withDuration(bytes, milliseconds) {
-  const info = bytes.indexOf(Buffer.from([0x15, 0x49, 0xa9, 0x66]));
-  if (info < 0) throw new Error("WebM information header missing.");
-  const sizeAt = info + 4;
-  let width = 1;
-  while (width <= 8 && !(bytes[sizeAt] & (1 << (8 - width)))) width++;
-  if (width > 8) throw new Error("Invalid WebM info size.");
-  let size = bytes[sizeAt] & ((1 << (8 - width)) - 1);
-  for (let i = 1; i < width; i++) size = size * 256 + bytes[sizeAt + i];
-  const duration = Buffer.alloc(11);
-  duration.set([0x44, 0x89, 0x88]);
-  duration.writeDoubleBE(milliseconds, 3);
-  const newSize = size + duration.length;
-  if (newSize >= 2 ** (7 * width) - 1)
-    throw new Error("WebM info size exceeds original field.");
-  const encodedSize = Buffer.alloc(width);
-  let remaining = newSize;
-  for (let i = width - 1; i >= 0; i--) {
-    encodedSize[i] = remaining % 256;
-    remaining = Math.floor(remaining / 256);
-  }
-  encodedSize[0] |= 1 << (8 - width);
-  const dataAt = sizeAt + width;
-  return Buffer.concat([
-    bytes.subarray(0, sizeAt),
-    encodedSize,
-    bytes.subarray(dataAt, dataAt + size),
-    duration,
-    bytes.subarray(dataAt + size),
-  ]);
-}
-
+// Preserve native WebM metadata and byte offsets. Current Chromium writes its own duration and seek index.
 await mkdir("outputs/coffee-footage", { recursive: true });
 const sources = new Map();
 for (const ad of coffeeAds) {
@@ -276,10 +243,7 @@ try {
         index,
       },
     );
-    await writeFile(
-      `public${ad.media}`,
-      withDuration(Buffer.from(result.bytes), 16400),
-    );
+    await writeFile(`public${ad.media}`, Buffer.from(result.bytes));
     await writeFile(
       `public${ad.poster}`,
       Buffer.from(result.poster.split(",")[1], "base64"),

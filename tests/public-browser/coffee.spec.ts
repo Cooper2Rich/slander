@@ -10,7 +10,7 @@ test("finished coffee collection has three playable films over 15 seconds, with 
   await expect(page.locator(".ad-duration")).toHaveCount(3);
   const videos = page.locator(".ad-card video");
   for (const video of await videos.all()) {
-    await expect(video).toHaveAttribute("src", /-filmed-v2\.webm$/);
+    await expect(video).toHaveAttribute("src", /-filmed-v2\.webm\?v=20261024$/);
     await expect
       .poll(() =>
         video.evaluate(
@@ -36,6 +36,9 @@ test("finished coffee collection has three playable films over 15 seconds, with 
     .getByRole("link", { name: "View Your midnight ritual", exact: true })
     .click();
   const player = page.locator(".profile-media video");
+  // Use the native controls to choose full playback rather than the new
+  // muted hover preview that may already be running under the pointer.
+  await player.dispatchEvent("pointerdown");
   await player.evaluate((video: HTMLVideoElement) => video.play());
   await expect
     .poll(() => player.evaluate((video: HTMLVideoElement) => video.currentTime))
