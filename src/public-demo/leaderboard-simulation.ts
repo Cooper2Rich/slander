@@ -12,7 +12,8 @@ export function simulateLeaders(ads: PublicAd[], tick: number): PublicAd[] {
       )
     )
       continue;
-    groups.set(ad.projectId, [...(groups.get(ad.projectId) || []), ad]);
+    const campaignId = ad.campaignId || ad.projectId;
+    groups.set(campaignId, [...(groups.get(campaignId) || []), ad]);
   }
   const counts = new Map<string, number>();
   for (const group of groups.values()) {

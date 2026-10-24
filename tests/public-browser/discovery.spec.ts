@@ -108,7 +108,7 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
     await page.evaluate(() => localStorage.getItem("slander-public-access-v1")),
   ).toBeNull();
   await page.getByLabel("Demo role").selectOption("admin");
-  await navigate(page, "Ad spending");
+  await navigate(page, "Funding");
   await expect(page.getByText("$37.50", { exact: true }).first()).toBeVisible();
   expect(
     await page.evaluate(

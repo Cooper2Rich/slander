@@ -32,6 +32,11 @@ import { prepareSamples, mediaEvidence, uploadMedia, mediaFile } from "./media";
 import { addCoffeeShowcase } from "./coffee-showcase.js";
 import { coffeeAds } from "./coffee-ads.js";
 import { samplePerformanceDays } from "./leaderboard-periods";
+import {
+  ensureCampaignHierarchy,
+  requireCampaign,
+  campaignManagementRequest,
+} from "./campaign-management.js";
 
 export const campaignId = "fictional-river-showcase-v1";
 export const creatorId = `${campaignId}-creator`;
@@ -70,6 +75,7 @@ function state() {
     },
   });
   refreshEligibility(value);
+  ensureCampaignHierarchy(value);
   return value;
 }
 export async function prepareWorkspace() {
@@ -177,6 +183,8 @@ export async function prepareWorkspace() {
 }
 function accessFor(value, access) {
   if (!access) throw new Error("Select a demo role first.");
+  if (!["admin", "nonprofit", "creator"].includes(access.role))
+    throw new Error("Choose a supported demo role.");
   if (
     access.role === "creator" &&
     !value.creators.some((c) => c.id === access.creatorId)
@@ -228,6 +236,25 @@ function upsertProject(value, id, input, access) {
   if (!id) admin(access);
   const project = id ? requireProject(value, id, access, true) : null;
   const data = projectSchema.parse(input);
+  const campaign = requireCampaign(
+    value,
+    project?.campaignId || input.campaignId,
+  );
+  if (campaign.status === "archived")
+    throw new Error("Restore this campaign before changing its projects.");
+  if (data.nonprofit !== campaign.ownerName)
+    throw new Error("Project organization must match its campaign.");
+  if (data.status === "active" && campaign.status !== "active")
+    throw new Error(
+      "Admin activation is required before publishing this project.",
+    );
+  if (
+    (!project || project.pricingStatus === "pending") &&
+    data.status === "active"
+  )
+    throw new Error(
+      "Project pricing is not configured. Save this project as a draft.",
+    );
   data.instagram = normalizeInstagram(data.instagram);
   if (
     project &&
@@ -235,9 +262,14 @@ function upsertProject(value, id, input, access) {
     data.nonprofit !== project.nonprofit
   )
     throw new Error("Only Admin can reassign a project's organization.");
-  const organization = ensureIdentity(value, "nonprofits", data.nonprofit);
+  const organization = value.nonprofits.find(
+    (item) => item.id === campaign.ownerOrganizationId,
+  );
+  if (!organization) throw new Error("Campaign organization is unavailable.");
   const result = project || { id: uuid(), createdAt: new Date().toISOString() };
   Object.assign(result, data, {
+    campaignId: campaign.id,
+    ...(!project ? { pricingStatus: "pending" } : {}),
     nonprofit: organization.name,
     nonprofitId: organization.id,
     ownerOrganizationId: organization.id,
@@ -296,9 +328,18 @@ export async function workspaceRequest(
   if (path === "/public/campaigns" && method === "GET") {
     return {
       handled: true,
-      data: value.projects
-        .filter((project) => project.status === "active")
-        .map((project) => ({ id: project.id, name: project.name })),
+      data: value.managedCampaigns
+        .filter(
+          (campaign) =>
+            campaign.status === "active" &&
+            value.projects.some(
+              (project) =>
+                project.campaignId === campaign.id &&
+                project.status === "active",
+            ),
+        )
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .map((campaign) => ({ id: campaign.id, name: campaign.name })),
     };
   }
   if (path === "/public/ads" && method === "GET") {
@@ -330,6 +371,8 @@ export async function workspaceRequest(
           return {
             id: p.id,
             projectId: p.projectId,
+            campaignId: project.campaignId,
+            campaign: requireCampaign(value, project.campaignId).name,
             title: p.title,
             creator: p.creator,
             creatorId: p.creatorId,
@@ -377,6 +420,22 @@ export async function workspaceRequest(
   if (path === `/giving/${campaignId}/campaign` && method === "GET")
     return { handled: true, data: getProject(value, campaignId) };
   // Financial routes are handled by the separate, explicitly simulated adapter.
+  if (
+    path.startsWith("/management/campaigns") ||
+    path.startsWith("/project-requests")
+  ) {
+    const a = accessFor(value, access);
+    const result = campaignManagementRequest(
+      value,
+      a,
+      path,
+      method,
+      body,
+      (input) => upsertProject(value, null, input, a),
+    );
+    save(value);
+    return { handled: true, data: structuredClone(result.data) };
+  }
   const supported =
     path === "/workspace" ||
     path === "/offers" ||
@@ -394,6 +453,27 @@ export async function workspaceRequest(
   let data;
   if (method === "GET" && path === "/workspace") {
     data = scopedWorkspace(value, a);
+    data.projectRequests = value.projectRequests
+      .filter(
+        (request) =>
+          a.role === "admin" ||
+          (a.role === "owner" &&
+            request.ownerOrganizationId === a.organizationId),
+      )
+      .map((request) => {
+        if (a.role === "admin") return request;
+        const { campaignId: _campaignId, ...visible } = request;
+        return visible;
+      });
+    if (a.role === "admin") data.managedCampaigns = value.managedCampaigns;
+    else
+      data.projects = data.projects.map(
+        ({ campaignId: _campaignId, ...project }) => ({
+          ...project,
+          campaignPaused:
+            requireCampaign(value, _campaignId).status === "archived",
+        }),
+      );
     if (a.role === "creator") {
       // Retain only this creator's history, including ended/unpublished campaigns.
       // Campaign discovery and other creators' private ads remain scoped normally.
@@ -439,10 +519,12 @@ export async function workspaceRequest(
       });
     }
   } else if (method === "GET" && path === "/offers") {
+    if (a.role === "owner")
+      throw new Error("Campaign management is available to Admin only.");
     const p = getProject(value, campaignId);
     data = {
       items:
-        p.status === "active" &&
+        (a.role === "admin" || p.status === "active") &&
         (a.role !== "owner" || p.ownerOrganizationId === a.organizationId)
           ? [
               {
@@ -461,7 +543,9 @@ export async function workspaceRequest(
       throw new Error("Enter a creator name with 1–80 characters.");
     data = ensureIdentity(value, "creators", name);
   } else if (method === "POST" && path === "/projects")
-    data = upsertProject(value, null, body, a);
+    throw new Error(
+      "Projects are created by approving an owner request. Use Project requests.",
+    );
   else if (method === "PUT" && /^\/projects\/[^/]+$/.test(path))
     data = upsertProject(value, path.split("/")[2], body, a);
   else if (method === "POST" && path === "/uploads") {

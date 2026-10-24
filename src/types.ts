@@ -28,6 +28,9 @@ export interface EligibilityPolicy {
 export type Format = "photo" | "reel" | "carousel" | "story" | "other";
 export interface Project {
   id: string;
+  campaignId?: string;
+  campaignPaused?: boolean;
+  pricingStatus?: "pending";
   name: string;
   nonprofit: string;
   nonprofitId?: string;
@@ -104,10 +107,40 @@ export interface Activity {
   at: string;
 }
 export interface Workspace {
+  managedCampaigns?: ManagedCampaign[];
+  projectRequests?: ProjectRequest[];
+  campaignScope?: ManagedCampaign;
   ownArchivedPosts?: string[];
   ownPastAds?: { postId: string; campaign: string; reason: string }[];
   projects: Project[];
   posts: Post[];
   approvedPosts: Post[];
   activity: Activity[];
+}
+export interface ManagedCampaign {
+  id: string;
+  name: string;
+  description: string;
+  ownerOrganizationId: string;
+  ownerName: string;
+  status: "draft" | "active" | "archived";
+  createdAt: string;
+  pricingStatus: "pending";
+}
+export interface ProjectRequest {
+  id: string;
+  name: string;
+  description: string;
+  brief: string;
+  category: string;
+  startDate: string;
+  endDate: string;
+  ownerOrganizationId: string;
+  ownerName: string;
+  status: "pending" | "approved" | "declined";
+  createdAt: string;
+  reviewedAt?: string;
+  reviewNote?: string;
+  projectId?: string;
+  campaignId?: string;
 }

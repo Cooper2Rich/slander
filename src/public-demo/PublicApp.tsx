@@ -25,9 +25,18 @@ import {
   type PublicAd,
 } from "./catalog";
 import * as demoViews from "./WorkspaceViews";
+import * as managementViews from "./CampaignManagement";
+import { ProjectRequestsPage } from "./ProjectRequests";
+import { AdminFunding } from "./AdminFunding";
 import { AdStats } from "./AdStats";
 import { PublicLeaderboard } from "./PublicLeaderboard";
 import type { LeaderboardPeriod } from "./leaderboard-periods";
+const workspaceViews = {
+  ...demoViews,
+  ...managementViews,
+  ProjectRequestsPage,
+  AdminFunding,
+};
 
 export function enterWorkspace(
   role: string,
@@ -37,7 +46,13 @@ export function enterWorkspace(
     "slander-public-access-v1",
     JSON.stringify({ role, creatorId: null, nonprofitId: null }),
   );
-  navigate(role === "creator" ? "/review" : "/projects");
+  navigate(
+    role === "creator"
+      ? "/review"
+      : role === "admin"
+        ? "/campaigns"
+        : "/projects",
+  );
 }
 export default function PublicApp() {
   const location = useLocation(),
@@ -105,7 +120,7 @@ export default function PublicApp() {
     if (publicRoute)
       document.title = `${location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
   }, [publicRoute, location.pathname]);
-  if (!publicRoute) return <App demoViews={demoViews} />;
+  if (!publicRoute) return <App demoViews={workspaceViews} />;
   const adId = location.pathname.startsWith("/ads/")
     ? decodeURIComponent(location.pathname.slice(5))
     : null;
@@ -114,7 +129,7 @@ export default function PublicApp() {
     state = viewerState();
   const filtered = ads?.filter(
     (ad) =>
-      `${ad.title} ${ad.creator} ${ad.project}`
+      `${ad.title} ${ad.creator} ${ad.project} ${ad.campaign || ""}`
         .toLowerCase()
         .includes(search.toLowerCase()) &&
       (category === "All causes" || ad.category === category),
@@ -276,7 +291,7 @@ export default function PublicApp() {
                     <p>{selected.nonprofit}</p>
                     <Link
                       className="text-button"
-                      to={`/leaderboard?campaign=${encodeURIComponent(selected.projectId)}`}
+                      to={`/leaderboard?campaign=${encodeURIComponent(selected.campaignId || selected.projectId)}`}
                     >
                       Campaign leaderboard <ArrowUpRight size={14} />
                     </Link>
@@ -545,10 +560,10 @@ function SupportDialog({ ad, onClose }: { ad: PublicAd; onClose: () => void }) {
           <ViewerForm key={version} onDone={() => setVersion(version + 1)} />
         ) : (
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               try {
-                fundAd(ad, amount, requestId);
+                await fundAd(ad, amount, requestId);
                 setDone(true);
               } catch (e) {
                 setError((e as Error).message);
@@ -559,8 +574,8 @@ function SupportDialog({ ad, onClose }: { ad: PublicAd; onClose: () => void }) {
               Contributing as <strong>{activeViewer()?.name}</strong> · Viewer
             </p>
             <p>
-              This contribution funds distribution of “{ad.title}”. It is
-              separate from cause donations, creator commission, and donation
+              This contribution supports the ad fund for “{ad.title}”. The
+              creator receives 10%. Ad-fund contributions do not create donation
               votes.
             </p>
             <div className="giving-presets">

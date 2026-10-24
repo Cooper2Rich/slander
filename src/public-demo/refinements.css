@@ -1243,3 +1243,189 @@
     flex: none;
   }
 }
+/* Campaign hierarchy, requests and Admin funding use the shared compact surfaces. */
+.public-demo
+  :is(.managed-campaign-list, .project-request-list, .funding-campaign-list) {
+  display: grid;
+  gap: 12px;
+}
+.public-demo :is(.managed-campaign, .project-request, .funding-campaign) {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  min-width: 0;
+}
+.public-demo .managed-campaign > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.public-demo :is(.managed-campaign, .project-request) h2 {
+  font-size: 17px;
+  margin: 7px 0;
+}
+.public-demo :is(.managed-campaign, .project-request) p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 6px 0;
+}
+.public-demo .managed-campaign footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.public-demo .managed-campaign:hover {
+  border-color: var(--brand-mid);
+}
+.public-demo .campaign-context-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.public-demo .campaign-context-heading h2 {
+  font-size: 21px;
+  margin: 10px 0 5px;
+}
+.public-demo .campaign-context-heading p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.public-demo .project-request {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.public-demo .project-request small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.public-demo .request-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.public-demo .funding-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.public-demo .funding-summary > div {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 14px;
+  border-radius: var(--radius);
+}
+.public-demo .funding-summary small {
+  color: var(--muted);
+  font-size: 11px;
+  display: block;
+}
+.public-demo .funding-summary strong {
+  display: block;
+  font-size: 23px;
+  margin-top: 8px;
+}
+.public-demo .funding-campaign header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.public-demo .funding-campaign h3 {
+  font-size: 15px;
+  margin: 0 0 5px;
+}
+.public-demo .funding-campaign small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.public-demo .funding-metrics {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.public-demo .funding-metrics dt {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.public-demo .funding-metrics dd {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 4px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .public-demo .funding-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .public-demo .funding-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 639px) {
+  .public-demo :is(.campaign-context-heading, .project-request) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .public-demo .funding-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .public-demo .funding-summary strong {
+    font-size: 20px;
+  }
+}
+.public-demo :is(.managed-campaign > a > div, .project-request > div) {
+  min-width: 0;
+}
+.public-demo
+  :is(
+    .managed-campaign h2,
+    .project-request h2,
+    .campaign-context-heading h2,
+    .funding-summary strong
+  ) {
+  overflow-wrap: anywhere;
+}
+.public-demo .managed-campaign {
+  padding: 14px;
+}
+.public-demo .managed-campaign .metrics-note {
+  font-size: 11px;
+  line-height: 1.3;
+}
+.public-demo .managed-campaign h2 {
+  font-size: 16px;
+  line-height: 1.3;
+  margin: 5px 0;
+}
+.public-demo .managed-campaign p {
+  margin: 4px 0 0;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.public-demo .managed-campaign footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  line-height: 1.3;
+}

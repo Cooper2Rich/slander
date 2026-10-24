@@ -25,7 +25,7 @@ test("ordinary workspace errors still retry without reloading the document", asy
   const url = page.url();
   await page.getByRole("button", { name: "Try again", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Projects.", exact: true }),
+    page.getByRole("heading", { name: "Campaigns.", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page).toHaveURL(url);
@@ -82,9 +82,9 @@ test("a missing deployment chunk offers a real reload and preserves browser data
   await expect(reload).toBeVisible();
   await page.unroute("**/assets/api-*.js");
   await reload.click();
-  await expect(page).toHaveURL(/v=\d+.*#\/projects$/);
+  await expect(page).toHaveURL(/v=\d+.*#\/campaigns$/);
   await expect(
-    page.getByRole("heading", { name: "Projects.", exact: true }),
+    page.getByRole("heading", { name: "Campaigns.", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByLabel("Demo role")).toHaveValue("admin");

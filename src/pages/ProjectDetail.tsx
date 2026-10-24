@@ -18,7 +18,7 @@ import { PostList } from "./Posts";
 
 export function ProjectDetail() {
   const { id } = useParams();
-  const { projects, posts, role, search } = useWorkspace();
+  const { projects, posts, role, search, campaignScope } = useWorkspace();
   const project = projects.find((p) => p.id === id);
   const [settings, setSettings] = useState<false | "details" | "account">(
     false,
@@ -48,7 +48,10 @@ export function ProjectDetail() {
   const accepting = submissionsOpen(project);
   return (
     <>
-      <Link to="/projects" className="back-link">
+      <Link
+        to={campaignScope ? `/campaigns/${campaignScope.id}` : "/projects"}
+        className="back-link"
+      >
         <ArrowLeft size={15} />
         All projects
       </Link>
@@ -64,6 +67,12 @@ export function ProjectDetail() {
         </div>
       </div>
       <div className="detail-topline">
+        {project.campaignPaused && (
+          <p className="metrics-note">
+            Admin has paused this project. Saved creatives and funding records
+            remain available.
+          </p>
+        )}
         <span className={`project-status ${project.status}`}>
           {project.status === "active" ? "Published" : project.status}
         </span>
@@ -72,15 +81,17 @@ export function ProjectDetail() {
           {dateLabel(project.startDate)} – {dateLabel(project.endDate)}
         </span>
         <div>
-          {role !== "creator" && (
-            <button
-              className="button secondary"
-              onClick={() => setSettings("details")}
-            >
-              <Settings2 size={16} />
-              Project settings
-            </button>
-          )}
+          {role !== "creator" &&
+            campaignScope?.status !== "archived" &&
+            !project.campaignPaused && (
+              <button
+                className="button secondary"
+                onClick={() => setSettings("details")}
+              >
+                <Settings2 size={16} />
+                Project settings
+              </button>
+            )}
           {role !== "nonprofit" && (
             <button
               className="button primary"
@@ -207,6 +218,7 @@ export function ProjectDetail() {
       )}
       {settings && (
         <ProjectForm
+          campaignId={project.campaignId}
           project={project}
           accountFocus={settings === "account"}
           onClose={() => setSettings(false)}

@@ -377,7 +377,9 @@ export function PublicLeaderboard({
             )}
             {current &&
               simulation.ads.some(
-                (ad) => ad.projectId === board.id && scorePublicAd(ad) === null,
+                (ad) =>
+                  (ad.campaignId || ad.projectId) === board.id &&
+                  scorePublicAd(ad) === null,
               ) && (
                 <p className="leaderboard-note">
                   Ads missing performance data are awaiting a ranking.

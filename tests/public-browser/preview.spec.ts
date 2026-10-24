@@ -81,7 +81,7 @@ test("public preview works without an API server and persists only browser sampl
       .evaluate((img) => (img as HTMLImageElement).naturalWidth),
   ).toBeGreaterThan(0);
   await page
-    .getByRole("button", { name: "Accept campaign terms", exact: true })
+    .getByRole("button", { name: "Accept project terms", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Submit sample creative", exact: true })
@@ -107,8 +107,8 @@ test("public preview works without an API server and persists only browser sampl
     path: `test-results/public-${info.project.name}-gift.png`,
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Return to campaign" }).click();
-  await selectOwner(page);
+  await page.getByRole("link", { name: "Return to project" }).click();
+  await page.getByLabel("Demo role").selectOption("admin");
   await openRiverCampaign(page);
   await page.getByRole("tab", { name: "Funding" }).click();
   await expect(page.getByText("$600.00", { exact: true })).toBeVisible();
@@ -118,7 +118,6 @@ test("public preview works without an API server and persists only browser sampl
   await page.reload();
   await page.getByRole("tab", { name: "Funding" }).click();
   await expect(page.getByText("$10.00", { exact: true })).toBeVisible();
-  await page.getByLabel("Demo role").selectOption("admin");
   await page.getByRole("tab", { name: "Settlement" }).click();
   const download = page.waitForEvent("download");
   await page
@@ -142,6 +141,8 @@ test("public preview works without an API server and persists only browser sampl
   const clean = await context.browser()!.newContext();
   const cleanPage = await clean.newPage();
   await cleanPage.goto(page.url());
+  await cleanPage.getByLabel("Demo role").selectOption("admin");
+  await openRiverCampaign(cleanPage);
   await cleanPage.getByRole("tab", { name: "Funding" }).click();
   await expect(
     cleanPage.getByText("$0.00", { exact: true }).first(),

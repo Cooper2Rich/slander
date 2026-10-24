@@ -125,14 +125,14 @@ export function CampaignsPage() {
           <span className="eyebrow">A LITTLE CREATIVITY. A LOT OF GOOD.</span>
           <h1>
             {PUBLIC_DEMO
-              ? offer?.name || "Campaigns"
+              ? offer?.name || "Project opportunities"
               : offer
                 ? "Good stories move people."
                 : "Find your next good story."}
           </h1>
           <p>
             {PUBLIC_DEMO
-              ? "Manage campaign terms, funding and performance."
+              ? "Review project terms, creator commission and performance."
               : offer
                 ? offer.name
                 : "Discover a cause, create something meaningful, and see where every simulated dollar goes."}
@@ -205,7 +205,11 @@ export function CampaignsPage() {
                 <Link
                   className="offer-card"
                   key={o.id}
-                  to={`/campaigns/${o.id}`}
+                  to={
+                    PUBLIC_DEMO
+                      ? `/opportunities/${o.id}`
+                      : `/campaigns/${o.id}`
+                  }
                 >
                   <div className="offer-photo">
                     <img
@@ -219,7 +223,11 @@ export function CampaignsPage() {
                     <h2>{o.name}</h2>
                     <p>{o.beneficiary.name}</p>
                     <div className="offer-bottom">
-                      <strong>10% creator · 90% cause</strong>
+                      <strong>
+                        {PUBLIC_DEMO
+                          ? "10% paid to the creator"
+                          : "10% creator · 90% cause"}
+                      </strong>
                       <ArrowUpRight size={21} />
                     </div>
                   </div>
@@ -237,13 +245,26 @@ export function CampaignsPage() {
       {id && !offer && !error && <p>Loading campaign…</p>}
       {offer && (
         <>
-          <Link className="text-button" to="/campaigns">
-            ← All campaigns
+          <Link
+            className="text-button"
+            to={
+              PUBLIC_DEMO
+                ? role === "admin"
+                  ? "/campaigns"
+                  : "/projects"
+                : "/campaigns"
+            }
+          >
+            {PUBLIC_DEMO && role === "creator"
+              ? "← All projects"
+              : "← All campaigns"}
           </Link>
           <div
             className="market-tabs"
             role="tablist"
-            aria-label="Campaign sections"
+            aria-label={
+              PUBLIC_DEMO ? "Project records sections" : "Campaign sections"
+            }
           >
             {(PUBLIC_DEMO && role === "creator"
               ? ["Overview", "Performance"]
@@ -294,7 +315,7 @@ export function CampaignsPage() {
                 <span className="eyebrow">CLEAR TERMS. SHARED PURPOSE.</span>
                 <h2>
                   {PUBLIC_DEMO
-                    ? "Campaign terms"
+                    ? "Project terms"
                     : "Your creativity, fairly credited."}
                 </h2>
                 <div className="split-amount">
@@ -304,7 +325,11 @@ export function CampaignsPage() {
                   <p>
                     Creator commission
                     <br />
-                    <small>90% to the nonprofit before fees</small>
+                    <small>
+                      {PUBLIC_DEMO
+                        ? "Paid to the attributed creator"
+                        : "90% to the nonprofit before fees"}
+                    </small>
                   </p>
                 </div>
                 <ul className="terms-list">
@@ -345,7 +370,11 @@ export function CampaignsPage() {
                         })
                       }
                     >
-                      {accepted ? "✓ Terms accepted" : "Accept campaign terms"}
+                      {accepted
+                        ? "✓ Terms accepted"
+                        : PUBLIC_DEMO
+                          ? "Accept project terms"
+                          : "Accept campaign terms"}
                     </button>
                     {id === showcaseId && (
                       <button
@@ -435,7 +464,11 @@ export function CampaignsPage() {
                 <Metric
                   label="Public gifts · beneficiary"
                   value={money(totals?.beneficiaryCents)}
-                  note="90% of eligible attributed gifts before fees"
+                  note={
+                    PUBLIC_DEMO
+                      ? "Recorded beneficiary allocations"
+                      : "90% of eligible attributed gifts before fees"
+                  }
                 />
                 <Metric
                   label="Creator commission"
@@ -774,8 +807,12 @@ export function GivingPage() {
                   ? "This preview is saved only in this browser. No server journal or payment is created."
                   : "This confirmation is recorded in the shared simulated journal."}
               </p>
-              <Link className="button primary full" to={`/campaigns/${id}`}>
-                Return to campaign <ArrowUpRight size={16} />
+              <Link
+                className="button primary full"
+                to={PUBLIC_DEMO ? `/opportunities/${id}` : `/campaigns/${id}`}
+              >
+                {PUBLIC_DEMO ? "Return to project" : "Return to campaign"}{" "}
+                <ArrowUpRight size={16} />
               </Link>
             </div>
           ) : (
@@ -794,14 +831,16 @@ export function GivingPage() {
                 <span>
                   Creator <strong>10%</strong>
                 </span>
-                <span>
-                  Nonprofit <strong>90%</strong>
-                </span>
+                {!PUBLIC_DEMO && (
+                  <span>
+                    Nonprofit <strong>90%</strong>
+                  </span>
+                )}
               </div>
               <p className="muted">
-                Eligible tracked gifts give 10% to the attributed creator and
-                90% to the beneficiary before fees. Each positive-net eligible
-                gift adds one vote.
+                {PUBLIC_DEMO
+                  ? "Eligible tracked gifts pay 10% to the attributed creator. Each positive-net eligible gift adds one vote."
+                  : "Eligible tracked gifts give 10% to the attributed creator and 90% to the beneficiary before fees. Each positive-net eligible gift adds one vote."}
               </p>
               <button
                 className="button primary full"

@@ -14,6 +14,7 @@ import {
 } from "react-router-dom";
 import {
   Activity,
+  Archive,
   ArrowUpRight,
   Check,
   CheckCheck,
@@ -29,6 +30,7 @@ import {
   Megaphone,
   X,
   Trophy,
+  Wallet,
 } from "lucide-react";
 import { WorkspaceContext } from "./context";
 import type { Role } from "./types";
@@ -48,16 +50,28 @@ export default function App({
 }: {
   demoViews?: Partial<
     Record<
-      "ArchivesPage" | "CreatorAds" | "CreatorPastAds" | "SpendingPage",
+      | "ArchivesPage"
+      | "CreatorAds"
+      | "CreatorPastAds"
+      | "SpendingPage"
+      | "CampaignWorkspace"
+      | "AdminProjectRedirect"
+      | "ProjectRequestsPage"
+      | "AdminFunding",
       ComponentType
     >
-  >;
+  > & { AdminCampaigns?: ComponentType<{ archived?: boolean }> };
 }) {
   const {
     ArchivesPage = () => null,
     CreatorAds = () => null,
     CreatorPastAds = () => null,
     SpendingPage = () => null,
+    AdminCampaigns = () => null,
+    CampaignWorkspace = () => null,
+    AdminProjectRedirect = () => null,
+    ProjectRequestsPage = () => null,
+    AdminFunding = () => null,
   } = demoViews;
   const location = useLocation();
   const navigate = useNavigate();
@@ -97,7 +111,14 @@ export default function App({
     setSearch("");
     setToast("");
     setHelp(false);
-    if (PUBLIC_DEMO && value === "creator") navigate("/review");
+    if (PUBLIC_DEMO)
+      navigate(
+        value === "creator"
+          ? "/review"
+          : value === "admin"
+            ? "/campaigns"
+            : "/projects",
+      );
   };
   const pending =
     workspace?.posts.filter((p) =>
@@ -105,32 +126,52 @@ export default function App({
         ? ["pending", "changes"].includes(p.status)
         : p.status === "held",
     ).length || 0;
+  const selectedCampaignId =
+    PUBLIC_DEMO && role === "admin"
+      ? /^\/campaigns\/([^/]+)/.exec(location.pathname)?.[1]
+      : undefined;
   const title =
-    PUBLIC_DEMO && location.pathname === "/spending"
-      ? "Ad spending"
-      : PUBLIC_DEMO && location.pathname === "/archives"
-        ? role === "creator"
-          ? "Past ads"
-          : "Archives"
-        : PUBLIC_DEMO && role === "creator" && location.pathname === "/review"
-          ? "My ads"
-          : location.pathname.startsWith("/campaigns")
-            ? "Campaigns"
-            : PUBLIC_DEMO && location.pathname === "/posts"
-              ? "Creatives"
-              : location.pathname === "/review"
-                ? role === "creator"
-                  ? "My creatives"
-                  : "Platform exceptions"
-                : location.pathname === "/approved"
-                  ? role === "creator"
-                    ? "Eligible library & counts"
-                    : "Eligible creatives"
-                  : location.pathname === "/activity"
-                    ? "Activity"
-                    : location.pathname === "/posts"
-                      ? "All submissions"
-                      : "Projects";
+    PUBLIC_DEMO && location.pathname === "/funding"
+      ? "Funding"
+      : PUBLIC_DEMO && location.pathname === "/project-requests"
+        ? "Project requests"
+        : selectedCampaignId
+          ? location.pathname.endsWith("/spending")
+            ? "Ad spending"
+            : location.pathname.endsWith("/archives")
+              ? "Archived projects"
+              : location.pathname.endsWith("/creatives")
+                ? "Creatives"
+                : "Projects"
+          : PUBLIC_DEMO && location.pathname === "/spending"
+            ? "Ad spending"
+            : PUBLIC_DEMO && location.pathname === "/archives"
+              ? role === "creator"
+                ? "Past ads"
+                : role === "admin"
+                  ? "Archived campaigns"
+                  : "Archived projects"
+              : PUBLIC_DEMO &&
+                  role === "creator" &&
+                  location.pathname === "/review"
+                ? "My ads"
+                : location.pathname.startsWith("/campaigns")
+                  ? "Campaigns"
+                  : PUBLIC_DEMO && location.pathname === "/posts"
+                    ? "Creatives"
+                    : location.pathname === "/review"
+                      ? role === "creator"
+                        ? "My creatives"
+                        : "Platform exceptions"
+                      : location.pathname === "/approved"
+                        ? role === "creator"
+                          ? "Eligible library & counts"
+                          : "Eligible creatives"
+                        : location.pathname === "/activity"
+                          ? "Activity"
+                          : location.pathname === "/posts"
+                            ? "All submissions"
+                            : "Projects";
   useEffect(() => {
     document.title = `${title} · ${APP_NAME}`;
   }, [title]);
@@ -169,16 +210,70 @@ export default function App({
       ? [
           { to: "/review", icon: Layers3, label: "My ads", count: pending },
           { to: "/archives", icon: Inbox, label: "Past ads" },
-          { to: "/projects", icon: Megaphone, label: "Campaigns" },
-        ]
-      : [
-          { to: "/campaigns", icon: Megaphone, label: "Campaigns" },
           { to: "/projects", icon: FolderHeart, label: "Projects" },
-          { to: "/posts", icon: Layers3, label: "Creatives" },
-          { to: "/spending", icon: Trophy, label: "Ad spending" },
-          { to: "/archives", icon: Inbox, label: "Archives" },
-          { to: "/activity", icon: Activity, label: "Activity" },
-        ];
+        ]
+      : role === "admin"
+        ? selectedCampaignId
+          ? [
+              { to: "/campaigns", icon: Megaphone, label: "All campaigns" },
+              {
+                to: `/campaigns/${selectedCampaignId}`,
+                icon: FolderHeart,
+                label: "Projects",
+              },
+              {
+                to: `/campaigns/${selectedCampaignId}/creatives`,
+                icon: Layers3,
+                label: "Creatives",
+              },
+              {
+                to: `/campaigns/${selectedCampaignId}/spending`,
+                icon: Wallet,
+                label: "Ad spending",
+              },
+              {
+                to: `/campaigns/${selectedCampaignId}/archives`,
+                icon: Inbox,
+                label: "Archived projects",
+              },
+              ...(workspace?.projects.some(
+                (p) =>
+                  p.campaignId === selectedCampaignId &&
+                  p.id === "fictional-river-showcase-v1",
+              )
+                ? [
+                    {
+                      to: `/campaigns/${selectedCampaignId}/gift-records/fictional-river-showcase-v1`,
+                      icon: Wallet,
+                      label: "Cause-gift records",
+                    },
+                  ]
+                : []),
+              { to: "/funding", icon: Wallet, label: "Funding" },
+            ]
+          : [
+              { to: "/campaigns", icon: Megaphone, label: "Campaigns" },
+              {
+                to: "/project-requests",
+                icon: Inbox,
+                label: "Project requests",
+                count: workspace?.projectRequests?.filter(
+                  (r) => r.status === "pending",
+                ).length,
+              },
+              { to: "/posts", icon: Layers3, label: "Creatives" },
+              { to: "/funding", icon: Wallet, label: "Funding" },
+              { to: "/archives", icon: Archive, label: "Archived campaigns" },
+              { to: "/activity", icon: Activity, label: "Activity" },
+            ]
+        : [
+            { to: "/projects", icon: FolderHeart, label: "Projects" },
+            { to: "/project-requests", icon: Inbox, label: "Project requests" },
+            { to: "/posts", icon: Layers3, label: "Creatives" },
+            { to: "/spending", icon: Trophy, label: "Ad spending" },
+            { to: "/archives", icon: Inbox, label: "Archived projects" },
+            { to: "/activity", icon: Activity, label: "Activity" },
+          ];
   if (/^\/campaigns\/[^/]+\/give\/?$/.test(location.pathname)) {
     return (
       <Routes>
@@ -265,6 +360,11 @@ export default function App({
             nav.map((item) => (
               <NavLink
                 to={item.to}
+                end={
+                  PUBLIC_DEMO &&
+                  (item.to === "/campaigns" ||
+                    item.to === `/campaigns/${selectedCampaignId}`)
+                }
                 onClick={() => setMobileNav(false)}
                 key={item.to}
                 className={({ isActive }) =>
@@ -355,7 +455,9 @@ export default function App({
                   aria-label="Search workspace"
                   placeholder={
                     PUBLIC_DEMO
-                      ? "Search ads, creators, campaigns…"
+                      ? role === "admin"
+                        ? "Search campaigns, projects, ads…"
+                        : "Search projects, ads, creators…"
                       : "Search workspace..."
                   }
                   value={search}
@@ -450,10 +552,73 @@ export default function App({
               }}
             >
               <Routes>
-                <Route path="/campaigns" element={<CampaignsPage />} />
-                <Route path="/campaigns/:id" element={<CampaignsPage />} />
-                <Route path="/projects" element={<ProjectsPage />} />
-                <Route path="/projects/:id" element={<ProjectDetail />} />
+                {PUBLIC_DEMO ? (
+                  <>
+                    <Route
+                      path="/campaigns"
+                      element={
+                        role === "admin" ? (
+                          <AdminCampaigns />
+                        ) : (
+                          <Navigate to="/projects" replace />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/campaigns/:campaignId/*"
+                      element={
+                        role === "admin" ? (
+                          <CampaignWorkspace />
+                        ) : (
+                          <Navigate to="/projects" replace />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/opportunities/:id"
+                      element={
+                        role === "creator" ? (
+                          <CampaignsPage />
+                        ) : (
+                          <Navigate
+                            to={role === "admin" ? "/campaigns" : "/projects"}
+                            replace
+                          />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/project-requests"
+                      element={<ProjectRequestsPage />}
+                    />
+                    <Route path="/funding" element={<AdminFunding />} />
+                  </>
+                ) : (
+                  <>
+                    <Route path="/campaigns" element={<CampaignsPage />} />
+                    <Route path="/campaigns/:id" element={<CampaignsPage />} />
+                  </>
+                )}
+                <Route
+                  path="/projects"
+                  element={
+                    PUBLIC_DEMO && role === "admin" ? (
+                      <Navigate to="/campaigns" replace />
+                    ) : (
+                      <ProjectsPage />
+                    )
+                  }
+                />
+                <Route
+                  path="/projects/:id"
+                  element={
+                    PUBLIC_DEMO && role === "admin" ? (
+                      <AdminProjectRedirect />
+                    ) : (
+                      <ProjectDetail />
+                    )
+                  }
+                />
                 <Route
                   path="/review"
                   element={
@@ -490,6 +655,8 @@ export default function App({
                     element={
                       role === "creator" ? (
                         <Navigate to="/review" replace />
+                      ) : role === "admin" ? (
+                        <Navigate to="/funding" replace />
                       ) : (
                         <SpendingPage />
                       )
@@ -500,7 +667,13 @@ export default function App({
                   <Route
                     path="/archives"
                     element={
-                      role === "creator" ? <CreatorPastAds /> : <ArchivesPage />
+                      role === "creator" ? (
+                        <CreatorPastAds />
+                      ) : role === "admin" ? (
+                        <AdminCampaigns archived />
+                      ) : (
+                        <ArchivesPage />
+                      )
                     }
                   />
                 )}
@@ -514,7 +687,19 @@ export default function App({
                     )
                   }
                 />
-                <Route path="*" element={<Navigate to="/projects" replace />} />
+                <Route
+                  path="*"
+                  element={
+                    <Navigate
+                      to={
+                        PUBLIC_DEMO && role === "admin"
+                          ? "/campaigns"
+                          : "/projects"
+                      }
+                      replace
+                    />
+                  }
+                />
               </Routes>
             </WorkspaceContext.Provider>
           )}
@@ -546,7 +731,11 @@ export default function App({
       )}
       {help && (
         <Modal
-          title="A little tour. A lot of possibility."
+          title={
+            PUBLIC_DEMO
+              ? "How this demo works"
+              : "A little tour. A lot of possibility."
+          }
           subtitle={`Welcome to your ${APP_NAME} demo workspace.`}
           onClose={() => setHelp(false)}
         >
@@ -557,7 +746,7 @@ export default function App({
                 <h3>Start with a project</h3>
                 <p>
                   {PUBLIC_DEMO
-                    ? "Explore the supplied fictional projects, or create one as Admin. The Riverkind campaign is already initialized. Switch to Campaign Owner to explore scoped funding and reports."
+                    ? "Admin manages campaigns, project requests and funding. Campaign owners request projects for Admin review; pricing remains pending. Open a campaign as Admin for its projects, ad spending and archived projects."
                     : "Open Campaigns as Admin and initialize the fictional showcase. Switch to Campaign Owner to explore scoped funding and reports."}
                 </p>
               </section>
@@ -565,10 +754,13 @@ export default function App({
             <div>
               <span>02</span>
               <section>
-                <h3>Bring a story to the table</h3>
+                <h3>
+                  {PUBLIC_DEMO ? "Create an ad" : "Bring a story to the table"}
+                </h3>
                 <p>
-                  Select Alex River in Creator view. Open Campaigns, accept the
-                  frozen terms, and submit the supplied sample creative.
+                  Select Alex River in Creator view. Open{" "}
+                  {PUBLIC_DEMO ? "Projects" : "Campaigns"}, accept the frozen
+                  terms, and submit the supplied sample creative.
                 </p>
               </section>
             </div>
@@ -586,11 +778,13 @@ export default function App({
             <div>
               <span>04</span>
               <section>
-                <h3>Get ready for Instagram</h3>
+                <h3>
+                  {PUBLIC_DEMO ? "Review funding" : "Get ready for Instagram"}
+                </h3>
                 <p>
-                  Create a tracked giving link, open it, and confirm a simulated
-                  $100 gift. See $10 creator, $90 beneficiary, and one vote.
-                  Admin can export a sample week statement from Settlement.
+                  {PUBLIC_DEMO
+                    ? "New ad-fund contributions allocate 10% to the creator, 5% for application use and 85% to the nonprofit. Admin Funding separates allocations from payouts. Existing cause-gift records and sample statements remain under the associated campaign."
+                    : "Create a tracked giving link, open it, and confirm a simulated $100 gift. See $10 creator, $90 beneficiary, and one vote. Admin can export a sample week statement from Settlement."}
                 </p>
               </section>
             </div>
@@ -604,7 +798,7 @@ export default function App({
           </div>
           <div className="modal-footer">
             <button className="button primary" onClick={() => setHelp(false)}>
-              Let’s make something good
+              {PUBLIC_DEMO ? "Close tour" : "Let’s make something good"}
               <ArrowUpRight size={16} />
             </button>
           </div>

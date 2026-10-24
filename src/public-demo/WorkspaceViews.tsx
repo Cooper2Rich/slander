@@ -53,7 +53,7 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
           </h1>
           <p>
             {past
-              ? "Your ads from ended, archived or unpublished campaigns, plus withdrawn ads."
+              ? "Your ads from ended, archived or unpublished projects, plus withdrawn ads."
               : "Manage your ads, performance and past work."}
           </p>
         </div>
@@ -171,12 +171,12 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
           }
           description={
             past
-              ? "Your ads remain available here after withdrawal or when their campaign ends, is archived or is unpublished."
-              : "Choose a campaign to create an ad. Your ads and results will appear here."
+              ? "Your ads remain available here after withdrawal or when their project ends, is archived or is unpublished."
+              : "Choose a project to create an ad. Your ads and results will appear here."
           }
           action={
             <Link className="button primary" to="/projects">
-              Explore campaigns
+              Explore projects
             </Link>
           }
         />
@@ -209,8 +209,8 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
 }
 export function SpendingPage() {
   const { posts, role } = useWorkspace();
-  const support = viewerState().support.filter(
-    (s) => role === "admin" || posts.some((p) => p.id === s.adId),
+  const support = viewerState().support.filter((s) =>
+    posts.some((p) => p.id === s.adId),
   );
   const adIds = [...new Set(support.map((s) => s.adId))];
   return (
@@ -219,8 +219,7 @@ export function SpendingPage() {
         <div>
           <h1>Ad spending.</h1>
           <p>
-            Contributions reserved for ad distribution, separate from gifts to
-            the cause.
+            Ad-fund contributions and recorded ad delivery for these projects.
           </p>
         </div>
         <Wallet size={30} />
@@ -244,8 +243,8 @@ export function SpendingPage() {
       <div className="market-panel">
         <h2>Ad spend contributions</h2>
         <p>
-          Browser-local simulations. No ad purchases or money movement. Seed and
-          campaign media pools remain in Campaigns → Funding.
+          Browser-local simulations. No ad purchases or money movement.
+          Allocation does not mean a payout has been made.
         </p>
         {adIds.map((id) => (
           <div className="support-row" key={id}>
@@ -282,7 +281,7 @@ export function ArchivesPage() {
     <>
       <div className="page-heading">
         <div>
-          <h1>Archives.</h1>
+          <h1>Archived projects.</h1>
           <p>Past projects and their creative records in your workspace.</p>
         </div>
       </div>

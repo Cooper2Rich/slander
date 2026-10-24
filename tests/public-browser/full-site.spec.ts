@@ -15,7 +15,7 @@ test("full site: project settings, scoped profiles, upload, failed checks, revis
   await page.goto("./");
   await page.getByLabel("Demo role").selectOption("admin");
   await expect(
-    page.getByRole("heading", { name: "Projects.", exact: true }),
+    page.getByRole("heading", { name: "Campaigns.", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "A greener tomorrow", exact: true }),
@@ -41,24 +41,7 @@ test("full site: project settings, scoped profiles, upload, failed checks, revis
   await expect(
     page.getByRole("heading", { name: "It starts with one tree", exact: true }),
   ).toBeVisible();
-  await navigate(page, "Projects");
-  await page.getByRole("button", { name: "New project", exact: true }).click();
-  const projectName = `Public garden ${info.project.name}`;
-  await page.getByLabel("Project name", { exact: true }).fill(projectName);
-  await page
-    .getByLabel("Nonprofit name", { exact: true })
-    .fill("Fictional Garden Foundation");
-  await page
-    .getByLabel("About the project")
-    .fill("A fictional community garden project for the public demo.");
-  await page
-    .getByLabel("Creator brief", { exact: true })
-    .fill("Share a hopeful story about growing together.");
-  await page.getByLabel("Project status").selectOption("active");
-  await page
-    .getByRole("button", { name: "Create project", exact: true })
-    .click();
-  await expect(page.getByRole("dialog")).not.toBeVisible();
+  const projectName = "A greener tomorrow";
   await selectCreator(page, "Maya Chen");
   await page
     .getByRole("link")
@@ -128,6 +111,19 @@ test("full site: project settings, scoped profiles, upload, failed checks, revis
   await page.getByRole("button", { name: "Close dialog" }).click();
   await page.getByLabel("Demo role").selectOption("admin");
   await page
+    .locator(".managed-campaign")
+    .filter({
+      has: page.getByRole("heading", { name: projectName, exact: true }),
+    })
+    .getByRole("link")
+    .click();
+  await page
+    .locator(".project-card")
+    .filter({
+      has: page.getByRole("heading", { name: projectName, exact: true }),
+    })
+    .click();
+  await page
     .getByRole("button", { name: "Add Instagram account", exact: true })
     .click();
   await page
@@ -183,7 +179,7 @@ test("full site: project settings, scoped profiles, upload, failed checks, revis
   await expect(
     page.getByText(/Fictional sample permission confirmed/),
   ).toBeVisible();
-  await selectOwner(page, "Fictional Garden Foundation");
+  await selectOwner(page, "One Tree Collective");
   await expect(
     page.getByRole("heading", { name: projectName, exact: true }),
   ).toBeVisible();

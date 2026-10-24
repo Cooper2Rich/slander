@@ -4,21 +4,33 @@ import { api } from "../api";
 import { useWorkspace } from "../context";
 import type { Project } from "../types";
 import { Modal, Instagram } from "./ui";
+import { PUBLIC_DEMO } from "../runtime";
 
 export function ProjectForm({
   project,
   onClose,
   accountFocus = false,
+  campaignId,
 }: {
   project?: Project;
   onClose: () => void;
   accountFocus?: boolean;
+  campaignId?: string;
 }) {
-  const { refresh, notify, role, access } = useWorkspace();
+  const {
+    refresh,
+    notify,
+    role,
+    access,
+    managedCampaigns = [],
+  } = useWorkspace();
+  const campaign = managedCampaigns.find((c) => c.id === campaignId);
+  const pricingPending =
+    PUBLIC_DEMO && (!project || project.pricingStatus === "pending");
   const [tab, setTab] = useState(accountFocus ? "account" : "details");
   const [data, setData] = useState({
     name: project?.name || "",
-    nonprofit: project?.nonprofit || "",
+    nonprofit: project?.nonprofit || campaign?.ownerName || "",
     category: project?.category || "Environment",
     description: project?.description || "",
     brief: project?.brief || "",
@@ -60,7 +72,11 @@ export function ProjectForm({
         project ? `/projects/${project.id}` : "/projects",
         access,
         project ? "PUT" : "POST",
-        { ...data, ...(policyConfig ? { policyConfig } : {}) },
+        {
+          ...data,
+          ...(campaignId ? { campaignId } : {}),
+          ...(policyConfig ? { policyConfig } : {}),
+        },
       );
       await refresh();
       notify(project ? "Project settings saved" : "Your new project is ready");
@@ -73,11 +89,19 @@ export function ProjectForm({
   }
   return (
     <Modal
-      title={project ? "Project settings" : "Make room for something good."}
+      title={
+        project
+          ? "Project settings"
+          : PUBLIC_DEMO
+            ? "New project"
+            : "Make room for something good."
+      }
       subtitle={
         project
           ? project.name
-          : "Start with a mission. Your creators will bring the stories."
+          : PUBLIC_DEMO
+            ? "Create a campaign project draft"
+            : "Start with a mission. Your creators will bring the stories."
       }
       onClose={onClose}
     >
@@ -223,6 +247,13 @@ export function ProjectForm({
           hidden={tab !== "details"}
           data-section="details"
         >
+          {pricingPending && (
+            <p className="metrics-note">
+              Project pricing is pending. This project can be saved as a draft
+              without a charge; publishing is unavailable until pricing is
+              configured.
+            </p>
+          )}
           <label>
             Project name
             <input
@@ -240,7 +271,7 @@ export function ProjectForm({
                 required
                 maxLength={80}
                 value={data.nonprofit}
-                readOnly={role === "nonprofit"}
+                readOnly={role === "nonprofit" || !!campaignId}
                 onChange={(e) => set("nonprofit", e.target.value)}
                 placeholder="Your organization"
               />
@@ -316,7 +347,7 @@ export function ProjectForm({
                 onChange={(e) => set("status", e.target.value)}
               >
                 <option value="draft">Draft — preparing the project</option>
-                <option value="active">
+                <option value="active" disabled={pricingPending}>
                   Published — accept submissions within dates
                 </option>
                 <option value="archived">

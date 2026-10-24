@@ -55,7 +55,7 @@ export function rankPublicAds(
   targets: CampaignTargets = DEMO_TARGETS,
 ): ScoredAd[] {
   const scored = ads
-    .filter((ad) => ad.projectId === campaignId)
+    .filter((ad) => (ad.campaignId || ad.projectId) === campaignId)
     .flatMap((ad) => {
       const score = scorePublicAd(ad, targets);
       return score === null ? [] : [{ ...ad, score, rank: 0 }];

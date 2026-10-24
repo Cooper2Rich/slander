@@ -64,6 +64,10 @@ export async function publicApi(
   const state = read(),
     input = (body || {}) as Record<string, unknown>;
   if (method === "GET" && path === `/campaigns/${campaignId}/finance`) {
+    if (access?.role === "nonprofit")
+      throw new Error(
+        "Campaign finance is available to Admin. Owners can view their project ad spending.",
+      );
     const scoped = await workspaceRequest("/workspace", access);
     const projects = (scoped.data as { projects: { id: string }[] }).projects;
     if (!projects.some((p) => p.id === campaignId))

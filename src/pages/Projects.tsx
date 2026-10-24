@@ -17,17 +17,27 @@ import { useWorkspace } from "../context";
 import { PUBLIC_DEMO, demoAsset } from "../runtime";
 import { ProjectForm } from "../components/ProjectForm";
 import { Avatar, dateLabel, EmptyState, Instagram } from "../components/ui";
+import { ProjectRequestForm } from "../public-demo/ProjectRequests";
 
-export function ProjectsPage() {
-  const { projects, posts, approvedPosts, search, role, identity } =
-    useWorkspace();
+export function ProjectsPage({ campaignId }: { campaignId?: string }) {
+  const {
+    projects,
+    posts,
+    approvedPosts,
+    search,
+    role,
+    identity,
+    campaignScope,
+  } = useWorkspace();
   const [filter, setFilter] = useState("all");
   const [layout, setLayout] = useState("grid");
   const [sort, setSort] = useState("recent");
   const [creating, setCreating] = useState(false);
+  const [requesting, setRequesting] = useState(false);
   const filtered = projects
     .filter(
       (p) =>
+        (!campaignId || p.status !== "archived") &&
         (filter === "all" || p.status === filter) &&
         `${p.name} ${p.nonprofit} ${p.category}`
           .toLowerCase()
@@ -69,10 +79,26 @@ export function ProjectsPage() {
                   : "A little creativity. A lot of good. Bring your next story to life."}
           </p>
         </div>
-        {role === "admin" && (
+        {role === "admin" && !PUBLIC_DEMO && (
           <button className="button primary" onClick={() => setCreating(true)}>
             <Plus size={18} />
             New project
+          </button>
+        )}
+        {PUBLIC_DEMO &&
+          role === "admin" &&
+          campaignScope?.status !== "archived" && (
+            <Link className="button secondary" to="/project-requests">
+              Review project requests
+            </Link>
+          )}
+        {PUBLIC_DEMO && role === "nonprofit" && (
+          <button
+            className="button primary"
+            onClick={() => setRequesting(true)}
+          >
+            <Plus size={18} />
+            Request new project
           </button>
         )}
       </div>
@@ -127,56 +153,60 @@ export function ProjectsPage() {
           </div>
         </section>
       )}
-      <section className="stats-row" aria-label="Workspace summary">
-        <div>
-          <span className="stat-icon green">
-            <FolderHeart size={21} />
-          </span>
+      {(!PUBLIC_DEMO || !campaignId) && (
+        <section className="stats-row" aria-label="Workspace summary">
           <div>
-            <span>Published projects</span>
-            <strong>
-              {projects
-                .filter((p) => p.status === "active")
-                .length.toString()
-                .padStart(2, "0")}
-            </strong>
+            <span className="stat-icon green">
+              <FolderHeart size={21} />
+            </span>
+            <div>
+              <span>Published projects</span>
+              <strong>
+                {projects
+                  .filter((p) => p.status === "active")
+                  .length.toString()
+                  .padStart(2, "0")}
+              </strong>
+            </div>
+            {!PUBLIC_DEMO && (
+              <span className="stat-note">Making things happen</span>
+            )}
           </div>
-          {!PUBLIC_DEMO && (
-            <span className="stat-note">Making things happen</span>
-          )}
-        </div>
-        <Link to="/review">
-          <span className="stat-icon amber">
-            <Clock3 size={21} />
-          </span>
-          <div>
-            <span>Checking / needs fixes</span>
-            <strong>{pending.toString().padStart(2, "0")}</strong>
-          </div>
-          <span className="stat-note">
-            Automatic checks
-            <ArrowUpRight size={14} />
-          </span>
-        </Link>
-        <Link to="/approved">
-          <span className="stat-icon purple">
-            <Check size={22} />
-          </span>
-          <div>
-            <span>Eligible creatives</span>
-            <strong>{approved.toString().padStart(2, "0")}</strong>
-          </div>
-          <span className="stat-note">
-            {PUBLIC_DEMO ? "View creatives" : "Ready for the next chapter"}
-            <ArrowUpRight size={14} />
-          </span>
-        </Link>
-      </section>
+          <Link to="/review">
+            <span className="stat-icon amber">
+              <Clock3 size={21} />
+            </span>
+            <div>
+              <span>Checking / needs fixes</span>
+              <strong>{pending.toString().padStart(2, "0")}</strong>
+            </div>
+            <span className="stat-note">
+              Automatic checks
+              <ArrowUpRight size={14} />
+            </span>
+          </Link>
+          <Link to="/approved">
+            <span className="stat-icon purple">
+              <Check size={22} />
+            </span>
+            <div>
+              <span>Eligible creatives</span>
+              <strong>{approved.toString().padStart(2, "0")}</strong>
+            </div>
+            <span className="stat-note">
+              {PUBLIC_DEMO ? "View creatives" : "Ready for the next chapter"}
+              <ArrowUpRight size={14} />
+            </span>
+          </Link>
+        </section>
+      )}
       <div className="section-toolbar">
         <div className="tabs">
           {(role === "creator"
             ? ["all"]
-            : ["all", "active", "draft", "archived"]
+            : campaignId
+              ? ["all", "active", "draft"]
+              : ["all", "active", "draft", "archived"]
           ).map((value) => (
             <button
               key={value}
@@ -188,7 +218,13 @@ export function ProjectsPage() {
                 : value === "active"
                   ? "Published"
                   : value[0].toUpperCase() + value.slice(1)}
-              {value === "all" && <span>{projects.length}</span>}
+              {value === "all" && (
+                <span>
+                  {campaignId
+                    ? projects.filter((p) => p.status !== "archived").length
+                    : projects.length}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -243,8 +279,10 @@ export function ProjectsPage() {
                   PUBLIC_DEMO &&
                   role === "creator" &&
                   project.id === "fictional-river-showcase-v1"
-                    ? `/campaigns/${project.id}`
-                    : `/projects/${project.id}`
+                    ? `/opportunities/${project.id}`
+                    : campaignId
+                      ? `/campaigns/${campaignId}/projects/${project.id}`
+                      : `/projects/${project.id}`
                 }
                 className="project-card"
               >
@@ -366,7 +404,15 @@ export function ProjectsPage() {
           Sample organizations · Demo workspace
         </span>
       </div>
-      {creating && <ProjectForm onClose={() => setCreating(false)} />}
+      {creating && (
+        <ProjectForm
+          campaignId={campaignId}
+          onClose={() => setCreating(false)}
+        />
+      )}
+      {requesting && (
+        <ProjectRequestForm onClose={() => setRequesting(false)} />
+      )}
     </>
   );
 }
