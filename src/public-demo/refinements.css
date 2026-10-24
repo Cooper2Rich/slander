@@ -68,7 +68,7 @@
 }
 .public-demo .button.secondary:hover {
   background: var(--accent);
-  border-color: #438dcb;
+  border-color: var(--brand-blue);
 }
 .public-demo .section-toolbar {
   margin: 16px 0;
@@ -196,6 +196,7 @@
 }
 .public-demo .stats-row > * > div > span {
   font-size: 12px;
+  color: var(--muted);
   white-space: normal;
 }
 .public-demo .stat-icon {
@@ -706,29 +707,29 @@
   line-height: 1.6;
 }
 .public-demo .leaderboard-table .leaderboard-winner {
-  background: #102d33;
+  background: #0b2947;
 }
 .public-demo .leaderboard-table .leaderboard-winner:hover {
-  background: #153b42;
+  background: #103a60;
 }
 .public-demo .leaderboard-winner td:first-child {
   box-shadow: inset 3px 0 var(--lime);
 }
 .public-demo .leaderboard-table .leaderboard-leading {
-  background: #162936;
+  background: #102b45;
 }
 .public-demo .leaderboard-table .leaderboard-leading:hover {
-  background: #1c3442;
+  background: #163a5b;
 }
 .public-demo .leaderboard-leading td:first-child {
-  box-shadow: inset 3px 0 #91d8ee;
+  box-shadow: inset 3px 0 var(--brand-light);
 }
 .public-demo .leader-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   margin-top: 6px;
-  color: #91d8ee;
+  color: var(--brand-light);
   font-size: 11px;
   font-weight: 600;
 }
@@ -1049,8 +1050,11 @@
     gap: 7px;
   }
   .public-demo .discovery-header .ripple-mark {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
+  }
+  .public-demo .discovery-header .ripple-wordmark {
+    width: 126px;
   }
   .public-demo :is(.page-heading h1, .discovery-heading h1) {
     font-size: 25px;

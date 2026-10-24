@@ -171,7 +171,7 @@ test("old photo-based coffee ads receive a new filmed revision without losing ed
   expect(saved.viewers.support[0].amountCents).toBe(4200);
 });
 
-test("Ripple blue and seafoam controls and text remain readable in public and creator views", async ({
+test("Blue Ripple Media controls and text remain readable in public and creator views", async ({
   page,
 }) => {
   const check = async (selectors: string[]) => {

@@ -1,35 +1,39 @@
-/* Public-demo palette experiment. Local application keeps its existing theme. */
+/* Blue Ripple Media palette sampled from the supplied brand artwork. */
 html:has(body.public-demo) {
   background: #000000;
 }
 body.public-demo {
-  --ink: #eef8ff;
+  --brand-blue: #2b9bff;
+  --brand-light: #5cc2ff;
+  --brand-mid: #1a82e2;
+  --brand-deep: #1466c4;
+  --ink: #ffffff;
   --muted: #abc4d4;
-  --line: #244454;
-  --lime: #9ee8df;
-  --green: #438dcb;
+  --line: #203b5c;
+  --lime: var(--brand-light);
+  --green: var(--brand-blue);
   --night: #000000;
   --surface: #07121b;
-  --raised: #102435;
-  --accent: #10365b;
-  --accent-strong: #174a76;
+  --raised: #102237;
+  --accent: #0c2b4d;
+  --accent-strong: #143e68;
   --amber: #a9d5ff;
   color-scheme: dark;
   color: var(--ink);
   background: var(--night);
 }
 .public-demo ::selection {
-  background: #185777;
+  background: var(--brand-deep);
   color: #fff;
 }
 .public-demo :is(button, a):focus-visible {
-  outline-color: #9ee8df;
+  outline-color: var(--brand-light);
 }
 .public-demo :is(input, select, textarea):focus {
-  outline-color: #7ec8f2;
+  outline-color: var(--brand-light);
 }
 .public-demo :is(input, select, textarea) {
-  accent-color: #9ee8df;
+  accent-color: var(--brand-light);
 }
 .public-demo .public-notice {
   background: #0a2638;
@@ -42,7 +46,7 @@ body.public-demo {
     var(--night);
 }
 .public-demo .discovery-hero h1 em {
-  color: #9ee8df;
+  color: var(--brand-light);
 }
 .public-demo .discovery-art {
   transform: none;
@@ -68,7 +72,7 @@ body.public-demo {
     .help-button,
     .change-identity
   ) {
-  color: #9ee8df;
+  color: var(--brand-light);
 }
 .public-demo
   :is(
@@ -143,7 +147,7 @@ body.public-demo {
   color: #a0b7c7;
 }
 .public-demo .ad-card:hover {
-  border-color: #5aa4ce;
+  border-color: var(--brand-mid);
   box-shadow: 0 12px 32px #0005;
 }
 .public-demo :is(.ad-card-media, .profile-media) {
@@ -155,23 +159,23 @@ body.public-demo {
   border: 1px solid #42677f;
 }
 .public-demo .ad-play {
-  color: #e1fbf7;
+  color: var(--ink);
   background: #0a2d49ed;
 }
 .public-demo :is(.logo-dot, .title-dot, .eyebrow) {
-  color: #9ee8df;
+  color: var(--brand-light);
 }
 .public-demo .profile-copy .profile-cause {
   background: #0a2d45;
   border: 1px solid #326c93;
 }
 .public-demo .button.primary {
-  background: #9ee8df;
-  border-color: #b9f4ec;
+  background: var(--brand-blue);
+  border-color: var(--brand-blue);
   color: #031b29;
 }
 .public-demo .button.primary:hover {
-  background: #c0f5ef;
+  background: var(--brand-light);
 }
 .public-demo .button.secondary {
   background: #a9d5ff;
@@ -186,7 +190,7 @@ body.public-demo {
   color: #a9d5ff;
 }
 .public-demo .sidebar {
-  background: #03090f;
+  background: #000000;
   border-color: var(--line);
 }
 .public-demo .sidebar-note {
@@ -249,14 +253,14 @@ body.public-demo {
   color: #4187af;
 }
 .public-demo .online-dot {
-  background: #9ee8df;
+  background: var(--brand-light);
 }
 .public-demo .demo-pill {
   background: #102c40;
   color: #c1e4f4;
 }
 .public-demo .demo-pill > span {
-  background: #9ee8df;
+  background: var(--brand-light);
 }
 .public-demo :is(.tabs button, .market-tabs button) {
   color: #abc4d4;
@@ -276,7 +280,7 @@ body.public-demo {
 .public-demo
   :is(.tabs button.active, .market-tabs button[aria-selected="true"]) {
   color: #eef8ff;
-  border-color: #9ee8df;
+  border-color: var(--brand-light);
 }
 .public-demo :is(.workspace-hero, .market-intro, .showcase-banner) {
   background: linear-gradient(120deg, #0b2a42, #03090f);
@@ -305,7 +309,7 @@ body.public-demo {
     .eligibility-result
   ) {
   background: #102e40;
-  color: #b7f0e6;
+  color: var(--brand-light);
   border-color: #315c70;
 }
 .public-demo
@@ -328,7 +332,7 @@ body.public-demo {
   background: #102435;
 }
 .public-demo :is(.org-dot.green, .org-dot.orange, .org-dot.purple) {
-  background: #7ec8f2;
+  background: var(--brand-light);
 }
 .public-demo :is(.avatar-0, .avatar-1, .avatar-2, .avatar-3) {
   background: #173b52;
@@ -410,16 +414,38 @@ body.public-demo {
   }
 }
 
-/* Ripple's rings frame the play symbol: one story spreading outward. */
+/* Responsive lockups use the supplied monogram and lettering without redrawing them. */
 .public-demo .ripple-logo {
-  gap: 10px;
-  letter-spacing: -1.6px;
+  gap: 8px;
+  max-width: 100%;
+  vertical-align: middle;
   color: var(--ink);
 }
 .public-demo .ripple-mark {
-  width: 43px;
-  height: 43px;
-  color: var(--lime);
+  display: block;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+.public-demo .ripple-wordmark {
+  display: block;
+  width: 154px;
+  min-width: 0;
+  height: auto;
+  object-fit: contain;
+}
+.public-demo .sidebar .brand {
+  margin-inline: 0;
+  margin-bottom: 24px;
+}
+.public-demo .sidebar .ripple-mark {
+  width: 38px;
+  height: 38px;
+}
+.public-demo .sidebar .ripple-wordmark {
+  width: 128px;
+  flex: 1 1 auto;
 }
 .public-demo .ripple-logo.small .ripple-mark {
   width: 30px;
@@ -438,6 +464,7 @@ body.public-demo {
 /* Public discovery puts compact, playable cards above the fold. */
 .public-demo .discovery-header {
   padding: 16px 3%;
+  background: var(--night);
   gap: 20px;
 }
 .public-demo .discovery-content {
@@ -517,7 +544,7 @@ body.public-demo {
   border-radius: 20px;
   padding: 7px 10px;
   background: #0a2d49ed;
-  color: #e1fbf7;
+  color: var(--ink);
   font-size: 11px;
 }
 .public-demo .compact-ads .ad-duration {

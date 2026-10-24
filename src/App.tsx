@@ -230,7 +230,9 @@ export default function App({
           <div>
             <strong>
               {role === "admin"
-                ? `${APP_NAME} administration`
+                ? PUBLIC_DEMO
+                  ? "Administrator"
+                  : `${APP_NAME} administration`
                 : identity?.name || "Choose a profile"}
             </strong>
             <small>

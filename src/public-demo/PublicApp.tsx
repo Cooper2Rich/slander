@@ -9,7 +9,7 @@ import {
 import { ArrowUpRight, Heart, Search } from "lucide-react";
 import App from "../App";
 import { Logo, Modal } from "../components/ui";
-import { demoAsset } from "../runtime";
+import { APP_NAME, demoAsset } from "../runtime";
 import { AdMedia } from "./AdMedia";
 import {
   activeViewer,
@@ -103,7 +103,7 @@ export default function PublicApp() {
   }, [publicRoute, location.pathname]);
   useEffect(() => {
     if (publicRoute)
-      document.title = `${location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · Ripple`;
+      document.title = `${location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
   }, [publicRoute, location.pathname]);
   if (!publicRoute) return <App demoViews={demoViews} />;
   const adId = location.pathname.startsWith("/ads/")
@@ -134,7 +134,7 @@ export default function PublicApp() {
         Skip to content
       </a>
       <header className="discovery-header">
-        <Link to="/explore" aria-label="Ripple home">
+        <Link to="/explore" aria-label={`${APP_NAME} home`}>
           <Logo />
         </Link>
         <nav aria-label="Public navigation">
