@@ -10,6 +10,7 @@ import {
   useFinancialSamples,
 } from "./FinancialSamples";
 import { dateLabel } from "../components/ui";
+import { CreatorWins } from "./CreatorWins";
 
 export function useCreatorEarnings() {
   const { access, posts } = useWorkspace();
@@ -68,7 +69,7 @@ export function CreatorEarnings() {
       <div className="page-heading">
         <div>
           <h1>Earnings.</h1>
-          <p>Your recorded commissions and payout status.</p>
+          <p>Your commissions, payout status and past leaderboard wins.</p>
         </div>
         <Link className="button secondary" to="/review">
           My ads ↗
@@ -112,6 +113,7 @@ export function CreatorEarnings() {
           creator allocation and is excluded from earnings.
         </p>
       )}
+      <CreatorWins />
       <h2 className="earnings-section-title">Earnings by ad</h2>
       <div className="earnings-list">
         {ads.map((ad) => (

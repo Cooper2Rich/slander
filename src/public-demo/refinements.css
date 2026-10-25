@@ -1327,6 +1327,72 @@
   display: grid;
   gap: 10px;
 }
+.public-demo .creator-win-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.public-demo .creator-win-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.public-demo .creator-win-card .section-toolbar {
+  margin: 0 0 12px;
+}
+.public-demo .creator-win-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+}
+.public-demo .creator-win-card select {
+  width: 100%;
+  min-width: 0;
+  font-size: 11px;
+}
+.public-demo .creator-win-card h4 {
+  margin: 14px 0 4px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.public-demo .creator-win-byline {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.public-demo .creator-win-badge {
+  color: var(--brand-light);
+  font-size: 11px;
+}
+.public-demo .creator-win-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 14px 0;
+}
+.public-demo .creator-win-metrics dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+.public-demo .creator-win-metrics dd {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.public-demo .creator-win-card .text-button {
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .public-demo .creator-win-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .public-demo .earnings-row {
   display: flex;
   align-items: center;
