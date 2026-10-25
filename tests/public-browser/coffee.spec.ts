@@ -116,7 +116,7 @@ test("old photo-based coffee ads receive a new filmed revision without losing ed
   page,
 }) => {
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(8);
+  await expect(page.locator(".ad-card")).toHaveCount(7);
   const previous = await page.evaluate(() => {
     const key = "slander-public-workspace-v1",
       state = JSON.parse(localStorage.getItem(key)!);
@@ -149,9 +149,9 @@ test("old photo-based coffee ads receive a new filmed revision without losing ed
     };
   });
   await page.reload();
-  await expect(page.locator(".ad-card")).toHaveCount(7);
+  await expect(page.locator(".ad-card")).toHaveCount(6);
   await page.reload();
-  await expect(page.locator(".ad-card")).toHaveCount(7);
+  await expect(page.locator(".ad-card")).toHaveCount(6);
   const saved = await page.evaluate(() => ({
     workspace: JSON.parse(localStorage.getItem("slander-public-workspace-v1")!),
     viewers: JSON.parse(localStorage.getItem("slander-public-viewers-v1")!),
@@ -226,7 +226,7 @@ test("Blue Ripple Media controls and text remain readable in public and creator 
       ).toBeGreaterThanOrEqual(4.5);
   };
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(8);
+  await expect(page.locator(".ad-card")).toHaveCount(7);
   await check([
     ".button.primary",
     ".button.secondary",
@@ -255,7 +255,7 @@ test("existing browser workspace upgrades once while preserving viewer history a
   page,
 }) => {
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(8);
+  await expect(page.locator(".ad-card")).toHaveCount(7);
   await page.evaluate(() => {
     const key = "slander-public-workspace-v1",
       state = JSON.parse(localStorage.getItem(key)!);
@@ -279,9 +279,9 @@ test("existing browser workspace upgrades once while preserving viewer history a
     );
   });
   await page.reload();
-  await expect(page.locator(".ad-card")).toHaveCount(8);
+  await expect(page.locator(".ad-card")).toHaveCount(7);
   await page.reload();
-  await expect(page.locator(".ad-card")).toHaveCount(8);
+  await expect(page.locator(".ad-card")).toHaveCount(7);
   const stored = await page.evaluate(() => ({
     workspace: JSON.parse(localStorage.getItem("slander-public-workspace-v1")!),
     viewers: JSON.parse(localStorage.getItem("slander-public-viewers-v1")!),

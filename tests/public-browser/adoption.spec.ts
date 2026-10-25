@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { navigate } from "./helpers";
 
-test("Adoption Is contains the ACU project and two separate original 60-second ads with sound and previews", async ({
+test("Adoption Is contains the ACU project and the original 60-second ad with sound and previews", async ({
   page,
 }, info) => {
   const errors: string[] = [];
@@ -9,9 +9,9 @@ test("Adoption Is contains the ACU project and two separate original 60-second a
   await page.goto("./");
   await page.getByLabel("Filter by cause").selectOption("Adoption");
   const cards = page.locator(".ad-card");
-  await expect(cards).toHaveCount(2);
-  await expect(page.locator(".ad-duration")).toHaveText(["1:00", "1:00"]);
-  for (const title of ["The Girl in the Middle", "Duality"]) {
+  await expect(cards).toHaveCount(1);
+  await expect(page.locator(".ad-duration")).toHaveText(["1:00"]);
+  for (const title of ["The Girl in the Middle"]) {
     const card = cards.filter({
       has: page.getByRole("heading", { name: title, exact: true }),
     });
@@ -82,8 +82,8 @@ test("Adoption Is contains the ACU project and two separate original 60-second a
     page.getByRole("heading", { name: "ACU ad competition", exact: true }),
   ).toBeVisible();
   await navigate(page, "Creatives");
-  await expect(page.locator(".post-row")).toHaveCount(2);
-  await expect(page.locator(".post-thumbnail video")).toHaveCount(2);
+  await expect(page.locator(".post-row")).toHaveCount(1);
+  await expect(page.locator(".post-thumbnail video")).toHaveCount(1);
   await page.screenshot({
     path: `test-results/adoption-admin-${info.project.name}.png`,
     fullPage: true,
@@ -93,15 +93,26 @@ test("Adoption Is contains the ACU project and two separate original 60-second a
       localStorage.getItem("slander-public-workspace-v1")!,
     );
     state.posts.find(
-      (p: { id: string }) => p.id === "adoption-duality",
+      (p: { id: string }) => p.id === "adoption-girl-in-the-middle",
     ).caption = "Retained imported ad edit";
+    const girl = state.posts.find(
+      (p: { id: string }) => p.id === "adoption-girl-in-the-middle",
+    );
+    state.posts.push({
+      ...structuredClone(girl),
+      id: "adoption-duality",
+      title: "Duality",
+      media: "/videos/adoption/duality.mp4",
+    });
+    delete state.adoptionDualityRemovalVersion;
     localStorage.setItem("slander-public-workspace-v1", JSON.stringify(state));
     return {
-      posts: state.posts.length,
+      posts: state.posts.length - 1,
       financials: JSON.stringify(state.sampleFinancials),
     };
   });
   await page.reload();
+  await expect(page.locator(".post-row")).toHaveCount(1);
   const after = await page.evaluate(() => {
     const state = JSON.parse(
       localStorage.getItem("slander-public-workspace-v1")!,
@@ -110,10 +121,18 @@ test("Adoption Is contains the ACU project and two separate original 60-second a
       posts: state.posts.length,
       financials: JSON.stringify(state.sampleFinancials),
       caption: state.posts.find(
-        (p: { id: string }) => p.id === "adoption-duality",
+        (p: { id: string }) => p.id === "adoption-girl-in-the-middle",
       ).caption,
     };
   });
   expect(after).toEqual({ ...before, caption: "Retained imported ad edit" });
+  await expect(page.locator(".post-row")).toHaveCount(1);
+  await expect(
+    page.getByRole("heading", { name: "Duality", exact: true }),
+  ).toHaveCount(0);
+  await page.goto("./#/ads/adoption-duality");
+  await expect(
+    page.getByRole("heading", { name: "This ad is unavailable." }),
+  ).toBeVisible();
   expect(errors).toEqual([]);
 });

@@ -7,7 +7,7 @@ test("sample earnings and application payments populate by default, reconcile an
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(8);
+  await expect(page.locator(".ad-card")).toHaveCount(7);
   // Model an existing visitor with retained viewer history, before the sample migration.
   await page.evaluate(() => {
     const key = "slander-public-workspace-v1";

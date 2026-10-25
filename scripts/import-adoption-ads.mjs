@@ -11,9 +11,9 @@ import {
 
 const args = process.argv.slice(2);
 const option = (name) => args[args.indexOf(name) + 1];
-if (!args.includes("--girl") || !args.includes("--duality"))
+if (!args.includes("--girl"))
   throw new Error(
-    "Usage: node scripts/import-adoption-ads.mjs --girl <video> --duality <video> [--ffmpeg <executable>]",
+    "Usage: node scripts/import-adoption-ads.mjs --girl <video> [--ffmpeg <executable>]",
   );
 const ffmpeg = args.includes("--ffmpeg") ? option("--ffmpeg") : "ffmpeg";
 const inputs = [
@@ -24,14 +24,6 @@ const inputs = [
     slug: "the-girl-in-the-middle",
     caption:
       "A 60-second adoption awareness film. Help this story reach more people and support adoption awareness.",
-  },
-  {
-    id: "adoption-duality",
-    title: "Duality",
-    source: option("--duality"),
-    slug: "duality",
-    caption:
-      "A 60-second film presenting adoption as an option. Support more stories that help people explore adoption.",
   },
 ];
 mkdirSync("public/videos/adoption", { recursive: true });

@@ -12,16 +12,4 @@ export const adoptionAds = [
     digest: "79eb22a78e55c6aa2432319cd7e2684ff84d2ca026c1b9e655d663c98f135e74",
     sourceFilename: "ad7c6819-835a-4f7b-a3cc-3f67f887450c.tmp",
   },
-  {
-    id: "adoption-duality",
-    title: "Duality",
-    caption:
-      "A 60-second film presenting adoption as an option. Support more stories that help people explore adoption.",
-    media: "/videos/adoption/duality.mp4",
-    poster: "/images/adoption/duality.jpg",
-    durationSeconds: 60.12,
-    bytes: 29744258,
-    digest: "2ba5aa9616c75900f121d6eee4b502feb2af599d8f4c5e8da8ecc2b7911607de",
-    sourceFilename: "AIAO_Duality_60s_QRCode-3.4.26.mp4",
-  },
 ];

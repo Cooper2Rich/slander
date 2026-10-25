@@ -10,10 +10,49 @@ export const adoptionCampaignId = "adoption-is";
 export const adoptionProjectId = "acu-ad-competition";
 export const adoptionCreatorId = "acu-creator-credit-pending";
 
+const projectDescription =
+  "The Girl in the Middle, a full-length adoption awareness video ad.";
+const projectBrief =
+  "The supplied 60-second adoption awareness film for the ACU ad competition. Individual creator credits have not yet been supplied.";
+
+function removeDuality(state) {
+  if (state.adoptionDualityRemovalVersion === 1) return;
+  const removed = state.posts.filter((post) => post.id === "adoption-duality");
+  if (removed.length) {
+    state.removedDemoAds ||= [];
+    for (const post of removed)
+      if (!state.removedDemoAds.some((saved) => saved.id === post.id))
+        state.removedDemoAds.push(post);
+    state.posts = state.posts.filter((post) => post.id !== "adoption-duality");
+    addActivity(
+      state,
+      "project",
+      "Removed Duality",
+      "Removed the ad from ACU ad competition. Saved funding and historical records were retained.",
+      adoptionProjectId,
+    );
+  }
+  const project = state.projects.find((p) => p.id === adoptionProjectId);
+  if (
+    project?.description ===
+    "The Girl in the Middle and Duality, presented as two separate full-length video ads."
+  )
+    project.description = projectDescription;
+  if (
+    project?.brief ===
+    "Two supplied 60-second adoption awareness films for the ACU ad competition. Individual creator credits have not yet been supplied."
+  )
+    project.brief = projectBrief;
+  state.adoptionDualityRemovalVersion = 1;
+}
+
 // This explicit user-requested demo import adds presentation records only.
 // Existing edits, archives, funding, requests and creator history stay intact.
 export function addAdoptionShowcase(state) {
-  if (state.adoptionShowcaseVersion === 1) return;
+  if (state.adoptionShowcaseVersion === 1) {
+    removeDuality(state);
+    return;
+  }
   let owner = state.nonprofits.find((n) => n.name === "Adoption Is An Option");
   if (!owner) {
     owner = { id: "adoption-is-owner", name: "Adoption Is An Option" };
@@ -46,10 +85,8 @@ export function addAdoptionShowcase(state) {
       ownerOrganizationId: owner.id,
       beneficiaryOrganizationId: owner.id,
       category: "Adoption",
-      description:
-        "The Girl in the Middle and Duality, presented as two separate full-length video ads.",
-      brief:
-        "Two supplied 60-second adoption awareness films for the ACU ad competition. Individual creator credits have not yet been supplied.",
+      description: projectDescription,
+      brief: projectBrief,
       cover: "forest",
       coverMedia: adoptionAds[0].poster,
       color: "blue",
@@ -109,11 +146,12 @@ export function addAdoptionShowcase(state) {
   }
   refreshEligibility(state);
   state.adoptionShowcaseVersion = 1;
+  removeDuality(state);
   addActivity(
     state,
     "project",
     "Imported ACU ad competition",
-    "Added The Girl in the Middle and Duality under Adoption Is. No setup charge or live payment was created.",
+    "Added The Girl in the Middle under Adoption Is. No setup charge or live payment was created.",
     project.id,
   );
 }

@@ -1,6 +1,8 @@
 # Adoption Is · ACU ad competition
 
-The user requested a campaign named **Adoption Is**, a child project named **ACU ad competition**, and two separate ads: **The Girl in the Middle** and **Duality**. These records are appended once to both new and existing public-demo browser workspaces. Existing campaigns, edits, archives, uploads, financial samples and contribution history are retained. This explicit demo-content import creates no setup charge or live transaction; the owner-request workflow remains unchanged.
+The user requested the removal of **Duality** after the initial import. The demo now shows only **The Girl in the Middle** in the project and public catalog. Existing browsers receive an idempotent removal migration; funding records and a non-displayed copy of the removed creative are retained. The original media files remain available for historical references. Rebuilding the import no longer adds Duality.
+
+The initial import created a campaign named **Adoption Is**, a child project named **ACU ad competition**, and two separate ads: **The Girl in the Middle** and **Duality**. These records are appended once to both new and existing public-demo browser workspaces. Existing campaigns, edits, archives, uploads, financial samples and contribution history are retained. This explicit demo-content import creates no setup charge or live transaction; the owner-request workflow remains unchanged.
 
 Both are the user's supplied, full-length MP4 files, copied without re-encoding or trimming. Original audio is retained. The Girl in the Middle runs 60.08 seconds; Duality runs 60.12 seconds. Duration badges display `1:00`. Hover previews repeat the first five seconds, while Play opens full playback with sound.
 
@@ -16,7 +18,7 @@ The organization label **Adoption Is An Option** appears in the supplied films. 
 To rebuild from the supplied files, use an installed FFmpeg executable:
 
 ```powershell
-node scripts/import-adoption-ads.mjs --girl '<Girl in the Middle video>' --duality '<Duality video>' --ffmpeg '<ffmpeg executable>'
+node scripts/import-adoption-ads.mjs --girl '<Girl in the Middle video>' --ffmpeg '<ffmpeg executable>'
 npm run build:public
 ```
 

@@ -10,10 +10,10 @@ import {
 } from "../src/public-demo/adoption-showcase.js";
 import { currentEligibility } from "../server/eligibility.js";
 
-test("the supplied adoption films retain their original full-length bytes, distinct identities and audio tracks", () => {
+test("the remaining adoption film retains its original full-length bytes and audio track", () => {
   assert.deepEqual(
     adoptionAds.map((ad) => ad.title),
-    ["The Girl in the Middle", "Duality"],
+    ["The Girl in the Middle"],
   );
   for (const ad of adoptionAds) {
     const bytes = readFileSync(
@@ -31,10 +31,53 @@ test("the supplied adoption films retain their original full-length bytes, disti
         1000,
     );
   }
-  assert.notEqual(adoptionAds[0].digest, adoptionAds[1].digest);
 });
 
-test("the explicit import creates one campaign with one child project and two ads, without replaying or replacing records", () => {
+test("existing browsers retire Duality once while preserving the remaining ad, campaign and financial records", () => {
+  const state = {
+    nonprofits: [],
+    creators: [],
+    managedCampaigns: [],
+    projects: [],
+    posts: [],
+    activity: [],
+    support: [{ adId: "adoption-duality", amountCents: 10000 }],
+    sampleFinancials: { retained: true },
+  };
+  addAdoptionShowcase(state);
+  delete state.adoptionDualityRemovalVersion;
+  state.posts[0].caption = "Keep this edit";
+  state.posts.push({
+    ...structuredClone(state.posts[0]),
+    id: "adoption-duality",
+    title: "Duality",
+    caption: "Retained historical caption",
+    media: "/videos/adoption/duality.mp4",
+  });
+  state.projects[0].description =
+    "The Girl in the Middle and Duality, presented as two separate full-length video ads.";
+  const funding = structuredClone({
+    support: state.support,
+    samples: state.sampleFinancials,
+  });
+  addAdoptionShowcase(state);
+  assert.deepEqual(
+    state.posts.map((p) => p.id),
+    ["adoption-girl-in-the-middle"],
+  );
+  assert.equal(state.posts[0].caption, "Keep this edit");
+  assert.equal(state.removedDemoAds[0].caption, "Retained historical caption");
+  assert.equal(state.projects[0].description.includes("Duality"), false);
+  assert.deepEqual(
+    { support: state.support, samples: state.sampleFinancials },
+    funding,
+  );
+  const after = structuredClone(state);
+  addAdoptionShowcase(state);
+  assert.deepEqual(state, after);
+});
+
+test("the explicit import creates one campaign with one child project and one ad, without replaying or replacing records", () => {
   const state = {
     nonprofits: [],
     creators: [],
@@ -53,7 +96,7 @@ test("the explicit import creates one campaign with one child project and two ad
   assert.equal(state.projects[0].name, "ACU ad competition");
   assert.equal(state.projects[0].campaignId, adoptionCampaignId);
   assert.notEqual(adoptionCampaignId, adoptionProjectId);
-  assert.equal(state.posts.length, 2);
+  assert.equal(state.posts.length, 1);
   assert.ok(
     state.posts.every(
       (p) =>

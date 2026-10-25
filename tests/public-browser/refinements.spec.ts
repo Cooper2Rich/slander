@@ -5,7 +5,7 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
   page,
 }) => {
   await page.goto("./");
-  await expect(page.locator(".ad-description")).toHaveCount(8);
+  await expect(page.locator(".ad-description")).toHaveCount(7);
   await expect(page.locator(".ad-support-copy").first()).toContainText(
     "reach more people",
   );

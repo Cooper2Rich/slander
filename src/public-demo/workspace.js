@@ -95,7 +95,10 @@ export async function prepareWorkspace() {
         ensureSampleFinancials(existing);
         save(existing);
       }
-      if (existing.adoptionShowcaseVersion !== 1) {
+      if (
+        existing.adoptionShowcaseVersion !== 1 ||
+        existing.adoptionDualityRemovalVersion !== 1
+      ) {
         ensureCampaignHierarchy(existing);
         addAdoptionShowcase(existing);
         save(existing);

@@ -4,7 +4,7 @@ test("ordinary workspace errors still retry without reloading the document", asy
   page,
 }) => {
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(8);
+  await expect(page.locator(".ad-card")).toHaveCount(7);
   await page.route("**/assets/api-*.js", (route) =>
     route.fulfill({
       contentType: "text/javascript",
@@ -35,7 +35,7 @@ test("a missing deployment chunk offers a real reload and preserves browser data
   page,
 }) => {
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(8);
+  await expect(page.locator(".ad-card")).toHaveCount(7);
   const originalIds = await page.evaluate(() => {
     localStorage.setItem(
       "slander-public-viewers-v1",
