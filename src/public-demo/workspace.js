@@ -32,6 +32,10 @@ import { prepareSamples, mediaEvidence, uploadMedia, mediaFile } from "./media";
 import { addCoffeeShowcase } from "./coffee-showcase.js";
 import { addAdoptionShowcase } from "./adoption-showcase.js";
 import { adoptionAds } from "./adoption-ads.js";
+import {
+  adoptionSampleMetrics,
+  ensureAdoptionDemoData,
+} from "./adoption-demo-data.js";
 import { coffeeAds } from "./coffee-ads.js";
 import { samplePerformanceDays } from "./leaderboard-periods";
 import { ensureSampleFinancials } from "./sample-finances";
@@ -101,6 +105,10 @@ export async function prepareWorkspace() {
       ) {
         ensureCampaignHierarchy(existing);
         addAdoptionShowcase(existing);
+        save(existing);
+      }
+      if (existing.adoptionDemoDataVersion !== 1) {
+        ensureAdoptionDemoData(existing);
         save(existing);
       }
       return;
@@ -194,6 +202,7 @@ export async function prepareWorkspace() {
     ensureCampaignHierarchy(ready);
     addAdoptionShowcase(ready);
     ensureSampleFinancials(ready);
+    ensureAdoptionDemoData(ready);
     save(ready);
   })().catch((error) => {
     preparing = undefined;
@@ -390,6 +399,9 @@ export async function workspaceRequest(
           const imported = adoptionAds.find(
             (ad) => ad.id === p.id && p.media === ad.media,
           );
+          const performance = imported
+            ? adoptionSampleMetrics
+            : coffee || sample;
           return {
             id: p.id,
             projectId: p.projectId,
@@ -413,24 +425,25 @@ export async function workspaceRequest(
               : coffee
                 ? 16
                 : undefined,
-            performanceDays:
-              coffee || sample
-                ? samplePerformanceDays(p.id, coffee || sample)
-                : undefined,
+            performanceDays: performance
+              ? samplePerformanceDays(p.id, performance)
+              : undefined,
             project: project.name,
             nonprofit: project.nonprofit,
             category: project.category,
-            ...(coffee
-              ? {
-                  impressions: coffee.impressions,
-                  clicks: coffee.clicks,
-                  donatedCents: coffee.donatedCents,
-                }
-              : sample || {
-                  impressions: null,
-                  clicks: null,
-                  donatedCents: null,
-                }),
+            ...(imported
+              ? adoptionSampleMetrics
+              : coffee
+                ? {
+                    impressions: coffee.impressions,
+                    clicks: coffee.clicks,
+                    donatedCents: coffee.donatedCents,
+                  }
+                : sample || {
+                    impressions: null,
+                    clicks: null,
+                    donatedCents: null,
+                  }),
           };
         }),
     };

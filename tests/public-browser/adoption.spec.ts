@@ -28,9 +28,9 @@ test("Adoption Is contains the ACU project and the original 60-second ad with so
       await video.evaluate((v: HTMLVideoElement) => v.duration),
     ).toBeLessThan(61);
     await expect(card.locator(".ad-stats dd")).toHaveText([
-      "N/A",
-      "N/A",
-      "N/A",
+      "40,000",
+      "4.00%",
+      "$2,000.00",
     ]);
     await card.hover();
     await expect

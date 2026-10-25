@@ -11,7 +11,7 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
   );
   await page.getByRole("link", { name: "Leaderboard", exact: true }).click();
   const rows = page.locator(".leaderboard-table tbody tr");
-  await expect(rows).toHaveCount(6);
+  await expect(rows).toHaveCount(7);
   await expect(page.locator(".campaign-board")).toHaveCount(5);
   await expect(
     page
@@ -42,6 +42,9 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
         .evaluate((img: HTMLImageElement) => img.naturalWidth),
     )
     .toBeGreaterThan(0);
+  await page
+    .getByLabel("Leaderboard campaign")
+    .selectOption("nocturne-coffee-showcase-v1");
   await expect(rows.first()).toContainText("Your midnight ritual");
   await page
     .getByLabel("Leaderboard campaign")

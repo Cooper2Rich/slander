@@ -13,6 +13,7 @@ test("sample earnings and application payments populate by default, reconcile an
     const key = "slander-public-workspace-v1";
     const state = JSON.parse(localStorage.getItem(key)!);
     delete state.sampleFinancials;
+    delete state.adoptionDemoDataVersion;
     localStorage.setItem(key, JSON.stringify(state));
     localStorage.setItem(
       "slander-public-viewers-v1",
@@ -93,8 +94,8 @@ test("sample earnings and application payments populate by default, reconcile an
   await page.getByLabel("Demo role").selectOption("admin");
   await navigate(page, "Funding");
   const fees = page.locator(".funding-summary > div").last();
-  await expect(fees).toContainText("$1,305.00");
-  await expect(fees).toContainText("Paid: $890.00 · Outstanding: $415.00");
+  await expect(fees).toContainText("$1,405.00");
+  await expect(fees).toContainText("Paid: $890.00 · Outstanding: $515.00");
   const coffee = page
     .locator(".funding-campaign")
     .filter({ hasText: "Nocturne Coffee" });
