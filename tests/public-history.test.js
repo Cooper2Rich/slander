@@ -4,7 +4,10 @@ import {
   capturePastResults,
   completedWindow,
   pastPeriods,
+  backfillAdoptionSampleWins,
 } from "../src/public-demo/leaderboard-history.ts";
+import { adoptionAds } from "../src/public-demo/adoption-ads.js";
+import { adoptionSampleMetrics } from "../src/public-demo/adoption-demo-data.js";
 import { samplePerformanceDays } from "../src/public-demo/leaderboard-periods.ts";
 import { simulateLeaders } from "../src/public-demo/leaderboard-simulation.ts";
 import { rankPublicAds } from "../src/public-demo/ranking.ts";
@@ -96,4 +99,65 @@ test("demo bursts move leaders through scoring while metrics grow and source rec
   }
   assert.deepEqual(leaders.slice(0, 3), ["b", "c", "a"]);
   assert.deepEqual(ads, before);
+});
+
+test("Yakira's daily and weekly sample wins fill old empty periods once and retain captured winners", () => {
+  for (const date of ["2026-10-25T18:00:00Z", "2026-10-26T00:00:00Z"]) {
+    const at = new Date(date);
+    const girl = {
+      ...adoptionAds[0],
+      campaignId: "adoption-is",
+      creator: "Yakira",
+      ...adoptionSampleMetrics,
+      performanceDays: samplePerformanceDays(
+        adoptionAds[0].id,
+        adoptionSampleMetrics,
+        at,
+      ),
+    };
+    const campaigns = [
+      { id: "adoption-is", name: "Adoption Is" },
+      { id: "empty", name: "Empty" },
+    ];
+    const empty = capturePastResults([], campaigns, [], at);
+    const before = structuredClone(empty);
+    const filled = backfillAdoptionSampleWins([girl], empty, at);
+    assert.deepEqual(empty, before);
+    assert.equal(filled.length, empty.length);
+    for (const period of ["daily", "weekly"]) {
+      const wins = filled.filter(
+        (r) => r.campaignId === "adoption-is" && r.period === period,
+      );
+      assert.equal(wins.length, period === "daily" ? 7 : 4);
+      assert.ok(wins.every((r) => r.winners.length === 1));
+      assert.ok(wins.every((r) => r.winners[0].creator === "Yakira"));
+      assert.ok(wins.every((r) => r.winners[0].score > 0));
+      assert.ok(wins.every((r) => !r.winners[0].performanceDays));
+    }
+    assert.ok(
+      filled
+        .filter((r) => r.campaignId === "empty")
+        .every((r) => !r.winners.length),
+    );
+    assert.deepEqual(backfillAdoptionSampleWins([girl], filled, at), filled);
+    assert.deepEqual(
+      backfillAdoptionSampleWins(
+        [{ ...girl, title: "Edited", performanceDays: [] }],
+        filled,
+        at,
+      ),
+      filled,
+    );
+    assert.deepEqual(
+      backfillAdoptionSampleWins(
+        [{ ...girl, media: "/replacement.mp4" }],
+        empty,
+        at,
+      ),
+      empty,
+    );
+    assert.deepEqual(backfillAdoptionSampleWins([], empty, at), empty);
+    const fresh = capturePastResults([girl], campaigns, [], at);
+    assert.deepEqual(fresh, filled);
+  }
 });

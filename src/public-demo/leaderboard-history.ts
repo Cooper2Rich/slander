@@ -6,6 +6,7 @@ import {
   type LeaderboardWindow,
 } from "./leaderboard-periods.ts";
 import { rankPublicAds, type ScoredAd } from "./ranking.ts";
+import { adoptionAds } from "./adoption-ads.js";
 
 const DAY = 86400000;
 const key = "ripple-leaderboard-history-v1";
@@ -79,11 +80,51 @@ export function capturePastResults(
   return results;
 }
 
+// The user requested sample wins after older browsers had captured empty
+// Adoption Is periods. Fill only those empty records using the original ad's
+// dated demo metrics; existing winners remain immutable.
+export function backfillAdoptionSampleWins(
+  ads: PublicAd[],
+  results: PastResult[],
+  now = new Date(),
+): PastResult[] {
+  const original = adoptionAds[0];
+  const ad = ads.find(
+    (entry) =>
+      entry.id === original.id &&
+      entry.media === original.media &&
+      entry.campaignId === "adoption-is" &&
+      entry.creator === "Yakira",
+  );
+  if (!ad) return results;
+  return results.map((result) => {
+    if (result.campaignId !== "adoption-is" || result.winners.length)
+      return result;
+    const window = completedWindow(result.period, result.date, now);
+    if (!window) return result;
+    const winners = rankPublicAds(
+      ads.map((entry) => periodAd(entry, window)),
+      result.campaignId,
+    )
+      .filter((entry) => entry.rank === 1)
+      .map(({ performanceDays: _days, ...entry }) => entry);
+    return winners.some((winner) => winner.id === ad.id)
+      ? { ...result, winners }
+      : result;
+  });
+}
+
 export function loadPastResults(ads: PublicAd[], campaigns: PublicCampaign[]) {
   const raw = localStorage.getItem(key);
   const prior: PastResult[] = raw ? JSON.parse(raw) : [];
-  const results = capturePastResults(ads, campaigns, prior);
-  if (results.length !== prior.length)
+  const results = backfillAdoptionSampleWins(
+    ads,
+    capturePastResults(ads, campaigns, prior),
+  );
+  if (
+    results.length !== prior.length ||
+    results.some((result, index) => result !== prior[index])
+  )
     localStorage.setItem(key, JSON.stringify(results));
   return results;
 }
