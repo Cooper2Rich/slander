@@ -216,7 +216,7 @@ test("Admin funding uses recorded 10/5/85 allocations and campaign archives reta
     "Nocturne Coffee",
   );
   await page.getByLabel("Demo role").selectOption("public");
-  await expect(page.locator(".ad-card")).toHaveCount(3);
+  await expect(page.locator(".ad-card")).toHaveCount(5);
   await page.getByLabel("Demo role").selectOption("admin");
   await navigate(page, "Archived campaigns");
   await page

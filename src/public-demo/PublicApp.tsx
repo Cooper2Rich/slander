@@ -16,6 +16,7 @@ import {
   createViewer,
   fundAd,
   fundedCents,
+  durationLabel,
   loadAds,
   loadPublicCampaigns,
   type PublicCampaign,
@@ -386,7 +387,7 @@ export default function PublicApp() {
                       )}
                       {ad.durationSeconds && (
                         <span className="ad-duration">
-                          0:{ad.durationSeconds}
+                          {durationLabel(ad.durationSeconds)}
                         </span>
                       )}
                     </div>

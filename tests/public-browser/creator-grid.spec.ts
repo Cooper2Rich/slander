@@ -5,7 +5,7 @@ test("compact creator cards adapt to the workspace and play private media in cur
   page,
 }, info) => {
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(6);
+  await expect(page.locator(".ad-card")).toHaveCount(8);
   // Model an existing private upload using a real bundled film. It has no
   // public projection, so the creator player must use its scoped media access.
   await page.evaluate(async () => {
@@ -125,7 +125,7 @@ test("compact creator cards adapt to the workspace and play private media in cur
   expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
   await page.getByRole("button", { name: "Close dialog" }).click();
   await page.getByLabel("Demo role").selectOption("public");
-  await expect(page.locator(".ad-card")).toHaveCount(3);
+  await expect(page.locator(".ad-card")).toHaveCount(5);
   await expect(
     page.getByRole("heading", { name: "Your midnight ritual", exact: true }),
   ).toHaveCount(0);

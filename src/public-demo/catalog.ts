@@ -40,6 +40,10 @@ export const money = (cents: number) =>
   }).format(cents / 100);
 export const count = (value: number | null) =>
   value === null ? "N/A" : value.toLocaleString("en-US");
+export const durationLabel = (seconds: number) =>
+  `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0")}`;
 export const ctr = (ad: Pick<PublicAd, "clicks" | "impressions">) =>
   ad.clicks === null || !ad.impressions
     ? "N/A"

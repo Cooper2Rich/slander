@@ -1,5 +1,6 @@
 import { demoAsset } from "../runtime";
 import { createHash } from "./platform-crypto";
+import { adoptionAds } from "./adoption-ads.js";
 
 const samples = new Map<string, Uint8Array>();
 let preparing: Promise<void> | undefined;
@@ -92,6 +93,14 @@ export async function uploadMedia(body: unknown) {
   };
 }
 export async function mediaEvidence(path: string) {
+  const imported = adoptionAds.find((ad) => ad.media === path);
+  if (imported)
+    return {
+      verified: true,
+      bytes: imported.bytes,
+      digest: imported.digest,
+      source: "bundled-user-import-sha256",
+    };
   let bytes: Uint8Array;
   if (
     /^\/videos\/nocturne-(midnight|espresso|afterhours)(-filmed-v2)?\.webm$/.test(

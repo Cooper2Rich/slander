@@ -30,6 +30,8 @@ import {
 } from "../../server/creative-exceptions.js";
 import { prepareSamples, mediaEvidence, uploadMedia, mediaFile } from "./media";
 import { addCoffeeShowcase } from "./coffee-showcase.js";
+import { addAdoptionShowcase } from "./adoption-showcase.js";
+import { adoptionAds } from "./adoption-ads.js";
 import { coffeeAds } from "./coffee-ads.js";
 import { samplePerformanceDays } from "./leaderboard-periods";
 import { ensureSampleFinancials } from "./sample-finances";
@@ -91,6 +93,11 @@ export async function prepareWorkspace() {
       if (!existing.sampleFinancials) {
         ensureCampaignHierarchy(existing);
         ensureSampleFinancials(existing);
+        save(existing);
+      }
+      if (existing.adoptionShowcaseVersion !== 1) {
+        ensureCampaignHierarchy(existing);
+        addAdoptionShowcase(existing);
         save(existing);
       }
       return;
@@ -182,6 +189,7 @@ export async function prepareWorkspace() {
     });
     await addCoffeeShowcase(ready);
     ensureCampaignHierarchy(ready);
+    addAdoptionShowcase(ready);
     ensureSampleFinancials(ready);
     save(ready);
   })().catch((error) => {
@@ -376,6 +384,9 @@ export async function workspaceRequest(
           const coffee = coffeeAds.find(
             (ad) => ad.id === p.id && p.media === ad.media,
           );
+          const imported = adoptionAds.find(
+            (ad) => ad.id === p.id && p.media === ad.media,
+          );
           return {
             id: p.id,
             projectId: p.projectId,
@@ -387,12 +398,18 @@ export async function workspaceRequest(
             caption: p.caption,
             media: p.media,
             mediaType: p.mediaType,
-            poster: coffee
-              ? coffee.poster
-              : sample
-                ? p.media
-                : project.coverMedia || `/images/${project.cover}.jpg`,
-            durationSeconds: coffee ? 16 : undefined,
+            poster: imported
+              ? imported.poster
+              : coffee
+                ? coffee.poster
+                : sample
+                  ? p.media
+                  : project.coverMedia || `/images/${project.cover}.jpg`,
+            durationSeconds: imported
+              ? imported.durationSeconds
+              : coffee
+                ? 16
+                : undefined,
             performanceDays:
               coffee || sample
                 ? samplePerformanceDays(p.id, coffee || sample)

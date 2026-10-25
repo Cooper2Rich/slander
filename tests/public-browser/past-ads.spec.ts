@@ -5,7 +5,7 @@ test("creators retain their withdrawn, ended, archived and unpublished ads witho
   page,
 }) => {
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(6);
+  await expect(page.locator(".ad-card")).toHaveCount(8);
   await page.evaluate(() => {
     const key = "slander-public-workspace-v1";
     const state = JSON.parse(localStorage.getItem(key)!);

@@ -12,7 +12,7 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
     page.getByRole("heading", { name: "Discover ads." }),
   ).toBeVisible();
   const cards = page.locator(".ad-card");
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(8);
   await expect(page.getByLabel("Demo role")).toHaveValue("public");
   const treeCard = cards.filter({
     has: page.getByRole("heading", {
@@ -109,6 +109,9 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
   ).toBeNull();
   await page.getByLabel("Demo role").selectOption("admin");
   await navigate(page, "Funding");
+  await page
+    .getByRole("checkbox", { name: "Include sample activity" })
+    .uncheck();
   await expect(page.getByText("$37.50", { exact: true }).first()).toBeVisible();
   expect(
     await page.evaluate(
@@ -163,7 +166,7 @@ test("creators have current and past ads; public excludes archived or held ads",
     fullPage: true,
   });
   await page.getByLabel("Demo role").selectOption("public");
-  await expect(page.locator(".ad-card")).toHaveCount(4);
+  await expect(page.locator(".ad-card")).toHaveCount(6);
   await page.goto("./#/ads/sample-1");
   await expect(
     page.getByRole("heading", { name: "This ad is unavailable." }),
@@ -202,7 +205,7 @@ test("public ad grid shows four compact cards across and adapts without horizont
   page,
 }, info) => {
   await page.goto("./");
-  await expect(page.locator(".ad-card")).toHaveCount(6);
+  await expect(page.locator(".ad-card")).toHaveCount(8);
   for (const [width, columns] of [
     [1440, 4],
     [1024, 3],

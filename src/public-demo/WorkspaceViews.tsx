@@ -9,7 +9,13 @@ import { AdStats } from "./AdStats";
 import { AdMedia } from "./AdMedia";
 import { useCreatorEarnings } from "./CreatorEarnings";
 import { FinancialSampleControl } from "./FinancialSamples";
-import { loadAds, money, viewerState, type PublicAd } from "./catalog";
+import {
+  loadAds,
+  money,
+  viewerState,
+  durationLabel,
+  type PublicAd,
+} from "./catalog";
 
 export function CreatorPastAds() {
   return <CreatorAds past />;
@@ -123,7 +129,9 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
                   <StatusBadge status={post.status} />
                 )}
                 {ad?.durationSeconds && (
-                  <span className="ad-duration">0:{ad.durationSeconds}</span>
+                  <span className="ad-duration">
+                    {durationLabel(ad.durationSeconds)}
+                  </span>
                 )}
               </div>
               <div className="ad-card-copy">

@@ -5,6 +5,7 @@ import { mediaResponse } from "../api";
 import type { DemoAccess, Post } from "../types";
 import { mediaFile } from "./media";
 import { useAdPreview } from "../components/useAdPreview";
+import { adoptionAds } from "./adoption-ads.js";
 
 export function AdMedia({
   ad,
@@ -47,13 +48,15 @@ export function AdMedia({
     };
   }, [ad.media, scoped, access?.role, access?.creatorId, access?.nonprofitId]);
   const src = scoped ? source : demoAsset(ad.media);
+  const poster =
+    ad.poster || adoptionAds.find((entry) => entry.media === ad.media)?.poster;
   const { video, startFullPlayback } = useAdPreview(src);
   return ad.mediaType === "video" ? (
     <>
       <video
         ref={video}
         src={src || undefined}
-        poster={ad.poster ? demoAsset(ad.poster) : undefined}
+        poster={poster ? demoAsset(poster) : undefined}
         muted={!full && !watching}
         loop={false}
         controls={full || watching}

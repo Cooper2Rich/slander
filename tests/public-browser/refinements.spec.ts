@@ -5,16 +5,19 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
   page,
 }) => {
   await page.goto("./");
-  await expect(page.locator(".ad-description")).toHaveCount(6);
+  await expect(page.locator(".ad-description")).toHaveCount(8);
   await expect(page.locator(".ad-support-copy").first()).toContainText(
     "reach more people",
   );
   await page.getByRole("link", { name: "Leaderboard", exact: true }).click();
   const rows = page.locator(".leaderboard-table tbody tr");
   await expect(rows).toHaveCount(6);
-  await expect(page.locator(".campaign-board")).toHaveCount(4);
+  await expect(page.locator(".campaign-board")).toHaveCount(5);
   await expect(
-    page.locator(".campaign-board").first().locator("tbody tr"),
+    page
+      .locator(".campaign-board")
+      .filter({ hasText: "Nocturne Coffee — after dark" })
+      .locator("tbody tr"),
   ).toHaveCount(3);
   await expect(
     page.getByRole("columnheader", { name: "CTR", exact: true }),
