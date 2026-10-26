@@ -10,6 +10,7 @@ import {
 } from "./leaderboard-periods";
 import { creatorLeaderboardWins, type CreatorWin } from "./creator-wins";
 import { useFinancialSamples } from "./FinancialSamples";
+import { AdMedia } from "./AdMedia";
 
 const dateLabel = (date: string) =>
   new Date(`${date}T00:00:00Z`).toLocaleDateString("en-US", {
@@ -31,11 +32,16 @@ function WinCard({
   period: LeaderboardPeriod;
   wins: CreatorWin[];
 }) {
+  const { access } = useWorkspace();
   const [selected, setSelected] = useState("");
   const win = wins.find((entry) => entry.id === selected) || wins[0];
   const label = period === "daily" ? "Daily" : "Weekly";
   return (
-    <section className="creator-win-card" aria-label={`Past ${period} wins`}>
+    <section
+      data-ad-preview
+      className="creator-win-card"
+      aria-label={`Past ${period} wins`}
+    >
       <div className="section-toolbar">
         <h3>
           <Trophy size={14} aria-hidden="true" /> {label} wins
@@ -57,10 +63,17 @@ function WinCard({
               </option>
             ))}
           </select>
-          <h4>{win.ad.title}</h4>
-          <p className="creator-win-byline">
-            {win.ad.creator} · {win.campaignName}
-          </p>
+          <div className="creator-win-ad">
+            <span className="earnings-ad-thumbnail">
+              <AdMedia ad={win.ad} access={access} previewOnly />
+            </span>
+            <div>
+              <h4>{win.ad.title}</h4>
+              <p className="creator-win-byline">
+                {win.ad.creator} · {win.campaignName}
+              </p>
+            </div>
+          </div>
           <span className="creator-win-badge">
             {win.joint ? "Joint " : ""}
             {label} winner · sample

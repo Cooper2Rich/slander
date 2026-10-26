@@ -11,6 +11,7 @@ import {
 } from "./FinancialSamples";
 import { dateLabel } from "../components/ui";
 import { CreatorWins } from "./CreatorWins";
+import { AdMedia } from "./AdMedia";
 
 export function useCreatorEarnings() {
   const { access, posts } = useWorkspace();
@@ -56,7 +57,7 @@ export function useCreatorEarnings() {
 }
 
 export function CreatorEarnings() {
-  const { role, search } = useWorkspace();
+  const { role, search, posts, access } = useWorkspace();
   const loaded = useCreatorEarnings();
   if (role !== "creator") return <Navigate to="/projects" replace />;
   const report = loaded?.report;
@@ -116,25 +117,37 @@ export function CreatorEarnings() {
       <CreatorWins />
       <h2 className="earnings-section-title">Earnings by ad</h2>
       <div className="earnings-list">
-        {ads.map((ad) => (
-          <article className="earnings-row" key={ad.adId}>
-            <div>
-              <h3>{ad.title}</h3>
-              <p>
-                {ad.contributionCount}{" "}
-                {ad.contributionCount === 1 ? "contribution" : "contributions"}{" "}
-                with a recorded creator allocation
-              </p>
-              {ad.legacyCents > 0 && (
-                <p>Historical funding excluded: {money(ad.legacyCents)}</p>
-              )}
-            </div>
-            <div>
-              <small>Earned · ad funds</small>
-              <strong>{money(ad.earnedCents)}</strong>
-            </div>
-          </article>
-        ))}
+        {ads.map((ad) => {
+          const post = posts.find((entry) => entry.id === ad.adId);
+          return (
+            <article data-ad-preview className="earnings-row" key={ad.adId}>
+              <div className="earnings-ad-identity">
+                {post && (
+                  <span className="earnings-ad-thumbnail">
+                    <AdMedia ad={post} access={access} previewOnly />
+                  </span>
+                )}
+                <div>
+                  <h3>{ad.title}</h3>
+                  <p>
+                    {ad.contributionCount}{" "}
+                    {ad.contributionCount === 1
+                      ? "contribution"
+                      : "contributions"}{" "}
+                    with a recorded creator allocation
+                  </p>
+                  {ad.legacyCents > 0 && (
+                    <p>Historical funding excluded: {money(ad.legacyCents)}</p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <small>Earned · ad funds</small>
+                <strong>{money(ad.earnedCents)}</strong>
+              </div>
+            </article>
+          );
+        })}
       </div>
       {report && !ads.length && (
         <EmptyState

@@ -229,6 +229,7 @@ export function Media({
       className={className}
       src={src || undefined}
       controls={controls}
+      muted={!controls}
       poster={poster}
       playsInline
       preload="metadata"

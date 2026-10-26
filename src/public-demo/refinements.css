@@ -1356,9 +1356,33 @@
   font-size: 11px;
 }
 .public-demo .creator-win-card h4 {
-  margin: 14px 0 4px;
+  margin: 0 0 4px;
   font-size: 14px;
   overflow-wrap: anywhere;
+}
+.public-demo :is(.creator-win-ad, .earnings-ad-identity) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.public-demo .creator-win-ad {
+  margin-top: 14px;
+}
+.public-demo .earnings-ad-thumbnail {
+  display: block;
+  width: 76px;
+  height: 48px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #000;
+}
+.public-demo .earnings-ad-thumbnail :is(img, video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .public-demo .creator-win-byline {
   margin: 0 0 8px;

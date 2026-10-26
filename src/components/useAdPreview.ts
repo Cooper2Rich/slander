@@ -26,6 +26,7 @@ export function useAdPreview(source: string | undefined) {
     const player = video.current;
     if (!player) return;
     manual.current = false;
+    let request = 0;
     const container =
       player.closest<HTMLElement>(
         "[data-ad-preview], .ad-card, .post-row, .profile-media, .preview-column, .upload-zone, .form-content",
@@ -51,14 +52,21 @@ export function useAdPreview(source: string | undefined) {
       player.currentTime = 0;
       player.muted = true;
       player.loop = false;
-      void player.play().catch(() => {});
+      const attempt = ++request;
+      void player.play().catch(() => {
+        // An interrupted load must not latch the player in preview mode.
+        // Ignore failures from a request that has since been replaced.
+        if (attempt === request && !manual.current) cancel();
+      });
       frame.current = requestAnimationFrame(tick);
     };
     const stop = () => {
+      request++;
       if (manual.current) {
         if (player.paused) manual.current = false;
         return;
       }
+      if (!previewing.current) return;
       cancel();
       player.pause();
       player.currentTime = 0;
@@ -86,6 +94,11 @@ export function useAdPreview(source: string | undefined) {
     container.addEventListener("pointerenter", enter);
     container.addEventListener("pointermove", enter);
     container.addEventListener("pointerleave", stop);
+    // Embedded browsers can forward traditional mouse events without pointer
+    // events. Both paths use the same guarded start/stop lifecycle.
+    container.addEventListener("mouseenter", start);
+    container.addEventListener("mousemove", start);
+    container.addEventListener("mouseleave", stop);
     container.addEventListener("focusin", start);
     container.addEventListener("focusout", focusOut);
     player.addEventListener("pointerdown", explicitPlayback);
@@ -98,11 +111,15 @@ export function useAdPreview(source: string | undefined) {
     )
       start();
     return () => {
+      request++;
       if (previewing.current) player.pause();
       cancel();
       container.removeEventListener("pointerenter", enter);
       container.removeEventListener("pointermove", enter);
       container.removeEventListener("pointerleave", stop);
+      container.removeEventListener("mouseenter", start);
+      container.removeEventListener("mousemove", start);
+      container.removeEventListener("mouseleave", stop);
       container.removeEventListener("focusin", start);
       container.removeEventListener("focusout", focusOut);
       player.removeEventListener("pointerdown", explicitPlayback);
