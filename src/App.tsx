@@ -362,12 +362,33 @@ export default function App({
   useEffect(() => {
     if (!PUBLIC_DEMO) return;
     const section = new URLSearchParams(location.search).get("section");
-    const frame = requestAnimationFrame(() =>
-      section
-        ? document.getElementById(section)?.scrollIntoView()
-        : window.scrollTo(0, 0),
+    if (!section) {
+      const frame = requestAnimationFrame(() => window.scrollTo(0, 0));
+      return () => cancelAnimationFrame(frame);
+    }
+    let frame = 0;
+    const alignSection = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() =>
+        document.getElementById(section)?.scrollIntoView(),
+      );
+    };
+    // Async reports can change the height above the requested section.
+    // Keep it aligned until the visitor starts interacting with the page.
+    const observer = new ResizeObserver(alignSection);
+    const content = document.getElementById("main-content");
+    if (content) observer.observe(content);
+    const inputs = ["pointerdown", "wheel", "touchstart", "keydown"] as const;
+    const stop = () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      inputs.forEach((input) => window.removeEventListener(input, stop));
+    };
+    inputs.forEach((input) =>
+      window.addEventListener(input, stop, { passive: true }),
     );
-    return () => cancelAnimationFrame(frame);
+    alignSection();
+    return stop;
   }, [location.pathname, location.search, Boolean(workspace)]);
   if (/^\/campaigns\/[^/]+\/give\/?$/.test(location.pathname)) {
     return (

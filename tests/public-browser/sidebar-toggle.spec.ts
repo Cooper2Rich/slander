@@ -215,4 +215,17 @@ test("Creator earnings sections keep the Earnings main tab selected", async ({
   await expect(
     main.getByRole("link", { name: "Earnings", exact: true }),
   ).toHaveAttribute("aria-current", "page");
+  // A report finishing after reload must not push the requested section away.
+  await page
+    .getByRole("heading", { name: "Earnings by ad", exact: true })
+    .evaluate((heading) => {
+      const lateContent = document.createElement("div");
+      lateContent.style.height = "900px";
+      heading.before(lateContent);
+    });
+  await expect(
+    page.getByRole("heading", { name: "Earnings by ad", exact: true }),
+  ).toBeInViewport();
+  await page.keyboard.press("Control+Home");
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 });
