@@ -2,6 +2,58 @@
   max-width: 1120px;
   margin: 0 auto;
 }
+.campaign-spend-overview {
+  margin-bottom: 36px;
+}
+.campaign-spend-heading,
+.campaign-spend-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.campaign-spend-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.campaign-spend-heading h2 {
+  font-size: 21px;
+  margin: 0;
+}
+.campaign-spend-heading svg {
+  color: #9ad5ff;
+}
+.campaign-allocation-setup {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  background: var(--surface);
+}
+.campaign-allocation-setup > summary {
+  padding: 20px 24px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 650;
+}
+.campaign-allocation-setup > summary > span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+  margin: 8px 0 0 16px;
+}
+.campaign-allocation-setup > .ad-platform-page {
+  padding: 0 20px;
+}
+.completed-ad-creative {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.completed-ad-spend .ad-platform-state {
+  white-space: nowrap;
+}
 .ad-platform-notice {
   border: 1px solid #24445e;
   background: #102436;
@@ -266,6 +318,9 @@
   color: #8dd3ff;
 }
 @media (max-width: 760px) {
+  .completed-ad-spend :is(th, td):nth-child(3) {
+    display: none;
+  }
   .ad-platform-cards {
     grid-template-columns: minmax(0, 1fr);
   }

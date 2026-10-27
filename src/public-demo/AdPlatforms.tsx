@@ -14,8 +14,9 @@ import {
   type CampaignAdSetup,
 } from "./ad-platforms";
 import "./ad-platforms.css";
+import { CompletedAdSpend } from "./CompletedAdSpend";
 
-export function AdPlatformsPage() {
+export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
   const { access, role, campaignScope: campaign } = useWorkspace();
   const [setup, setSetup] = useState<CampaignAdSetup>();
   const [daily, setDaily] = useState("100.00"),
@@ -96,17 +97,21 @@ export function AdPlatformsPage() {
   }
   return (
     <section className="ad-platform-page">
-      <div className="page-heading">
-        <div>
-          <h1>Ad platforms.</h1>
-          <p>Connect campaign destinations and plan automatic ad spending.</p>
+      {!embedded && (
+        <div className="page-heading">
+          <div>
+            <h1>Ad platforms.</h1>
+            <p>Connect campaign destinations and plan automatic ad spending.</p>
+          </div>
+          <Link2 size={28} />
         </div>
-        <Link2 size={28} />
-      </div>
-      <p className="ad-platform-notice">
-        Demo setup · Accounts and allocations below are fictional. No Meta or
-        TikTok authorization, ad purchases or background spending occurs.
-      </p>
+      )}
+      {!embedded && (
+        <p className="ad-platform-notice">
+          Demo setup · Accounts and allocations below are fictional. No Meta or
+          TikTok authorization, ad purchases or background spending occurs.
+        </p>
+      )}
       {error && !connecting && (
         <p className="ad-platform-error" role="alert">
           {error}
@@ -128,91 +133,97 @@ export function AdPlatformsPage() {
         )
       ) : (
         <>
-          <div className="ad-platform-cards">
-            {adPlatforms.map((provider) => {
-              const connection = setup.connections[provider];
-              return (
-                <section
-                  className="ad-platform-card"
-                  key={provider}
-                  aria-labelledby={`${provider}-heading`}
-                >
-                  <div className="ad-platform-card-heading">
-                    <span
-                      className={`ad-platform-mark ${provider}`}
-                      aria-hidden="true"
-                    >
-                      {provider === "meta" ? "∞" : "♪"}
-                    </span>
-                    <div>
-                      <h2 id={`${provider}-heading`}>
-                        {platformNames[provider]}
-                      </h2>
-                      <p>
-                        {provider === "meta"
-                          ? "Facebook & Instagram"
-                          : "TikTok Ads Manager"}
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    className={`ad-platform-state ${connection ? "selected" : ""}`}
+          {!embedded && (
+            <div className="ad-platform-cards">
+              {adPlatforms.map((provider) => {
+                const connection = setup.connections[provider];
+                return (
+                  <section
+                    className="ad-platform-card"
+                    key={provider}
+                    aria-labelledby={`${provider}-heading`}
                   >
-                    {connection ? "Demo account selected" : "Not connected"}
-                  </span>
-                  {connection ? (
-                    <dl>
-                      <dt>Ad account · USD</dt>
-                      <dd>{connection.accountName}</dd>
-                      <dt>Target campaign</dt>
-                      <dd>{connection.targetName}</dd>
-                    </dl>
-                  ) : (
-                    <p className="ad-platform-card-copy">
-                      Choose a fictional ad account and target campaign to
-                      explore the spending flow.
-                    </p>
-                  )}
-                  <div className="ad-platform-card-actions">
-                    <button
-                      className="button secondary"
-                      disabled={locked}
-                      onClick={() => {
-                        setError("");
-                        setConnecting(provider);
-                      }}
-                    >
-                      <Link2 size={15} />
-                      {connection
-                        ? "Change demo connection"
-                        : `Connect ${platformNames[provider]} (demo)`}
-                    </button>
-                    {connection && (
-                      <button
-                        className="text-button"
-                        disabled={locked}
-                        onClick={() =>
-                          void mutate(
-                            "disconnect",
-                            { platform: provider },
-                            `${platformNames[provider]} disconnected. Demo automation paused.`,
-                          )
-                        }
+                    <div className="ad-platform-card-heading">
+                      <span
+                        className={`ad-platform-mark ${provider}`}
+                        aria-hidden="true"
                       >
-                        <Unplug size={14} />
-                        Disconnect {platformNames[provider]}
-                      </button>
+                        {provider === "meta" ? "∞" : "♪"}
+                      </span>
+                      <div>
+                        <h2 id={`${provider}-heading`}>
+                          {platformNames[provider]}
+                        </h2>
+                        <p>
+                          {provider === "meta"
+                            ? "Facebook & Instagram"
+                            : "TikTok Ads Manager"}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`ad-platform-state ${connection ? "selected" : ""}`}
+                    >
+                      {connection ? "Demo account selected" : "Not connected"}
+                    </span>
+                    {connection ? (
+                      <dl>
+                        <dt>Ad account · USD</dt>
+                        <dd>{connection.accountName}</dd>
+                        <dt>Target campaign</dt>
+                        <dd>{connection.targetName}</dd>
+                      </dl>
+                    ) : (
+                      <p className="ad-platform-card-copy">
+                        Choose a fictional ad account and target campaign to
+                        explore the spending flow.
+                      </p>
                     )}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+                    <div className="ad-platform-card-actions">
+                      <button
+                        className="button secondary"
+                        disabled={locked}
+                        onClick={() => {
+                          setError("");
+                          setConnecting(provider);
+                        }}
+                      >
+                        <Link2 size={15} />
+                        {connection
+                          ? "Change demo connection"
+                          : `Connect ${platformNames[provider]} (demo)`}
+                      </button>
+                      {connection && (
+                        <button
+                          className="text-button"
+                          disabled={locked}
+                          onClick={() =>
+                            void mutate(
+                              "disconnect",
+                              { platform: provider },
+                              `${platformNames[provider]} disconnected. Demo automation paused.`,
+                            )
+                          }
+                        >
+                          <Unplug size={14} />
+                          Disconnect {platformNames[provider]}
+                        </button>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )}
           <form className="ad-platform-panel" onSubmit={saveRules}>
             <div className="ad-platform-section-heading">
               <Settings2 size={20} />
               <div>
-                <h2>Automatic spending rules</h2>
+                <h2>
+                  {embedded
+                    ? "Ad spend allocation"
+                    : "Automatic spending rules"}
+                </h2>
                 <p>
                   Choose daily limits and how the budget is shared between
                   platforms.
@@ -222,6 +233,15 @@ export function AdPlatformsPage() {
                 {setup.rules.enabled ? "Enabled for previews" : "Paused"}
               </span>
             </div>
+            {embedded && (
+              <p className="ad-platform-help">
+                Set allocation here for this campaign.{" "}
+                <Link to={`/campaigns/${campaign.id}/ad-platforms`}>
+                  Configure Meta and TikTok connections ↗
+                </Link>{" "}
+                before enabling automation.
+              </p>
+            )}
             <fieldset disabled={locked} className="ad-platform-fields">
               <label>
                 Daily limit (USD)
@@ -405,31 +425,34 @@ export function AdPlatformsPage() {
               </p>
             )}
           </section>
-          <details className="ad-platform-panel ad-platform-live">
-            <summary>What changes when live connections are added?</summary>
-            <p>
-              A live setup will authorize each advertiser account, verify access
-              and available budget, map the campaign’s creatives, and use a
-              server to apply and reconcile spending. BRM eligibility does not
-              replace platform ad review.
-            </p>
-            <div>
-              <a
-                href="https://developers.facebook.com/docs/marketing-apis/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Meta Marketing API ↗
-              </a>
-              <a
-                href="https://business-api.tiktok.com/portal/docs/marketing-api/v2.0"
-                target="_blank"
-                rel="noreferrer"
-              >
-                TikTok Marketing API ↗
-              </a>
-            </div>
-          </details>
+          {!embedded && <CompletedAdSpend />}
+          {!embedded && (
+            <details className="ad-platform-panel ad-platform-live">
+              <summary>What changes when live connections are added?</summary>
+              <p>
+                A live setup will authorize each advertiser account, verify
+                access and available budget, map the campaign’s creatives, and
+                use a server to apply and reconcile spending. BRM eligibility
+                does not replace platform ad review.
+              </p>
+              <div>
+                <a
+                  href="https://developers.facebook.com/docs/marketing-apis/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Meta Marketing API ↗
+                </a>
+                <a
+                  href="https://business-api.tiktok.com/portal/docs/marketing-api/v2.0"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  TikTok Marketing API ↗
+                </a>
+              </div>
+            </details>
+          )}
         </>
       )}
       {connecting && (

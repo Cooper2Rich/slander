@@ -111,7 +111,12 @@ test("campaign connections, spending rules and allocation previews persist witho
   await expect(
     page.getByLabel("Meta allocation (%)", { exact: true }),
   ).toHaveValue("70");
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(
+    page.getByRole("table", {
+      name: "Demo allocations by platform and creative",
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Save spending rules", exact: true }),
   ).toBeDisabled();

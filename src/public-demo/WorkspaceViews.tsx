@@ -9,6 +9,7 @@ import { AdStats } from "./AdStats";
 import { AdMedia } from "./AdMedia";
 import { useCreatorEarnings } from "./CreatorEarnings";
 import { FinancialSampleControl } from "./FinancialSamples";
+import { CompletedAdSpend } from "./CompletedAdSpend";
 import {
   loadAds,
   money,
@@ -297,6 +298,7 @@ export function SpendingPage() {
           </p>
         )}
       </div>
+      <CompletedAdSpend />
     </>
   );
 }

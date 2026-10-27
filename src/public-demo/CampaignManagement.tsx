@@ -11,6 +11,7 @@ import { CampaignsPage } from "../pages/Campaigns";
 import { ArchivesPage, SpendingPage } from "./WorkspaceViews";
 import type { DemoOptions, ManagedCampaign } from "../types";
 import { AdPlatformsPage } from "./AdPlatforms";
+import { CampaignSpendOverview } from "./CampaignSpendOverview";
 
 export function AdminCampaigns({ archived = false }: { archived?: boolean }) {
   const {
@@ -268,7 +269,15 @@ export function CampaignWorkspace() {
         </p>
       )}
       <Routes>
-        <Route index element={<ProjectsPage campaignId={campaign.id} />} />
+        <Route
+          index
+          element={
+            <>
+              <CampaignSpendOverview key={campaign.id} />
+              <ProjectsPage campaignId={campaign.id} />
+            </>
+          }
+        />
         <Route path="projects/:id" element={<ProjectDetail />} />
         <Route path="creatives" element={<PostsPage mode="all" />} />
         <Route path="spending" element={<SpendingPage />} />

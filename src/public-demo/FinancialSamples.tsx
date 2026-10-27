@@ -22,7 +22,9 @@ export function useFinancialSamples() {
     },
   };
 }
-export function FinancialSampleControl() {
+export function FinancialSampleControl({
+  description,
+}: { description?: string } = {}) {
   const { enabled, setEnabled } = useFinancialSamples();
   return (
     <div className="financial-sample-control">
@@ -35,9 +37,10 @@ export function FinancialSampleControl() {
         Include sample activity
       </label>
       <span>
-        {enabled
-          ? "Fictional earnings and payments + saved contributions. No real transfers."
-          : "Saved contributions only · no completed payments."}
+        {description ||
+          (enabled
+            ? "Fictional earnings and payments + saved contributions. No real transfers."
+            : "Saved contributions only · no completed payments.")}
       </span>
     </div>
   );
