@@ -7,7 +7,7 @@ test("Yakira's ad has illustrative metrics, a current daily and weekly leader po
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.clock.install({ time: new Date("2026-10-24T18:00:00Z") });
-  await page.goto("./");
+  await page.goto("./#/explore");
   await page.getByLabel("Filter by cause").selectOption("Adoption");
   const card = page.locator(".ad-card");
   await expect(card).toHaveCount(1);

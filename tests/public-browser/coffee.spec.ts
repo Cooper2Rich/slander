@@ -4,7 +4,7 @@ import { navigate, selectCreator } from "./helpers";
 test("finished coffee collection has three playable films over 15 seconds, with sound and scoped creator access", async ({
   page,
 }, info) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await page.getByLabel("Filter by cause").selectOption("Coffee & culture");
   await expect(page.locator(".ad-card")).toHaveCount(3);
   await expect(page.locator(".ad-duration")).toHaveCount(3);
@@ -115,7 +115,7 @@ test("finished coffee collection has three playable films over 15 seconds, with 
 test("old photo-based coffee ads receive a new filmed revision without losing edits, withdrawals or giving", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   const previous = await page.evaluate(() => {
     const key = "slander-public-workspace-v1",
@@ -225,7 +225,7 @@ test("Blue Ripple Media controls and text remain readable in public and creator 
         `${result.selector}: ${result.text}`,
       ).toBeGreaterThanOrEqual(4.5);
   };
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   await check([
     ".button.primary",
@@ -254,7 +254,7 @@ test("Blue Ripple Media controls and text remain readable in public and creator 
 test("existing browser workspace upgrades once while preserving viewer history and creative edits", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   await page.evaluate(() => {
     const key = "slander-public-workspace-v1",

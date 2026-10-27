@@ -6,7 +6,7 @@ test("sample earnings and application payments populate by default, reconcile an
 }, info) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   // Model an existing visitor with retained viewer history, before the sample migration.
   await page.evaluate(() => {

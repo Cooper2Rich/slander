@@ -6,7 +6,7 @@ test("owners request projects; only Admin assigns a campaign and approval create
 }, info) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("./");
+  await page.goto("./#/explore");
   await selectOwner(page);
   const mainNav = () =>
     page.getByRole("navigation", { name: "Main navigation" });
@@ -130,7 +130,7 @@ test("owners request projects; only Admin assigns a campaign and approval create
 test("Admin funding uses recorded 10/5/85 allocations and campaign archives retain funding and project history", async ({
   page,
 }, info) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await page
     .locator(".ad-card")
     .first()

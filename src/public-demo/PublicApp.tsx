@@ -1,22 +1,24 @@
 import { useEffect, useState } from "react";
 import {
   Link,
-  NavLink,
   useLocation,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import { ArrowUpRight, Heart, Search } from "lucide-react";
+import { ArrowUpRight, Compass, Heart, Search } from "lucide-react";
 import App from "../App";
 import { Logo, Modal } from "../components/ui";
-import { APP_NAME, demoAsset } from "../runtime";
+import { APP_NAME } from "../runtime";
+import { WorkspaceRail } from "../components/WorkspaceRail";
+import { PublicLinks, PublicNavigation } from "./PublicNavigation";
+import { PublicHome } from "./PublicHome";
+import { AdCard } from "./AdCard";
 import { AdMedia } from "./AdMedia";
 import {
   activeViewer,
   createViewer,
   fundAd,
   fundedCents,
-  durationLabel,
   loadAds,
   loadPublicCampaigns,
   type PublicCampaign,
@@ -73,6 +75,15 @@ export default function PublicApp() {
   const [support, setSupport] = useState<PublicAd | null>(null);
   const [campaigns, setCampaigns] = useState<PublicCampaign[]>([]);
   const [params, setParams] = useSearchParams();
+  const section = params.get("section");
+  useEffect(() => {
+    if (location.pathname !== "/") return;
+    if (section === "mission" || section === "how-it-works") {
+      requestAnimationFrame(() =>
+        document.getElementById(section)?.scrollIntoView(),
+      );
+    } else window.scrollTo(0, 0);
+  }, [location.pathname, section]);
   const campaign = params.get("campaign") || "all";
   const period: LeaderboardPeriod =
     params.get("period") === "daily" ? "daily" : "weekly";
@@ -121,7 +132,7 @@ export default function PublicApp() {
   }, [publicRoute, location.pathname]);
   useEffect(() => {
     if (publicRoute)
-      document.title = `${location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
+      document.title = `${location.pathname === "/" ? "Stories that make a difference" : location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
   }, [publicRoute, location.pathname]);
   if (!publicRoute) return <App demoViews={workspaceViews} />;
   const adId = location.pathname.startsWith("/ads/")
@@ -139,7 +150,7 @@ export default function PublicApp() {
   );
   const update = () => setVersion(version + 1);
   return (
-    <div className="discovery-shell compact-ads">
+    <div className="discovery-shell ripple-public">
       <a
         href="#discovery-content"
         className="skip-link"
@@ -151,295 +162,280 @@ export default function PublicApp() {
       >
         Skip to content
       </a>
-      <header className="discovery-header">
-        <Link to="/explore" aria-label={`${APP_NAME} home`}>
-          <Logo />
-        </Link>
-        <nav aria-label="Public navigation">
-          <NavLink to="/explore">Discover ads</NavLink>
-          <NavLink to="/leaderboard">Leaderboard</NavLink>
-          <NavLink to="/viewer">
-            {viewer ? "My giving" : "Viewer account"}
-          </NavLink>
+      <WorkspaceRail onWorkspace={() => enterWorkspace("creator", navigate)} />
+      <PublicNavigation campaigns={campaigns} />
+      <div className="public-main-shell">
+        <header className="discovery-header">
+          <div className="public-breadcrumb">
+            <Compass size={17} />
+            <span>Community</span>
+            <span>/</span>
+            <strong>
+              {location.pathname === "/"
+                ? "Welcome to Blue Ripple"
+                : location.pathname === "/leaderboard"
+                  ? "Leaderboard"
+                  : location.pathname === "/viewer"
+                    ? "Your profile"
+                    : adId
+                      ? "Ad profile"
+                      : "Discover ads"}
+            </strong>
+          </div>
+          <span className="public-access-note">
+            <span className="live-dot" />
+            Browse freely
+          </span>
+          <label className="demo-view-picker">
+            <span>Preview as</span>
+            <select
+              aria-label="Demo role"
+              value="public"
+              onChange={(e) => enterWorkspace(e.target.value, navigate)}
+            >
+              <option value="public">Public viewer</option>
+              <option value="creator">Creator</option>
+              <option value="nonprofit">Campaign Owner</option>
+              <option value="admin">Admin View</option>
+            </select>
+          </label>
+        </header>
+        <nav
+          className="public-mobile-nav"
+          aria-label="Mobile public navigation"
+        >
+          <PublicLinks />
         </nav>
-        <label className="demo-view-picker">
-          <span>Preview as</span>
-          <select
-            aria-label="Demo role"
-            value="public"
-            onChange={(e) => enterWorkspace(e.target.value, navigate)}
-          >
-            <option value="public">Public viewer</option>
-            <option value="creator">Creator</option>
-            <option value="nonprofit">Campaign Owner</option>
-            <option value="admin">Admin View</option>
-          </select>
-        </label>
-      </header>
-      <main id="discovery-content" className="discovery-content" tabIndex={-1}>
-        {error && <p role="alert">{error}</p>}
-        {location.pathname === "/viewer" ? (
-          <>
-            <div className="discovery-heading">
-              <h1>{viewer ? `Hello, ${viewer.name}.` : "Viewer account"}</h1>
-              <p>
-                A viewer profile lets you support ad spend and follow your
-                giving. Browse anytime without an account.
-              </p>
-            </div>
-            {viewer ? (
-              <section className="market-panel giving-history">
-                <div className="section-toolbar">
-                  <h2>My giving</h2>
-                  <button
-                    className="text-button"
-                    onClick={() => {
-                      selectViewer(null);
-                      update();
-                    }}
-                  >
-                    Leave viewer profile
-                  </button>
-                </div>
-                <p>
-                  Viewer account · {viewer.email} · saved only in this browser.
-                </p>
-                <strong className="giving-total">
-                  {money(
-                    state.support
-                      .filter((s) => s.viewerId === viewer.id)
-                      .reduce((n, s) => n + s.amountCents, 0),
-                  )}
-                </strong>
-                <p>Simulated contributions to ad spend</p>
-                {state.support
-                  .filter((s) => s.viewerId === viewer.id)
-                  .map((s) => (
-                    <div key={s.id} className="support-row">
-                      <Link to={`/ads/${s.adId}`}>{s.title}</Link>
-                      <span>
-                        {money(s.amountCents)} ·{" "}
-                        {new Date(s.at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ))}
-                {!state.support.some((s) => s.viewerId === viewer.id) && (
-                  <p>
-                    No contributions yet.{" "}
-                    <Link to="/explore">Discover ads ↗</Link>
-                  </p>
-                )}
-              </section>
-            ) : (
-              <ViewerForm onDone={update} />
-            )}
-          </>
-        ) : location.pathname === "/leaderboard" ? (
-          <>
-            <div className="discovery-toolbar">
-              <div>
-                <h1>
-                  Leaderboard<span className="title-dot">.</span>
-                </h1>
-                <p className="view-description">
-                  Compare ad performance across campaigns.
-                </p>
-              </div>
-              <label className="discovery-search">
-                <Search size={17} />
-                <input
-                  aria-label="Search leaderboard"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Ad, creator or campaign"
-                />
-              </label>
-            </div>
-            <PublicLeaderboard
+        <main
+          id="discovery-content"
+          className="discovery-content"
+          tabIndex={-1}
+        >
+          {error && <p role="alert">{error}</p>}
+          {location.pathname === "/" ? (
+            <PublicHome
               ads={ads}
               campaigns={campaigns}
-              period={period}
-              view={leaderboardView}
-              onView={setLeaderboardView}
-              historyDate={historyDate}
-              onHistory={selectHistory}
-              onPeriod={setPeriod}
-              campaign={campaign}
-              onCampaign={setCampaign}
-              search={search}
+              onSupport={setSupport}
             />
-          </>
-        ) : adId ? (
-          selected ? (
+          ) : location.pathname === "/viewer" ? (
             <>
-              <Link className="text-button" to="/explore">
-                ← Discover all ads
-              </Link>
-              <div className="ad-profile">
-                <section className="profile-media">
-                  <AdMedia ad={selected} full />
-                </section>
-                <section className="profile-copy">
-                  <span className="eyebrow">
-                    {selected.category} · AD PROFILE
-                  </span>
-                  <h1>{selected.title}</h1>
-                  <p className="creator-byline">
-                    Created by <strong>{selected.creator}</strong>
-                  </p>
-                  <p>{selected.caption}</p>
-                  <div className="profile-cause">
-                    <small>SUPPORTING</small>
-                    <h2>{selected.project}</h2>
-                    <p>{selected.nonprofit}</p>
-                    <Link
-                      className="text-button"
-                      to={`/leaderboard?campaign=${encodeURIComponent(selected.campaignId || selected.projectId)}`}
-                    >
-                      Campaign leaderboard <ArrowUpRight size={14} />
-                    </Link>
-                  </div>
-                  <AdStats ad={selected} />
-                  <p className="metrics-note">
-                    {selected.impressions === null
-                      ? "Performance data is not connected yet."
-                      : "Illustrative sample metrics, not live platform results. $ donated represents gifts to the cause."}
-                  </p>
-                  <div className="spend-callout">
-                    <Heart size={21} />
-                    <div>
-                      <strong>Help this story reach more people.</strong>
-                      <p>
-                        {money(fundedCents(selected.id))} contributed to this
-                        ad’s spend in this browser.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    className="button primary"
-                    onClick={() => setSupport(selected)}
-                  >
-                    Fund ad spend <ArrowUpRight size={17} />
-                  </button>
-                  <small className="metrics-note">
-                    Ad spend supports distribution. It is separate from a
-                    donation to the cause.
-                  </small>
-                </section>
-              </div>
-            </>
-          ) : (
-            <div className="market-panel">
-              <h1>{ads ? "This ad is unavailable." : "Loading story…"}</h1>
-              <p>Only currently eligible ads in active campaigns are public.</p>
-              <Link to="/explore">Discover ads</Link>
-            </div>
-          )
-        ) : (
-          <>
-            <section id="stories">
-              <div className="discovery-toolbar">
-                <h1>
-                  Discover ads<span className="title-dot">.</span>
-                </h1>
-                <div className="discovery-filters">
-                  <label className="discovery-search">
-                    <Search size={17} />
-                    <input
-                      aria-label="Search ads"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Ad, creator or campaign"
-                    />
-                  </label>
-                  <select
-                    aria-label="Filter by cause"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                  >
-                    {[
-                      "All causes",
-                      ...new Set(ads?.map((ad) => ad.category)),
-                    ].map((c) => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="discovery-grid-meta">
-                <p className="metrics-note">
-                  Hover to preview · Play for sound · Sample metrics.
+              <div className="discovery-heading">
+                <h1>{viewer ? `Hello, ${viewer.name}.` : "Viewer account"}</h1>
+                <p>
+                  A viewer profile lets you support ad spend and follow your
+                  giving. Browse anytime without an account.
                 </p>
               </div>
-              <div className="ad-grid">
-                {filtered?.map((ad) => (
-                  <article key={ad.id} className="ad-card">
-                    <div className="ad-card-media">
-                      {ad.mediaType === "video" ? (
-                        <AdMedia ad={ad} />
-                      ) : (
-                        <Link
-                          to={`/ads/${ad.id}`}
-                          aria-label={`View ${ad.title}`}
-                        >
-                          <AdMedia ad={ad} />
-                        </Link>
-                      )}
-                      {ad.durationSeconds && (
-                        <span className="ad-duration">
-                          {durationLabel(ad.durationSeconds)}
+              {viewer ? (
+                <section className="market-panel giving-history">
+                  <div className="section-toolbar">
+                    <h2>My giving</h2>
+                    <button
+                      className="text-button"
+                      onClick={() => {
+                        selectViewer(null);
+                        update();
+                      }}
+                    >
+                      Leave viewer profile
+                    </button>
+                  </div>
+                  <p>
+                    Viewer account · {viewer.email} · saved only in this
+                    browser.
+                  </p>
+                  <strong className="giving-total">
+                    {money(
+                      state.support
+                        .filter((s) => s.viewerId === viewer.id)
+                        .reduce((n, s) => n + s.amountCents, 0),
+                    )}
+                  </strong>
+                  <p>Simulated contributions to ad spend</p>
+                  {state.support
+                    .filter((s) => s.viewerId === viewer.id)
+                    .map((s) => (
+                      <div key={s.id} className="support-row">
+                        <Link to={`/ads/${s.adId}`}>{s.title}</Link>
+                        <span>
+                          {money(s.amountCents)} ·{" "}
+                          {new Date(s.at).toLocaleDateString()}
                         </span>
-                      )}
-                    </div>
-                    <div className="ad-card-copy">
-                      <Link
-                        to={`/ads/${ad.id}`}
-                        aria-label={
-                          ad.mediaType === "video"
-                            ? `View ${ad.title}`
-                            : undefined
-                        }
-                      >
-                        <h3>{ad.title}</h3>
-                      </Link>
-                      <p className="ad-description">
-                        {ad.caption.length > 132
-                          ? `${ad.caption.slice(0, 129).trimEnd()}…`
-                          : ad.caption}
-                      </p>
-                      <p className="ad-support-copy">
-                        Help this ad reach more people.
-                      </p>
-                      <p className="ad-byline">
-                        {ad.creator} · {ad.project}
-                      </p>
-                      <AdStats ad={ad} />
-                      <button
-                        className="button primary full"
-                        onClick={() => setSupport(ad)}
-                      >
-                        Fund ad spend <Heart size={14} />
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              {ads && !filtered?.length && (
-                <div className="empty-state">
-                  <h3>No matching stories yet.</h3>
-                  <p>Try another search or cause.</p>
-                </div>
+                      </div>
+                    ))}
+                  {!state.support.some((s) => s.viewerId === viewer.id) && (
+                    <p>
+                      No contributions yet.{" "}
+                      <Link to="/explore">Discover ads ↗</Link>
+                    </p>
+                  )}
+                </section>
+              ) : (
+                <ViewerForm onDone={update} />
               )}
-              {!ads && !error && <p role="status">Gathering good stories…</p>}
-            </section>
-          </>
-        )}
-      </main>
-      <footer className="discovery-footer">
-        <Logo small />
-        <p>Stories for good. A little louder.</p>
-        <span>Fictional demo · no real donations or ad delivery</span>
-      </footer>
+            </>
+          ) : location.pathname === "/leaderboard" ? (
+            <>
+              <div className="discovery-toolbar">
+                <div>
+                  <h1>
+                    Leaderboard<span className="title-dot">.</span>
+                  </h1>
+                  <p className="view-description">
+                    Compare ad performance across campaigns.
+                  </p>
+                </div>
+                <label className="discovery-search">
+                  <Search size={17} />
+                  <input
+                    aria-label="Search leaderboard"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Ad, creator or campaign"
+                  />
+                </label>
+              </div>
+              <PublicLeaderboard
+                ads={ads}
+                campaigns={campaigns}
+                period={period}
+                view={leaderboardView}
+                onView={setLeaderboardView}
+                historyDate={historyDate}
+                onHistory={selectHistory}
+                onPeriod={setPeriod}
+                campaign={campaign}
+                onCampaign={setCampaign}
+                search={search}
+              />
+            </>
+          ) : adId ? (
+            selected ? (
+              <>
+                <Link className="text-button" to="/explore">
+                  ← Discover all ads
+                </Link>
+                <div className="ad-profile">
+                  <section className="profile-media">
+                    <AdMedia ad={selected} full />
+                  </section>
+                  <section className="profile-copy">
+                    <span className="eyebrow">
+                      {selected.category} · AD PROFILE
+                    </span>
+                    <h1>{selected.title}</h1>
+                    <p className="creator-byline">
+                      Created by <strong>{selected.creator}</strong>
+                    </p>
+                    <p>{selected.caption}</p>
+                    <div className="profile-cause">
+                      <small>SUPPORTING</small>
+                      <h2>{selected.project}</h2>
+                      <p>{selected.nonprofit}</p>
+                      <Link
+                        className="text-button"
+                        to={`/leaderboard?campaign=${encodeURIComponent(selected.campaignId || selected.projectId)}`}
+                      >
+                        Campaign leaderboard <ArrowUpRight size={14} />
+                      </Link>
+                    </div>
+                    <AdStats ad={selected} />
+                    <p className="metrics-note">
+                      {selected.impressions === null
+                        ? "Performance data is not connected yet."
+                        : "Illustrative sample metrics, not live platform results. $ donated represents gifts to the cause."}
+                    </p>
+                    <div className="spend-callout">
+                      <Heart size={21} />
+                      <div>
+                        <strong>Help this story reach more people.</strong>
+                        <p>
+                          {money(fundedCents(selected.id))} contributed to this
+                          ad’s spend in this browser.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      className="button primary"
+                      onClick={() => setSupport(selected)}
+                    >
+                      Fund ad spend <ArrowUpRight size={17} />
+                    </button>
+                    <small className="metrics-note">
+                      Ad spend supports distribution. It is separate from a
+                      donation to the cause.
+                    </small>
+                  </section>
+                </div>
+              </>
+            ) : (
+              <div className="market-panel">
+                <h1>{ads ? "This ad is unavailable." : "Loading story…"}</h1>
+                <p>
+                  Only currently eligible ads in active campaigns are public.
+                </p>
+                <Link to="/explore">Discover ads</Link>
+              </div>
+            )
+          ) : (
+            <>
+              <section id="stories">
+                <div className="discovery-toolbar">
+                  <h1>
+                    Discover ads<span className="title-dot">.</span>
+                  </h1>
+                  <div className="discovery-filters">
+                    <label className="discovery-search">
+                      <Search size={17} />
+                      <input
+                        aria-label="Search ads"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Ad, creator or campaign"
+                      />
+                    </label>
+                    <select
+                      aria-label="Filter by cause"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                    >
+                      {[
+                        "All causes",
+                        ...new Set(ads?.map((ad) => ad.category)),
+                      ].map((c) => (
+                        <option key={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="discovery-grid-meta">
+                  <p className="metrics-note">
+                    Hover to preview · Play for sound · Sample metrics.
+                  </p>
+                </div>
+                <div className="ad-grid">
+                  {filtered?.map((ad) => (
+                    <AdCard key={ad.id} ad={ad} onSupport={setSupport} />
+                  ))}
+                </div>
+                {ads && !filtered?.length && (
+                  <div className="empty-state">
+                    <h3>No matching stories yet.</h3>
+                    <p>Try another search or cause.</p>
+                  </div>
+                )}
+                {!ads && !error && <p role="status">Gathering good stories…</p>}
+              </section>
+            </>
+          )}
+        </main>
+        <footer className="discovery-footer">
+          <Logo small />
+          <p>Stories for good. A little louder.</p>
+          <span>Fictional demo · no real donations or ad delivery</span>
+        </footer>
+      </div>
       {support && (
         <SupportDialog
           ad={support}

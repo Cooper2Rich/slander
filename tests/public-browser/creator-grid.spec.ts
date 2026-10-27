@@ -4,7 +4,7 @@ import { navigate, selectCreator } from "./helpers";
 test("compact creator cards adapt to the workspace and play private media in current ads and personal archives", async ({
   page,
 }, info) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   // Model an existing private upload using a real bundled film. It has no
   // public projection, so the creator player must use its scoped media access.
@@ -73,7 +73,7 @@ test("compact creator cards adapt to the workspace and play private media in cur
     .toBeGreaterThan(0.1);
   await video.evaluate((v: HTMLVideoElement) => v.pause());
   for (const [width, columns] of [
-    [1440, 4],
+    [1440, 3],
     [713, 2],
     [390, 1],
   ]) {

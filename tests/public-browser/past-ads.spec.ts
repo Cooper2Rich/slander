@@ -4,7 +4,7 @@ import { navigate, selectCreator } from "./helpers";
 test("creators retain their withdrawn, ended, archived and unpublished ads without seeing another creator's history", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   await page.evaluate(() => {
     const key = "slander-public-workspace-v1";

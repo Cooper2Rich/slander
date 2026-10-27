@@ -6,7 +6,7 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
 }, info) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("./#/explore");
   const discoveryUrl = page.url();
   await expect(
     page.getByRole("heading", { name: "Discover ads." }),
@@ -124,7 +124,7 @@ test("public discovery previews video, opens profiles, filters, and supports ad 
 test("creators have current and past ads; public excludes archived or held ads", async ({
   page,
 }, info) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await selectCreator(page, "Maya Chen");
   await navigate(page, "My ads");
   await expect(
@@ -177,7 +177,7 @@ test("reduced motion prevents automatic preview; viewer profiles can be left and
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./");
+  await page.goto("./#/explore");
   const preview = page.locator(".ad-card-media video").first();
   await preview.focus();
   await expect
@@ -201,14 +201,14 @@ test("reduced motion prevents automatic preview; viewer profiles can be left and
   ).toBe(true);
 });
 
-test("public ad grid shows four compact cards across and adapts without horizontal scrolling", async ({
+test("public ad grid shows larger square cards and adapts without horizontal scrolling", async ({
   page,
 }, info) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   for (const [width, columns] of [
-    [1440, 4],
-    [1024, 3],
+    [1440, 3],
+    [1024, 2],
     [713, 2],
     [390, 1],
   ]) {

@@ -65,7 +65,7 @@ test("five-second previews repeat from ad cards, profiles, leaderboards and all 
   page,
 }) => {
   test.slow();
-  await page.goto("./");
+  await page.goto("./#/explore");
   const card = page.locator(".ad-card").first();
   await preview(page, card, card.locator("h3"), true);
   await card

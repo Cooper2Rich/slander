@@ -6,7 +6,7 @@ test("creators see their earned commissions and retained past-ad earnings; Admin
 }, info) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("./");
+  await page.goto("./#/explore");
   await page
     .locator(".ad-card")
     .first()

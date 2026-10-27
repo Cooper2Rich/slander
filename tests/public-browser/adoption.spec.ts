@@ -6,7 +6,7 @@ test("Adoption Is contains the ACU project and the original 60-second ad with so
 }, info) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("./");
+  await page.goto("./#/explore");
   await page.getByLabel("Filter by cause").selectOption("Adoption");
   const cards = page.locator(".ad-card");
   await expect(cards).toHaveCount(1);

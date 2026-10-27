@@ -2,7 +2,11 @@ import { useCallback, useEffect, useRef } from "react";
 
 export const PREVIEW_SECONDS = 5;
 
-export function useAdPreview(source: string | undefined) {
+export function useAdPreview(
+  source: string | undefined,
+  autoPreview = false,
+  previewsEnabled = true,
+) {
   const video = useRef<HTMLVideoElement>(null);
   const manual = useRef(false);
   const previewing = useRef(false);
@@ -27,6 +31,8 @@ export function useAdPreview(source: string | undefined) {
     if (!player) return;
     manual.current = false;
     let request = 0;
+    let inView = !autoPreview;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const container =
       player.closest<HTMLElement>(
         "[data-ad-preview], .ad-card, .post-row, .profile-media, .preview-column, .upload-zone, .form-content",
@@ -45,7 +51,10 @@ export function useAdPreview(source: string | undefined) {
       if (
         manual.current ||
         previewing.current ||
-        matchMedia("(prefers-reduced-motion: reduce)").matches
+        !previewsEnabled ||
+        motion.matches ||
+        !inView ||
+        document.hidden
       )
         return;
       previewing.current = true;
@@ -75,7 +84,11 @@ export function useAdPreview(source: string | undefined) {
       if (event.pointerType === "mouse") start();
     };
     const focusOut = (event: FocusEvent) => {
-      if (!container.contains(event.relatedTarget as Node | null)) stop();
+      if (
+        !container.contains(event.relatedTarget as Node | null) &&
+        !autoPreview
+      )
+        stop();
     };
     const explicitPlayback = () => {
       cancel();
@@ -91,14 +104,43 @@ export function useAdPreview(source: string | undefined) {
         void player.play().catch(() => {});
       } else manual.current = false;
     };
+    const leave = () => {
+      if (!autoPreview) stop();
+    };
+    const suspend = () => {
+      request++;
+      cancel();
+      player.pause();
+    };
+    const visibility = () => {
+      if (document.hidden) suspend();
+      else if (autoPreview && inView) start();
+    };
+    const motionChanged = () => {
+      if (motion.matches) suspend();
+      else if (autoPreview && inView) start();
+    };
+    const observer = autoPreview
+      ? new IntersectionObserver(
+          ([entry]) => {
+            inView = entry.isIntersecting && entry.intersectionRatio >= 0.5;
+            if (inView) start();
+            else suspend();
+          },
+          { threshold: [0, 0.5] },
+        )
+      : null;
+    observer?.observe(player);
+    document.addEventListener("visibilitychange", visibility);
+    motion.addEventListener("change", motionChanged);
     container.addEventListener("pointerenter", enter);
     container.addEventListener("pointermove", enter);
-    container.addEventListener("pointerleave", stop);
+    container.addEventListener("pointerleave", leave);
     // Embedded browsers can forward traditional mouse events without pointer
     // events. Both paths use the same guarded start/stop lifecycle.
     container.addEventListener("mouseenter", start);
     container.addEventListener("mousemove", start);
-    container.addEventListener("mouseleave", stop);
+    container.addEventListener("mouseleave", leave);
     container.addEventListener("focusin", start);
     container.addEventListener("focusout", focusOut);
     player.addEventListener("pointerdown", explicitPlayback);
@@ -112,14 +154,17 @@ export function useAdPreview(source: string | undefined) {
       start();
     return () => {
       request++;
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", visibility);
+      motion.removeEventListener("change", motionChanged);
       if (previewing.current) player.pause();
       cancel();
       container.removeEventListener("pointerenter", enter);
       container.removeEventListener("pointermove", enter);
-      container.removeEventListener("pointerleave", stop);
+      container.removeEventListener("pointerleave", leave);
       container.removeEventListener("mouseenter", start);
       container.removeEventListener("mousemove", start);
-      container.removeEventListener("mouseleave", stop);
+      container.removeEventListener("mouseleave", leave);
       container.removeEventListener("focusin", start);
       container.removeEventListener("focusout", focusOut);
       player.removeEventListener("pointerdown", explicitPlayback);
@@ -127,6 +172,6 @@ export function useAdPreview(source: string | undefined) {
       player.removeEventListener("timeupdate", reset);
       player.removeEventListener("ended", ended);
     };
-  }, [source, cancel]);
+  }, [source, autoPreview, previewsEnabled, cancel]);
   return { video, startFullPlayback };
 }

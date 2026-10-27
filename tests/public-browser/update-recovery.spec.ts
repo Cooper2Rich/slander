@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("ordinary workspace errors still retry without reloading the document", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   await page.route("**/assets/api-*.js", (route) =>
     route.fulfill({
@@ -34,7 +34,7 @@ test("ordinary workspace errors still retry without reloading the document", asy
 test("a missing deployment chunk offers a real reload and preserves browser data", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   const originalIds = await page.evaluate(() => {
     localStorage.setItem(

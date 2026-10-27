@@ -44,6 +44,7 @@ import { ActivityPage } from "./pages/Activity";
 import { CampaignsPage, GivingPage } from "./pages/Campaigns";
 import { APP_NAME, PUBLIC_DEMO } from "./runtime";
 import { reloadPublicDemo } from "./public-demo/update-recovery";
+import { WorkspaceRail } from "./components/WorkspaceRail";
 
 export default function App({
   demoViews = {},
@@ -288,6 +289,20 @@ export default function App({
   }
   return (
     <div className="app-shell">
+      {PUBLIC_DEMO && (
+        <WorkspaceRail
+          workspace
+          onWorkspace={() =>
+            navigate(
+              role === "creator"
+                ? "/review"
+                : role === "admin"
+                  ? "/campaigns"
+                  : "/projects",
+            )
+          }
+        />
+      )}
       <a
         className="skip-link"
         href="#main-content"

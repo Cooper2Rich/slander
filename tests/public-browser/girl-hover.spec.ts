@@ -51,9 +51,10 @@ test("Girl previews across public, Admin, owner and creator views, including ear
 }, info) => {
   test.slow();
   await page.goto("./#/explore");
-  await expect(
-    page.getByRole("link", { name: "Source & local version" }),
-  ).toHaveAttribute("href", "https://github.com/Cooper2Rich/slander/tree/main");
+  await expect(page.locator(".public-notice a")).toHaveAttribute(
+    "href",
+    "https://github.com/Cooper2Rich/slander/tree/main",
+  );
   await page.getByLabel("Filter by cause").selectOption("Adoption");
   const card = page
     .locator(".ad-card")

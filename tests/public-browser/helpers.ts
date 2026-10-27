@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 export async function navigate(page: Page, label: string) {
   const legacyFilter = {
     "All submissions": "all",
@@ -15,6 +15,9 @@ export async function navigate(page: Page, label: string) {
     name: "Open navigation",
     exact: true,
   });
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .waitFor({ state: "attached" });
   if (await open.isVisible()) await open.click();
   const navigation = page.getByRole("navigation", { name: "Main navigation" });
   const linkName = new RegExp(
@@ -38,10 +41,22 @@ export async function navigate(page: Page, label: string) {
       .click();
     if (await open.isVisible()) await open.click();
   }
-  await page
+  const target = page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: linkName })
-    .click();
+    .getByRole("link", { name: linkName });
+  const href = await target.getAttribute("href");
+  await target.click();
+  await expect
+    .poll(() =>
+      navigation
+        .locator('a[aria-current="page"]')
+        .evaluateAll(
+          (links, selectedHref) =>
+            links.some((link) => link.getAttribute("href") === selectedHref),
+          href,
+        ),
+    )
+    .toBe(true);
   if (legacyFilter)
     await page.getByLabel("Filter by post status").selectOption(legacyFilter);
 }

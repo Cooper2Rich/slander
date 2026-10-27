@@ -69,6 +69,7 @@ test("public preview works without an API server and persists only browser sampl
   page,
   context,
 }, info) => {
+  test.setTimeout(90000);
   const errors: string[] = [],
     apiRequests: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));

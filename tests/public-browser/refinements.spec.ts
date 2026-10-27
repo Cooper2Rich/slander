@@ -4,10 +4,10 @@ import { navigate, selectOwner, openRiverCampaign } from "./helpers";
 test("leaderboard scopes campaigns, searches creators and opens ad profiles", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await expect(page.locator(".ad-description")).toHaveCount(7);
-  await expect(page.locator(".ad-support-copy").first()).toContainText(
-    "reach more people",
+  await expect(page.locator(".card-fund").first()).toContainText(
+    "Fund ad spend",
   );
   await page.getByRole("link", { name: "Leaderboard", exact: true }).click();
   const rows = page.locator(".leaderboard-table tbody tr");
@@ -87,7 +87,7 @@ test("leaderboard scopes campaigns, searches creators and opens ad profiles", as
 test("admin creatives show video thumbnails and searchable creator names without bulky sidebar cards", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await page.getByLabel("Demo role").selectOption("admin");
   await expect(page.locator(".workspace-hero")).toHaveCount(0);
   await expect(
@@ -117,12 +117,12 @@ test("admin creatives show video thumbnails and searchable creator names without
   await navigate(page, "Activity");
   await expect(page.locator(".activity-list")).toHaveCSS(
     "background-color",
-    "rgb(7, 18, 27)",
+    "rgb(11, 17, 25)",
   );
   await navigate(page, "Archives");
   await expect(
     page.locator(".empty-state, .archive-project").first(),
-  ).toHaveCSS("background-color", "rgb(7, 18, 27)");
+  ).toHaveCSS("background-color", "rgb(11, 17, 25)");
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -133,7 +133,7 @@ test("admin creatives show video thumbnails and searchable creator names without
 test("owner creatives and campaign funding share compact dark surfaces", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./#/explore");
   await selectOwner(page, "Nocturne Coffee · fictional");
   await navigate(page, "Creatives");
   await expect(page.locator(".post-thumbnail video")).toHaveCount(3);
@@ -147,7 +147,7 @@ test("owner creatives and campaign funding share compact dark surfaces", async (
   await expect(page.locator(".metric-card")).toHaveCount(4);
   await expect(page.locator(".metric-card").first()).toHaveCSS(
     "background-color",
-    "rgb(7, 18, 27)",
+    "rgb(11, 17, 25)",
   );
   const height = await page
     .locator(".metric-card")

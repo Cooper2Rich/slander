@@ -12,11 +12,15 @@ export function AdMedia({
   full = false,
   access,
   previewOnly = false,
+  autoPreview = false,
+  previewPaused = false,
 }: {
   ad: Pick<Post, "media" | "mediaType" | "title"> & { poster?: string };
   full?: boolean;
   access?: DemoAccess;
   previewOnly?: boolean;
+  autoPreview?: boolean;
+  previewPaused?: boolean;
 }) {
   const [source, setSource] = useState("");
   const [watching, setWatching] = useState(false);
@@ -50,7 +54,11 @@ export function AdMedia({
   const src = scoped ? source : demoAsset(ad.media);
   const poster =
     ad.poster || adoptionAds.find((entry) => entry.media === ad.media)?.poster;
-  const { video, startFullPlayback } = useAdPreview(src);
+  const { video, startFullPlayback } = useAdPreview(
+    src,
+    autoPreview,
+    !previewPaused,
+  );
   return ad.mediaType === "video" ? (
     <>
       <video
@@ -64,6 +72,7 @@ export function AdMedia({
         playsInline
         preload="metadata"
         aria-label={ad.title}
+        data-auto-preview={autoPreview || undefined}
         aria-hidden={previewOnly || undefined}
       />
       {!full && !watching && !previewOnly && (
