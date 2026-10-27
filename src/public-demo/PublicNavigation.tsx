@@ -13,7 +13,7 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { Link, NavLink, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Avatar, Logo } from "../components/ui";
 import { activeViewer, viewerState, type PublicCampaign } from "./catalog";
 import { publicArea, publicAreaNames } from "./navigation";
@@ -242,24 +242,34 @@ function ContextMenu({ campaigns, categories }: NavigationProps) {
 
 export function PublicLinks() {
   const viewer = activeViewer();
+  const { pathname } = useLocation();
+  const area = publicArea(pathname);
   return (
     <>
-      <NavLink to="/" end className="nav-item">
-        <House size={17} />
-        <span>Home</span>
-      </NavLink>
-      <NavLink to="/explore" className="nav-item">
-        <Compass size={17} />
-        <span>Discover ads</span>
-      </NavLink>
-      <NavLink to="/leaderboard" className="nav-item">
-        <Trophy size={17} />
-        <span>Leaderboard</span>
-      </NavLink>
-      <NavLink to="/viewer" className="nav-item">
-        <UserRound size={17} />
-        <span>{viewer ? "My giving" : "Viewer account"}</span>
-      </NavLink>
+      <ContextLink
+        to="/"
+        label="Home"
+        icon={House}
+        selected={area === "home"}
+      />
+      <ContextLink
+        to="/explore"
+        label="Discover ads"
+        icon={Compass}
+        selected={area === "discover"}
+      />
+      <ContextLink
+        to="/leaderboard"
+        label="Leaderboard"
+        icon={Trophy}
+        selected={area === "leaders"}
+      />
+      <ContextLink
+        to="/viewer"
+        label={viewer ? "My giving" : "Viewer account"}
+        icon={UserRound}
+        selected={area === "profile"}
+      />
     </>
   );
 }

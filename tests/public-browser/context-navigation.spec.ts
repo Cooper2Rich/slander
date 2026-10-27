@@ -54,6 +54,15 @@ test("Discover sidebar navigates causes and campaigns with persistent filters an
     "aria-current",
     "page",
   );
+  const primary = page.getByRole("navigation", {
+    name:
+      info.project.name === "mobile"
+        ? "Mobile public navigation"
+        : "Workspace shortcuts",
+  });
+  await expect(
+    primary.getByRole("link", { name: "Discover ads", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
   await page.goBack();
   await expect(page).toHaveURL(/#\/explore\?campaign=adoption-is$/);
   await expect(page.locator(".ad-card")).toHaveCount(1);
