@@ -287,8 +287,14 @@ body.public-demo {
 .public-demo .ripple-public.secondary-closed {
   --sidebar: 0px;
 }
+.public-demo .app-shell.workspace-secondary-closed {
+  --sidebar: 0px;
+}
+.public-demo .app-shell.workspace-rail-closed {
+  --rail: 0px;
+}
 .public-demo .workspace-rail[hidden],
-.public-demo .public-sidebar[hidden] {
+.public-demo .sidebar[hidden] {
   display: none;
 }
 .public-demo .public-layout-controls {

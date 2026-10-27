@@ -107,12 +107,17 @@ test("public About tab explains BRM's purpose and has its own section navigation
   await expect(
     primary.getByRole("link", { name: "About BRM", exact: true }),
   ).toHaveAttribute("aria-current", "page");
-  if (info.project.name === "mobile")
-    await page.locator(".public-mobile-context > summary").click();
-  else
-    await page
-      .getByRole("button", { name: "Show secondary sidebar", exact: true })
-      .click();
+  if (info.project.name === "mobile") {
+    const menu = page.locator(".public-mobile-context");
+    if ((await menu.getAttribute("open")) === null)
+      await menu.locator("summary").first().click();
+  } else {
+    const show = page.getByRole("button", {
+      name: "Show secondary sidebar",
+      exact: true,
+    });
+    if (await show.isVisible()) await show.click();
+  }
   const nav = page.getByRole("navigation", {
     name: "About BRM navigation",
     exact: true,

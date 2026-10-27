@@ -18,6 +18,8 @@ import App from "../App";
 import { Logo, Modal } from "../components/ui";
 import { APP_NAME } from "../runtime";
 import { WorkspaceRail } from "../components/WorkspaceRail";
+import type { NavigationControls } from "../components/navigation-controls";
+import { publicArea } from "./navigation";
 import { PublicMobileNavigation, PublicNavigation } from "./PublicNavigation";
 import { PublicHome } from "./PublicHome";
 import { PublicAbout } from "./PublicAbout";
@@ -179,7 +181,27 @@ export default function PublicApp() {
     if (publicRoute)
       document.title = `${location.pathname === "/" ? "Stories that make a difference" : location.pathname === "/about" ? "About BRM" : location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
   }, [publicRoute, location.pathname]);
-  if (!publicRoute) return <App demoViews={workspaceViews} />;
+  const navigation: NavigationControls = {
+    ...layout,
+    selectTab: (to) => {
+      const sameTab =
+        publicRoute && publicArea(location.pathname) === publicArea(to);
+      setLayout((old) => ({
+        ...old,
+        sidebarOpen: sameTab ? !old.sidebarOpen : true,
+      }));
+      if (!sameTab) navigate(to);
+    },
+    toggleRail: () => setLayout((old) => ({ ...old, railOpen: !old.railOpen })),
+    toggleSidebar: () =>
+      setLayout((old) => ({ ...old, sidebarOpen: !old.sidebarOpen })),
+    setSidebarOpen: (open) =>
+      setLayout((old) =>
+        old.sidebarOpen === open ? old : { ...old, sidebarOpen: open },
+      ),
+  };
+  if (!publicRoute)
+    return <App demoViews={workspaceViews} navigation={navigation} />;
   const adId = location.pathname.startsWith("/ads/")
     ? decodeURIComponent(location.pathname.slice(5))
     : null;
@@ -218,6 +240,7 @@ export default function PublicApp() {
         Skip to content
       </a>
       <WorkspaceRail
+        navigation={navigation}
         profileLabel={viewer ? "My giving" : "Viewer account"}
         hidden={!layout.railOpen}
       />
@@ -238,9 +261,7 @@ export default function PublicApp() {
               }
               aria-expanded={layout.railOpen}
               aria-controls="public-main-navigation"
-              onClick={() =>
-                setLayout((old) => ({ ...old, railOpen: !old.railOpen }))
-              }
+              onClick={navigation.toggleRail}
             >
               <Menu size={19} />
             </button>
@@ -253,9 +274,7 @@ export default function PublicApp() {
               }
               aria-expanded={layout.sidebarOpen}
               aria-controls="public-secondary-navigation"
-              onClick={() =>
-                setLayout((old) => ({ ...old, sidebarOpen: !old.sidebarOpen }))
-              }
+              onClick={navigation.toggleSidebar}
             >
               {layout.sidebarOpen ? (
                 <PanelLeftClose size={19} />
@@ -291,7 +310,10 @@ export default function PublicApp() {
             <select
               aria-label="Demo role"
               value="public"
-              onChange={(e) => enterWorkspace(e.target.value, navigate)}
+              onChange={(e) => {
+                navigation.setSidebarOpen(true);
+                enterWorkspace(e.target.value, navigate);
+              }}
             >
               <option value="public">Public viewer</option>
               <option value="creator">Creator</option>
@@ -301,6 +323,7 @@ export default function PublicApp() {
           </label>
         </header>
         <PublicMobileNavigation
+          navigation={navigation}
           campaigns={campaigns}
           categories={[...new Set(ads?.map((ad) => ad.category))]}
         />

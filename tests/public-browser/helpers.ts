@@ -15,10 +15,20 @@ export async function navigate(page: Page, label: string) {
     name: "Open navigation",
     exact: true,
   });
-  await page
-    .getByRole("navigation", { name: "Main navigation" })
-    .waitFor({ state: "attached" });
-  if (await open.isVisible()) await open.click();
+  await page.locator(".sidebar").waitFor({ state: "attached" });
+  const ensureOpen = async () => {
+    if (await open.isVisible()) {
+      if ((await open.getAttribute("aria-expanded")) !== "true")
+        await open.click();
+    } else {
+      const show = page.getByRole("button", {
+        name: "Show secondary sidebar",
+        exact: true,
+      });
+      if (await show.isVisible()) await show.click();
+    }
+  };
+  await ensureOpen();
   const navigation = page.getByRole("navigation", { name: "Main navigation" });
   const linkName = new RegExp(
     `^${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?: \\d+)?$`,
@@ -39,7 +49,11 @@ export async function navigate(page: Page, label: string) {
     await navigation
       .getByRole("link", { name: "All campaigns", exact: true })
       .click();
-    if (await open.isVisible()) await open.click();
+    await expect(navigation.locator('a[href="#/campaigns"]')).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await ensureOpen();
   }
   const target = page
     .getByRole("navigation", { name: "Main navigation" })

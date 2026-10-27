@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import {
   ChevronDown,
   Compass,
@@ -17,6 +16,10 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Avatar, Logo } from "../components/ui";
 import { activeViewer, viewerState, type PublicCampaign } from "./catalog";
 import { publicArea, publicAreaNames } from "./navigation";
+import {
+  selectNavigationTab,
+  type NavigationControls,
+} from "../components/navigation-controls";
 
 type NavigationProps = {
   campaigns: PublicCampaign[];
@@ -29,17 +32,24 @@ function ContextLink({
   label,
   icon: Icon,
   selected = false,
+  navigation,
 }: {
   to: string;
   label: string;
   icon: LucideIcon;
   selected?: boolean;
+  navigation?: NavigationControls;
 }) {
   return (
     <Link
       to={to}
       className={`nav-item ${selected ? "active" : ""}`}
       aria-current={selected ? "page" : undefined}
+      aria-expanded={
+        navigation ? selected && navigation.sidebarOpen : undefined
+      }
+      aria-controls={navigation ? "mobile-secondary-navigation" : undefined}
+      onClick={(event) => selectNavigationTab(event, to, navigation)}
     >
       <Icon size={17} />
       <span>{label}</span>
@@ -272,7 +282,11 @@ function ContextMenu({ campaigns, categories }: NavigationProps) {
   );
 }
 
-export function PublicLinks() {
+export function PublicLinks({
+  navigation,
+}: {
+  navigation: NavigationControls;
+}) {
   const viewer = activeViewer();
   const { pathname } = useLocation();
   const area = publicArea(pathname);
@@ -281,30 +295,35 @@ export function PublicLinks() {
       <ContextLink
         to="/"
         label="Home"
+        navigation={navigation}
         icon={House}
         selected={area === "home"}
       />
       <ContextLink
         to="/explore"
         label="Discover ads"
+        navigation={navigation}
         icon={Compass}
         selected={area === "discover"}
       />
       <ContextLink
         to="/about"
         label="About BRM"
+        navigation={navigation}
         icon={Info}
         selected={area === "about"}
       />
       <ContextLink
         to="/leaderboard"
         label="Leaderboard"
+        navigation={navigation}
         icon={Trophy}
         selected={area === "leaders"}
       />
       <ContextLink
         to="/viewer"
         label={viewer ? "My giving" : "Viewer account"}
+        navigation={navigation}
         icon={UserRound}
         selected={area === "profile"}
       />
@@ -312,19 +331,25 @@ export function PublicLinks() {
   );
 }
 
-export function PublicMobileNavigation(props: NavigationProps) {
+export function PublicMobileNavigation({
+  navigation,
+  ...props
+}: NavigationProps & { navigation: NavigationControls }) {
   const location = useLocation();
-  const menu = useRef<HTMLDetailsElement>(null);
   const title = publicAreaNames[publicArea(location.pathname)];
-  useEffect(() => {
-    if (menu.current) menu.current.open = false;
-  }, [location.key]);
   return (
     <>
       <nav className="public-mobile-nav" aria-label="Mobile public navigation">
-        <PublicLinks />
+        <PublicLinks navigation={navigation} />
       </nav>
-      <details ref={menu} className="public-mobile-context">
+      <details
+        id="mobile-secondary-navigation"
+        open={navigation.sidebarOpen}
+        onToggle={(event) =>
+          navigation.setSidebarOpen(event.currentTarget.open)
+        }
+        className="public-mobile-context"
+      >
         <summary>
           {title} navigation <ChevronDown size={15} />
         </summary>

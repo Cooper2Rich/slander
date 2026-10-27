@@ -25,6 +25,8 @@ import {
   Inbox,
   Layers3,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Search,
   ShieldCheck,
   Megaphone,
@@ -45,10 +47,13 @@ import { CampaignsPage, GivingPage } from "./pages/Campaigns";
 import { APP_NAME, PUBLIC_DEMO } from "./runtime";
 import { reloadPublicDemo } from "./public-demo/update-recovery";
 import { WorkspaceRail } from "./components/WorkspaceRail";
+import type { NavigationControls } from "./components/navigation-controls";
 
 export default function App({
   demoViews = {},
+  navigation,
 }: {
+  navigation?: NavigationControls;
   demoViews?: Partial<
     Record<
       | "ArchivesPage"
@@ -98,6 +103,10 @@ export default function App({
   const [toast, setToast] = useState("");
   const [help, setHelp] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const closePanel = () => {
+    setMobileNav(false);
+    navigation?.setSidebarOpen(false);
+  };
   useLayoutEffect(() => {
     setMobileNav(false);
     setSearch("");
@@ -110,6 +119,7 @@ export default function App({
   }, [toast]);
   const setRole = (value: Role) => {
     changeRole(value);
+    navigation?.setSidebarOpen(true);
     setMobileNav(false);
     setSearch("");
     setToast("");
@@ -288,8 +298,16 @@ export default function App({
     );
   }
   return (
-    <div className="app-shell">
-      {PUBLIC_DEMO && <WorkspaceRail workspace />}
+    <div
+      className={`app-shell ${navigation && !navigation.sidebarOpen ? "workspace-secondary-closed" : ""} ${navigation && !navigation.railOpen ? "workspace-rail-closed" : ""}`}
+    >
+      {PUBLIC_DEMO && (
+        <WorkspaceRail
+          workspace
+          navigation={navigation}
+          hidden={navigation ? !navigation.railOpen : false}
+        />
+      )}
       <a
         className="skip-link"
         href="#main-content"
@@ -308,11 +326,15 @@ export default function App({
       {mobileNav && (
         <button
           className="mobile-backdrop"
-          onClick={() => setMobileNav(false)}
+          onClick={closePanel}
           aria-label="Close navigation"
         />
       )}
-      <aside className={`sidebar ${mobileNav ? "open" : ""}`}>
+      <aside
+        id="public-secondary-navigation"
+        hidden={navigation ? !navigation.sidebarOpen : false}
+        className={`sidebar ${mobileNav ? "open" : ""}`}
+      >
         <NavLink
           to="/projects"
           className="brand"
@@ -452,11 +474,50 @@ export default function App({
         <header className="topbar">
           <button
             className="icon-button mobile-menu"
-            onClick={() => setMobileNav(true)}
+            onClick={() => {
+              navigation?.setSidebarOpen(!mobileNav);
+              setMobileNav((old) => !old);
+            }}
             aria-label="Open navigation"
+            aria-expanded={mobileNav}
+            aria-controls="public-secondary-navigation"
           >
             <Menu size={22} />
           </button>
+          {navigation && (
+            <div className="public-layout-controls">
+              <button
+                className="icon-button"
+                aria-label={
+                  navigation.railOpen
+                    ? "Hide main navigation"
+                    : "Show main navigation"
+                }
+                aria-expanded={navigation.railOpen}
+                aria-controls="public-main-navigation"
+                onClick={navigation.toggleRail}
+              >
+                <Menu size={19} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label={
+                  navigation.sidebarOpen
+                    ? "Hide secondary sidebar"
+                    : "Show secondary sidebar"
+                }
+                aria-expanded={navigation.sidebarOpen}
+                aria-controls="public-secondary-navigation"
+                onClick={navigation.toggleSidebar}
+              >
+                {navigation.sidebarOpen ? (
+                  <PanelLeftClose size={19} />
+                ) : (
+                  <PanelLeftOpen size={19} />
+                )}
+              </button>
+            </div>
+          )}
           <div className="breadcrumb">
             <span>Workspace</span>
             <ChevronRight size={13} />
@@ -500,7 +561,9 @@ export default function App({
                 value={role}
                 onChange={(e) =>
                   e.target.value === "public"
-                    ? navigate("/explore")
+                    ? navigation
+                      ? navigation.selectTab("/explore")
+                      : navigate("/explore")
                     : setRole(e.target.value as Role)
                 }
               >
