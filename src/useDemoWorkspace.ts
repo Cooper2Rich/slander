@@ -1,3 +1,4 @@
+import { browserStorage } from "./public-demo/storage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { PUBLIC_DEMO } from "./runtime";
@@ -9,7 +10,7 @@ export function useDemoWorkspace() {
     if (PUBLIC_DEMO) {
       try {
         const selected = JSON.parse(
-          localStorage.getItem("slander-public-access-v1") || "null",
+          browserStorage.getItem("slander-public-access-v1") || "null",
         );
         if (
           selected &&
@@ -20,7 +21,7 @@ export function useDemoWorkspace() {
         /* Fall back to the role picker for an old browser preference. */
       }
     }
-    const saved = localStorage.getItem("slander-role");
+    const saved = browserStorage.getItem("slander-role");
     return {
       role:
         saved === "owner" || saved === "nonprofit"
@@ -38,7 +39,10 @@ export function useDemoWorkspace() {
   });
   useEffect(() => {
     if (PUBLIC_DEMO)
-      localStorage.setItem("slander-public-access-v1", JSON.stringify(access));
+      browserStorage.setItem(
+        "slander-public-access-v1",
+        JSON.stringify(access),
+      );
   }, [access]);
   const [loaded, setLoaded] = useState<{ key: string; data: Workspace } | null>(
     null,
@@ -83,7 +87,10 @@ export function useDemoWorkspace() {
   }, [load]);
   const setRole = (role: Role) => {
     setAccess({ role, nonprofitId: null, creatorId: null });
-    localStorage.setItem("slander-role", role === "nonprofit" ? "owner" : role);
+    browserStorage.setItem(
+      "slander-role",
+      role === "nonprofit" ? "owner" : role,
+    );
   };
   const chooseIdentity = (id: string | null) =>
     setAccess((current) => ({

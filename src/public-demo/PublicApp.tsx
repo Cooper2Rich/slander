@@ -1,3 +1,4 @@
+import { browserStorage } from "./storage";
 import { useEffect, useRef, useState } from "react";
 import {
   Link,
@@ -49,7 +50,7 @@ export function enterWorkspace(
   role: string,
   navigate: ReturnType<typeof useNavigate>,
 ) {
-  localStorage.setItem(
+  browserStorage.setItem(
     "slander-public-access-v1",
     JSON.stringify({ role, creatorId: null, nonprofitId: null }),
   );

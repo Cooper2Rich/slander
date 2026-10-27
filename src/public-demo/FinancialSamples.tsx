@@ -1,9 +1,10 @@
+import { browserStorage } from "./storage";
 import { useEffect, useState } from "react";
 
 const key = "slander-financial-samples-v1";
 const event = "slander-financial-samples-changed";
 export function useFinancialSamples() {
-  const read = () => localStorage.getItem(key) !== "hidden";
+  const read = () => browserStorage.getItem(key) !== "hidden";
   const [enabled, setEnabled] = useState(read);
   useEffect(() => {
     const update = () => setEnabled(read());
@@ -17,7 +18,7 @@ export function useFinancialSamples() {
   return {
     enabled,
     setEnabled(value: boolean) {
-      localStorage.setItem(key, value ? "shown" : "hidden");
+      browserStorage.setItem(key, value ? "shown" : "hidden");
       window.dispatchEvent(new Event(event));
     },
   };

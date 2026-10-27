@@ -1,0 +1,110 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  readFileSync,
+  rmSync,
+  existsSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve, sep } from "node:path";
+import { execFileSync } from "node:child_process";
+import {
+  stageWorking,
+  assertWorkingChanges,
+} from "../scripts/stage-working.mjs";
+import { previewStorageKey } from "../src/public-demo/storage.ts";
+
+test("working storage isolates every key and media database without migrating main or John", () => {
+  for (const key of [
+    "slander-role",
+    "slander-public-access-v1",
+    "slander-public-workspace-v1",
+    "slander-public-preview-v1",
+    "slander-public-viewers-v1",
+    "slander-financial-samples-v1",
+    "ripple-leaderboard-history-v1",
+    "slander-public-media-v1",
+  ]) {
+    assert.equal(previewStorageKey(key, "/slander/working/"), `working:${key}`);
+    assert.equal(previewStorageKey(key, "/slander/"), key);
+    assert.equal(
+      previewStorageKey(key, "/slander/demo-shared-with-john/"),
+      key,
+    );
+  }
+});
+
+test("working staging changes only working/, preserving the main entry, John tree and old preview chunks", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "working-preview-"));
+  t.after(() => {
+    if (!resolve(root).startsWith(resolve(tmpdir()) + sep))
+      throw new Error("Unexpected cleanup path");
+    rmSync(root, { recursive: true, force: true });
+  });
+  const destination = join(root, "archive"),
+    source = join(root, "build");
+  mkdirSync(join(destination, "demo-shared-with-john"), { recursive: true });
+  mkdirSync(join(destination, "working/assets"), { recursive: true });
+  mkdirSync(join(source, "assets"), { recursive: true });
+  const git = (...args) =>
+    execFileSync("git", ["-C", destination, ...args], {
+      encoding: "utf8",
+    }).trim();
+  git("init", "-b", "gh-pages");
+  git("config", "user.name", "Preview test");
+  git("config", "user.email", "test@example.test");
+  writeFileSync(join(destination, "index.html"), "frozen main");
+  writeFileSync(
+    join(destination, "demo-shared-with-john/index.html"),
+    "frozen John",
+  );
+  writeFileSync(
+    join(destination, "working/assets/previous-old12345.js"),
+    "old lazy module",
+  );
+  git("add", ".");
+  git("commit", "-m", "Existing sites");
+  const main = git("rev-parse", "HEAD:index.html"),
+    john = git("rev-parse", "HEAD:demo-shared-with-john");
+  const manifest = {
+    branch: "working",
+    dirty: false,
+    commit: "a".repeat(40),
+    base: "/slander/working/",
+    storagePrefix: "working:",
+  };
+  writeFileSync(join(source, "working-preview.json"), JSON.stringify(manifest));
+  writeFileSync(
+    join(source, "index.html"),
+    '<script src="/slander/working/assets/new-new12345.js"></script>',
+  );
+  writeFileSync(join(source, "assets/new-new12345.js"), "new preview");
+  const result = stageWorking(source, destination);
+  assert.equal(result.mainIndex, main);
+  assert.equal(result.johnTree, john);
+  assert.equal(
+    readFileSync(join(destination, "index.html"), "utf8"),
+    "frozen main",
+  );
+  assert.equal(
+    readFileSync(join(destination, "demo-shared-with-john/index.html"), "utf8"),
+    "frozen John",
+  );
+  assert.ok(
+    existsSync(join(destination, "working/assets/previous-old12345.js")),
+  );
+  git("add", "--", "working");
+  assertWorkingChanges(destination, true);
+  git("commit", "-m", "Isolated preview");
+  assert.equal(git("rev-parse", "HEAD:index.html"), main);
+  assert.equal(git("rev-parse", "HEAD:demo-shared-with-john"), john);
+  writeFileSync(join(destination, "index.html"), "unexpected root change");
+  git("add", "index.html");
+  assert.throws(
+    () => assertWorkingChanges(destination, true),
+    /outside working/,
+  );
+});

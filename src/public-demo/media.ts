@@ -1,4 +1,5 @@
 import { demoAsset } from "../runtime";
+import { previewStorageKey } from "./storage";
 import { createHash } from "./platform-crypto";
 import { adoptionAds } from "./adoption-ads.js";
 
@@ -29,7 +30,10 @@ export function readFileSync(path: URL | string) {
 export const readSampleMedia = readFileSync;
 async function database() {
   return new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("slander-public-media-v1", 1);
+    const request = indexedDB.open(
+      previewStorageKey("slander-public-media-v1"),
+      1,
+    );
     request.onupgradeneeded = () => request.result.createObjectStore("files");
     request.onsuccess = () => resolve(request.result);
     request.onerror = () =>

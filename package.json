@@ -17,7 +17,9 @@
     "test:e2e": "npm run build && playwright test",
     "check": "npm run build && npm test",
     "format": "prettier --write src server tests *.json *.ts index.html README.md docs/DEMO.md",
-    "format:check": "prettier --check src server tests *.json *.ts index.html README.md docs/DEMO.md"
+    "format:check": "prettier --check src server tests *.json *.ts index.html README.md docs/DEMO.md",
+    "build:working": "tsc -b && node scripts/build-working.mjs",
+    "test:working": "npm run build:working && playwright test --config playwright.working.config.ts"
   },
   "dependencies": {
     "@noble/hashes": "^2.0.1",

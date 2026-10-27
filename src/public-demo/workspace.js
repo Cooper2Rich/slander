@@ -1,3 +1,4 @@
+import { browserStorage } from "./storage";
 import { seedData } from "../../server/seed.js";
 import {
   configurePolicy,
@@ -64,10 +65,10 @@ const uuid = () => crypto.randomUUID();
 let preparing;
 
 function save(state) {
-  localStorage.setItem(key, JSON.stringify(state));
+  browserStorage.setItem(key, JSON.stringify(state));
 }
 function state() {
-  const value = JSON.parse(localStorage.getItem(key) || "null");
+  const value = JSON.parse(browserStorage.getItem(key) || "null");
   if (!value || value.version !== 1)
     throw new Error("The fictional workspace is still loading. Try again.");
   bindEligibilityRecords(value, {
@@ -88,7 +89,7 @@ function state() {
 export async function prepareWorkspace() {
   return (preparing ||= (async () => {
     await prepareSamples();
-    const existing = JSON.parse(localStorage.getItem(key) || "null");
+    const existing = JSON.parse(browserStorage.getItem(key) || "null");
     if (existing?.version === 1) {
       if (existing.coffeeShowcaseVersion !== 2) {
         await addCoffeeShowcase(existing);
@@ -167,7 +168,7 @@ export async function prepareWorkspace() {
     // Preserve the earlier public preview's consent and sample; never touch the
     // user's local Express database or any other website's browser storage.
     const prior = JSON.parse(
-      localStorage.getItem("slander-public-preview-v1") || "null",
+      browserStorage.getItem("slander-public-preview-v1") || "null",
     );
     if (prior?.accepted) value.participations.push(`${creatorId}:${terms.id}`);
     for (const p of prior?.posts || []) {

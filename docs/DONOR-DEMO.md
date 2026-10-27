@@ -30,7 +30,7 @@ Donors fund project awareness work; viewers receive adoption education. Geograph
 
 **Live donation unavailable**, **Real payment unavailable**, and **Live ad spending unavailable** are disabled controls. This implementation cannot charge cards, transfer money, connect accounts or buy ads. New funding terms, targets, tax treatment and real fund use need approval. The existing simulated 10% creator / 5% application / 85% nonprofit allocation is labeled illustrative and does not establish production terms.
 
-The sole GitHub Actions publication workflow is `.github/workflows/public-demo.yml`. It triggers on main and checks `github.ref == 'refs/heads/main'`; `working` has no branch-scoped hosted preview. Pushing `working` saves reviewed source but does not publish the new demo at the main GitHub Pages URL. Publication requires a separate authorized action. No video was created or changed.
+The main publication workflow `.github/workflows/public-demo.yml` remains unchanged and guards `refs/heads/main`. The isolated `.github/workflows/working-preview.yml` guards `refs/heads/working`, builds `/slander/working/` and updates only the generated `working/` directory before deploying the complete preserved archive. It uses the same protected Pages environment and serialized deployment group. Its deployment needs an explicit `working` environment branch allow-list entry; it never weakens that policy or creates another environment. See [working preview publication](WORKING-PREVIEW.md). No video was created or changed.
 
 ## Verification
 

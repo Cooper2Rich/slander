@@ -3,6 +3,10 @@ import { readFileSync } from "node:fs";
 import { resolve, extname, sep } from "node:path";
 
 const root = resolve("public-site");
+const base = process.env.PUBLIC_DEMO_BASE_PATH || "/slander/";
+if (!["/slander/", "/slander/working/"].includes(base))
+  throw new Error("Unsupported preview base");
+const port = Number(process.env.PUBLIC_DEMO_PORT || 3200);
 const mime = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -17,11 +21,8 @@ createServer((req, res) => {
   const path = decodeURIComponent(
     new URL(req.url, "http://localhost").pathname,
   );
-  const target = resolve(
-    root,
-    path.replace(/^\/slander\//, "") || "index.html",
-  );
-  if (!path.startsWith("/slander/") || !target.startsWith(root + sep)) {
+  const target = resolve(root, path.slice(base.length) || "index.html");
+  if (!path.startsWith(base) || !target.startsWith(root + sep)) {
     res.writeHead(404).end();
     return;
   }
@@ -57,6 +58,6 @@ createServer((req, res) => {
   } catch {
     res.writeHead(404).end();
   }
-}).listen(3200, "127.0.0.1", () =>
-  console.log("Public preview: http://127.0.0.1:3200/slander/"),
+}).listen(port, "127.0.0.1", () =>
+  console.log(`Public preview: http://127.0.0.1:${port}${base}`),
 );

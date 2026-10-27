@@ -2,9 +2,13 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 
+const base = process.env.PUBLIC_DEMO_BASE_PATH || "/slander/";
+if (!["/slander/", "/slander/working/"].includes(base))
+  throw new Error("Unsupported public demo base path");
+
 export default defineConfig({
   plugins: [react()],
-  base: "/slander/",
+  base,
   resolve: {
     alias: {
       "./media-samples.js": fileURLToPath(

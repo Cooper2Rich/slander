@@ -1,3 +1,4 @@
+import { browserStorage } from "./storage";
 import type { DemoAccess } from "../types";
 import type { Workspace } from "../types";
 import { viewerState } from "./catalog";
@@ -28,13 +29,13 @@ type Intent = {
 };
 type Preview = { accepted: boolean; posts: unknown[]; intents: Intent[] };
 function read(): Preview {
-  const value = JSON.parse(localStorage.getItem(key) || "null");
+  const value = JSON.parse(browserStorage.getItem(key) || "null");
   return value && Array.isArray(value.intents)
     ? value
     : { accepted: false, posts: [], intents: [] };
 }
 function write(value: Preview) {
-  localStorage.setItem(key, JSON.stringify(value));
+  browserStorage.setItem(key, JSON.stringify(value));
 }
 function totals(state: Preview, selectedCreator?: string | null) {
   const gifts = state.intents

@@ -1,0 +1,79 @@
+name: Publish isolated working preview
+
+on:
+  push:
+    branches: [working]
+  workflow_dispatch:
+
+# Main and working both preserve and deploy the latest complete archive.
+concurrency:
+  group: public-demo-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/working'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    # Keep the existing protected environment. Never bypass its branch policy.
+    environment:
+      name: github-pages
+      url: https://cooper2rich.github.io/slander/working/
+    steps:
+      - name: Check out working source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check domain and archive preservation behavior
+        run: npm test
+      - name: Build isolated working site
+        run: npm run build:working
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify working navigation and browser storage isolation
+        run: npx playwright test --config playwright.working.config.ts
+      - name: Fetch latest complete generated archive after serialized checks
+        uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+          path: pages-archive
+          fetch-depth: 0
+      - name: Stage only working preview and preserve main and John
+        run: node scripts/stage-working.mjs --destination pages-archive
+      - name: Save generated working directory only
+        run: |
+          git -C pages-archive config user.name 'github-actions[bot]'
+          git -C pages-archive config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C pages-archive add -- working
+          node scripts/stage-working.mjs --destination pages-archive --verify-staged
+          if ! git -C pages-archive diff --cached --quiet; then
+            git -C pages-archive commit -m "Publish isolated working ${GITHUB_SHA}"
+            git -C pages-archive push origin HEAD:gh-pages
+          fi
+          echo "Working preview: https://cooper2rich.github.io/slander/working/" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source: ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Main entry: $(git -C pages-archive rev-parse HEAD:index.html)" >> "$GITHUB_STEP_SUMMARY"
+          echo "John snapshot: $(git -C pages-archive rev-parse HEAD:demo-shared-with-john)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+      - name: Upload complete preserved site archive
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: pages-archive
+          include-hidden-files: true
+      - name: Publish preserved archive with isolated working URL
+        uses: actions/deploy-pages@v5

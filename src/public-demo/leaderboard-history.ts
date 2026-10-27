@@ -1,3 +1,4 @@
+import { browserStorage } from "./storage.ts";
 import type { PublicAd, PublicCampaign } from "./catalog";
 import {
   leaderboardWindow,
@@ -115,7 +116,7 @@ export function backfillAdoptionSampleWins(
 }
 
 export function loadPastResults(ads: PublicAd[], campaigns: PublicCampaign[]) {
-  const raw = localStorage.getItem(key);
+  const raw = browserStorage.getItem(key);
   const prior: PastResult[] = raw ? JSON.parse(raw) : [];
   const results = backfillAdoptionSampleWins(
     ads,
@@ -125,6 +126,6 @@ export function loadPastResults(ads: PublicAd[], campaigns: PublicCampaign[]) {
     results.length !== prior.length ||
     results.some((result, index) => result !== prior[index])
   )
-    localStorage.setItem(key, JSON.stringify(results));
+    browserStorage.setItem(key, JSON.stringify(results));
   return results;
 }

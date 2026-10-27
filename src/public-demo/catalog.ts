@@ -1,3 +1,4 @@
+import { browserStorage } from "./storage";
 import { workspaceRequest } from "./workspace.js";
 import type { DailyMetrics } from "./leaderboard-periods";
 import { allocateAdFund, type AdFundAllocation } from "./ad-fund-policy";
@@ -81,7 +82,7 @@ type ViewerState = {
 };
 const key = "slander-public-viewers-v1";
 export function viewerState(): ViewerState {
-  const raw = localStorage.getItem(key);
+  const raw = browserStorage.getItem(key);
   return raw ? JSON.parse(raw) : { profiles: [], activeId: null, support: [] };
 }
 export function activeViewer() {
@@ -89,7 +90,7 @@ export function activeViewer() {
   return state.profiles.find((p) => p.id === state.activeId);
 }
 function save(state: ViewerState) {
-  localStorage.setItem(key, JSON.stringify(state));
+  browserStorage.setItem(key, JSON.stringify(state));
 }
 export function createViewer(name: string, email: string) {
   if (
