@@ -1,6 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 
 async function contextMenu(page: Page, area: string) {
+  const open = page.getByRole("button", {
+    name: "Show secondary sidebar",
+    exact: true,
+  });
+  if (await open.isVisible()) await open.click();
   const mobile = page.locator(".public-mobile-context");
   if (
     (await mobile.isVisible()) &&
@@ -170,7 +175,7 @@ test("Leaders sidebar changes periods and past results while retaining campaign 
   ).toHaveAttribute("aria-current", "page");
 });
 
-test("Profile menu follows viewer state and Studio returns to the selected role", async ({
+test("Profile menu follows viewer state and role previews remain available without Studio", async ({
   page,
 }, info) => {
   await page.goto("./#/viewer");
@@ -215,7 +220,10 @@ test("Profile menu follows viewer state and Studio returns to the selected role"
       .getByRole("navigation", { name: "Workspace shortcuts" })
       .getByRole("link", { name: "Discover ads", exact: true })
       .click();
-    await page.getByRole("button", { name: "Studio", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Studio", exact: true }),
+    ).toHaveCount(0);
+    await page.getByLabel("Demo role").selectOption("admin");
     await expect(page.getByLabel("Demo role")).toHaveValue("admin");
   }
 });

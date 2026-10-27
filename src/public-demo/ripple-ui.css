@@ -1,4 +1,4 @@
-/* Blue Ripple's community and studio share one navigation and card system. */
+/* Blue Ripple's community and workspaces share one navigation system. */
 body.public-demo {
   --sidebar: 226px;
   --rail: 64px;
@@ -280,6 +280,30 @@ body.public-demo {
 .public-demo .public-main-shell {
   margin-left: calc(var(--rail) + var(--sidebar));
   min-height: calc(100vh - var(--public-notice-height));
+}
+.public-demo .ripple-public.rail-closed {
+  --rail: 0px;
+}
+.public-demo .ripple-public.secondary-closed {
+  --sidebar: 0px;
+}
+.public-demo .workspace-rail[hidden],
+.public-demo .public-sidebar[hidden] {
+  display: none;
+}
+.public-demo .public-layout-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.public-demo .public-layout-controls .icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+.public-demo .public-layout-controls .icon-button:hover {
+  background: var(--raised);
+  color: var(--brand-light);
 }
 .public-demo .ripple-public .discovery-header {
   min-height: 64px;
@@ -1137,5 +1161,185 @@ body.public-demo {
   .public-demo .ripple-public .ad-card-media img,
   .public-demo .ripple-public .ad-card-media video {
     transition: none;
+  }
+}
+
+/* A laptop feed prioritizes readable metadata and compact video frames. */
+.public-demo .ripple-public .ad-grid {
+  gap: 26px 16px;
+}
+.public-demo .ripple-public .ad-card-media {
+  aspect-ratio: 16 / 10;
+  border-radius: 12px;
+}
+.public-demo .ripple-public .ad-card-copy {
+  padding-top: 10px;
+}
+.public-demo .ripple-public .ad-card-copy h3 {
+  font-size: 14px;
+  line-height: 1.45;
+  margin-bottom: 5px;
+}
+.public-demo .ripple-public .ad-card-copy > .ad-card-cause {
+  font-size: 11px;
+}
+.public-demo .ripple-public .ad-card-copy > .ad-byline {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 5px;
+}
+.public-demo .ripple-public .ad-card-copy > .ad-description {
+  display: none;
+}
+.public-demo .ripple-public .ad-card .ad-stats {
+  padding: 9px 0;
+  margin-bottom: 10px;
+}
+.public-demo .ripple-public .ad-card .ad-stats dt {
+  font-size: 11px;
+}
+.public-demo .ripple-public .ad-card .ad-stats dd {
+  font-size: 14px;
+}
+.public-demo .ripple-public .card-fund {
+  min-height: 34px;
+  font-size: 12px;
+}
+.public-demo .ripple-public .ad-feature-badge {
+  top: 9px;
+  left: 9px;
+  padding: 5px 8px;
+}
+.public-demo .brm-about {
+  max-width: 960px;
+  margin: 12px auto 40px;
+}
+.public-demo .about-intro h1 {
+  font-size: clamp(36px, 4.2vw, 62px);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -2px;
+  margin: 25px 0;
+}
+.public-demo .about-lead {
+  font-size: 19px;
+  line-height: 1.7;
+  color: #c2d7ea;
+  max-width: 620px;
+}
+.public-demo .about-why {
+  margin-top: 44px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 40px;
+  padding: 32px 0;
+  border-block: 1px solid var(--line);
+}
+.public-demo .about-why > span {
+  align-self: start;
+  margin-top: 4px;
+}
+.public-demo .brm-about p {
+  font-size: 14px;
+  line-height: 1.85;
+  color: #adbed0;
+  margin: 0 0 16px;
+}
+.public-demo .brm-about .about-lead {
+  font-size: 19px;
+}
+.public-demo .about-section {
+  padding-top: 42px;
+  scroll-margin-top: calc(var(--public-notice-height) + 20px);
+}
+.public-demo .about-section h2 {
+  font-size: 29px;
+  font-weight: 550;
+  letter-spacing: -0.8px;
+  margin: 12px 0 26px;
+}
+.public-demo .about-steps {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 22px;
+}
+.public-demo .about-steps li {
+  display: flex;
+  gap: 20px;
+}
+.public-demo .about-steps li > span {
+  color: var(--brand-light);
+  font-size: 14px;
+  padding-top: 3px;
+}
+.public-demo .brm-about h3 {
+  font-size: 17px;
+  font-weight: 550;
+  margin: 0 0 8px;
+}
+.public-demo .about-people {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin-bottom: 22px;
+}
+.public-demo .about-people > div {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+.public-demo .about-people svg {
+  color: var(--brand-light);
+  margin-bottom: 20px;
+}
+.public-demo .about-demo {
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+}
+@media (min-width: 1240px) {
+  .public-demo .ripple-public .ad-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .public-demo .ripple-public.secondary-open .ad-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .public-demo .ripple-public .discovery-content {
+    padding-inline: 24px;
+  }
+}
+@media (min-width: 960px) and (max-width: 1239px) {
+  .public-demo .ripple-public .ad-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .public-demo .ripple-public.secondary-open .ad-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 761px) and (max-width: 959px) {
+  .public-demo .ripple-public .ad-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .public-demo .ripple-public.secondary-open .ad-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .public-demo .public-layout-controls {
+    display: none;
+  }
+  .public-demo .brm-about {
+    margin-top: 8px;
+  }
+  .public-demo .about-why {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    margin-top: 30px;
+  }
+  .public-demo .about-people {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .public-demo .about-section h2 {
+    font-size: 25px;
   }
 }

@@ -201,14 +201,14 @@ test("reduced motion prevents automatic preview; viewer profiles can be left and
   ).toBe(true);
 });
 
-test("public ad grid shows larger square cards and adapts without horizontal scrolling", async ({
+test("public ad grid shows five compact cards and adapts without horizontal scrolling", async ({
   page,
 }, info) => {
   await page.goto("./#/explore");
   await expect(page.locator(".ad-card")).toHaveCount(7);
   for (const [width, columns] of [
-    [1440, 3],
-    [1024, 2],
+    [1440, 5],
+    [1024, 4],
     [713, 2],
     [390, 1],
   ]) {

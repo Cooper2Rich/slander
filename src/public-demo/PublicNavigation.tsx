@@ -18,7 +18,11 @@ import { Avatar, Logo } from "../components/ui";
 import { activeViewer, viewerState, type PublicCampaign } from "./catalog";
 import { publicArea, publicAreaNames } from "./navigation";
 
-type NavigationProps = { campaigns: PublicCampaign[]; categories: string[] };
+type NavigationProps = {
+  campaigns: PublicCampaign[];
+  categories: string[];
+  hidden?: boolean;
+};
 
 function ContextLink({
   to,
@@ -102,6 +106,34 @@ function ContextMenu({ campaigns, categories }: NavigationProps) {
             label="How it works"
             icon={Info}
             selected={section === "how-it-works"}
+          />
+        </>
+      )}
+      {area === "about" && (
+        <>
+          <ContextLink
+            to="/about"
+            label="Why BRM"
+            icon={Heart}
+            selected={!section}
+          />
+          <ContextLink
+            to="/about?section=about-how"
+            label="How a ripple grows"
+            icon={Layers3}
+            selected={section === "about-how"}
+          />
+          <ContextLink
+            to="/about?section=about-community"
+            label="Who it’s for"
+            icon={UserRound}
+            selected={section === "about-community"}
+          />
+          <ContextLink
+            to="/about?section=about-demo"
+            label="About this demo"
+            icon={Info}
+            selected={section === "about-demo"}
           />
         </>
       )}
@@ -259,6 +291,12 @@ export function PublicLinks() {
         selected={area === "discover"}
       />
       <ContextLink
+        to="/about"
+        label="About BRM"
+        icon={Info}
+        selected={area === "about"}
+      />
+      <ContextLink
         to="/leaderboard"
         label="Leaderboard"
         icon={Trophy}
@@ -301,7 +339,11 @@ export function PublicNavigation(props: NavigationProps) {
   const { pathname } = useLocation();
   const title = publicAreaNames[publicArea(pathname)];
   return (
-    <aside className="sidebar public-sidebar">
+    <aside
+      id="public-secondary-navigation"
+      hidden={props.hidden}
+      className="sidebar public-sidebar"
+    >
       <Link to="/" className="brand" aria-label="Blue Ripple Media home">
         <Logo />
       </Link>

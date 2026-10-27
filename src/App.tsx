@@ -289,20 +289,7 @@ export default function App({
   }
   return (
     <div className="app-shell">
-      {PUBLIC_DEMO && (
-        <WorkspaceRail
-          workspace
-          onWorkspace={() =>
-            navigate(
-              role === "creator"
-                ? "/review"
-                : role === "admin"
-                  ? "/campaigns"
-                  : "/projects",
-            )
-          }
-        />
-      )}
+      {PUBLIC_DEMO && <WorkspaceRail workspace />}
       <a
         className="skip-link"
         href="#main-content"

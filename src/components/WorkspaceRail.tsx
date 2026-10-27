@@ -1,21 +1,26 @@
-import { Compass, House, PanelsTopLeft, Trophy, UserRound } from "lucide-react";
+import { Compass, House, Info, Trophy, UserRound } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Logo } from "./ui";
 import { publicArea } from "../public-demo/navigation";
 
 export function WorkspaceRail({
   workspace = false,
-  onWorkspace,
   profileLabel = "Your profile",
+  hidden = false,
 }: {
   workspace?: boolean;
-  onWorkspace: () => void;
   profileLabel?: string;
+  hidden?: boolean;
 }) {
   const { pathname } = useLocation();
   const area = publicArea(pathname);
   return (
-    <nav className="workspace-rail" aria-label="Workspace shortcuts">
+    <nav
+      id="public-main-navigation"
+      hidden={hidden}
+      className="workspace-rail"
+      aria-label="Workspace shortcuts"
+    >
       <Link to="/" className="rail-brand" aria-label="Blue Ripple home">
         <Logo small />
       </Link>
@@ -27,6 +32,13 @@ export function WorkspaceRail({
           name: "Discover ads",
           area: "discover",
           Icon: Compass,
+        },
+        {
+          to: "/about",
+          label: "About",
+          name: "About BRM",
+          area: "about",
+          Icon: Info,
         },
         {
           to: "/leaderboard",
@@ -49,16 +61,6 @@ export function WorkspaceRail({
           <small>{label}</small>
         </Link>
       ))}
-      <button
-        className={`rail-item ${workspace ? "selected" : ""}`}
-        aria-current={workspace ? "page" : undefined}
-        onClick={onWorkspace}
-      >
-        <span>
-          <PanelsTopLeft size={21} />
-        </span>
-        <small>Studio</small>
-      </button>
       <Link
         to="/viewer"
         className={`rail-item rail-profile ${!workspace && area === "profile" ? "selected" : ""}`}

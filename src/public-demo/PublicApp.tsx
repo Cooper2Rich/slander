@@ -5,13 +5,22 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import { ArrowUpRight, Compass, Heart, Search } from "lucide-react";
+import {
+  ArrowUpRight,
+  Compass,
+  Heart,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+} from "lucide-react";
 import App from "../App";
 import { Logo, Modal } from "../components/ui";
 import { APP_NAME } from "../runtime";
 import { WorkspaceRail } from "../components/WorkspaceRail";
 import { PublicMobileNavigation, PublicNavigation } from "./PublicNavigation";
 import { PublicHome } from "./PublicHome";
+import { PublicAbout } from "./PublicAbout";
 import { AdCard } from "./AdCard";
 import { AdMedia } from "./AdMedia";
 import {
@@ -43,27 +52,6 @@ const workspaceViews = {
   CreatorEarnings,
 };
 
-function resumeWorkspace(navigate: ReturnType<typeof useNavigate>) {
-  try {
-    const access = JSON.parse(
-      localStorage.getItem("slander-public-access-v1") || "null",
-    );
-    if (["admin", "nonprofit", "creator"].includes(access?.role)) {
-      navigate(
-        access.role === "creator"
-          ? "/review"
-          : access.role === "admin"
-            ? "/campaigns"
-            : "/projects",
-      );
-      return;
-    }
-  } catch {
-    /* An outdated preference can use the default studio. */
-  }
-  enterWorkspace("creator", navigate);
-}
-
 export function enterWorkspace(
   role: string,
   navigate: ReturnType<typeof useNavigate>,
@@ -86,11 +74,30 @@ export default function PublicApp() {
   const publicRoute =
     location.pathname === "/" ||
     location.pathname === "/explore" ||
+    location.pathname === "/about" ||
     location.pathname === "/leaderboard" ||
     location.pathname.startsWith("/ads/") ||
     location.pathname === "/viewer";
   const [ads, setAds] = useState<PublicAd[] | null>(null),
     [error, setError] = useState("");
+  const [layout, setLayout] = useState(() => {
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem("ripple-public-layout-v1") || "null",
+      );
+      if (
+        typeof saved?.railOpen === "boolean" &&
+        typeof saved?.sidebarOpen === "boolean"
+      )
+        return saved as { railOpen: boolean; sidebarOpen: boolean };
+    } catch {
+      /* Use the compact layout for older browser preferences. */
+    }
+    return { railOpen: true, sidebarOpen: false };
+  });
+  useEffect(() => {
+    localStorage.setItem("ripple-public-layout-v1", JSON.stringify(layout));
+  }, [layout]);
   const [support, setSupport] = useState<PublicAd | null>(null);
   const [campaigns, setCampaigns] = useState<PublicCampaign[]>([]);
   const [params, setParams] = useSearchParams();
@@ -113,7 +120,7 @@ export default function PublicApp() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
   useEffect(() => {
-    if (location.pathname !== "/" && location.pathname !== "/viewer") return;
+    if (!["/", "/about", "/viewer"].includes(location.pathname)) return;
     if (section) {
       const frame = requestAnimationFrame(() =>
         document.getElementById(section)?.scrollIntoView(),
@@ -170,7 +177,7 @@ export default function PublicApp() {
   }, [publicRoute, location.pathname]);
   useEffect(() => {
     if (publicRoute)
-      document.title = `${location.pathname === "/" ? "Stories that make a difference" : location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
+      document.title = `${location.pathname === "/" ? "Stories that make a difference" : location.pathname === "/about" ? "About BRM" : location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
   }, [publicRoute, location.pathname]);
   if (!publicRoute) return <App demoViews={workspaceViews} />;
   const adId = location.pathname.startsWith("/ads/")
@@ -196,7 +203,9 @@ export default function PublicApp() {
     }
   };
   return (
-    <div className="discovery-shell ripple-public">
+    <div
+      className={`discovery-shell ripple-public ${layout.railOpen ? "" : "rail-closed"} ${layout.sidebarOpen ? "secondary-open" : "secondary-closed"}`}
+    >
       <a
         href="#discovery-content"
         className="skip-link"
@@ -210,14 +219,51 @@ export default function PublicApp() {
       </a>
       <WorkspaceRail
         profileLabel={viewer ? "My giving" : "Viewer account"}
-        onWorkspace={() => resumeWorkspace(navigate)}
+        hidden={!layout.railOpen}
       />
       <PublicNavigation
+        hidden={!layout.sidebarOpen}
         campaigns={campaigns}
         categories={[...new Set(ads?.map((ad) => ad.category))]}
       />
       <div className="public-main-shell">
         <header className="discovery-header">
+          <div className="public-layout-controls">
+            <button
+              className="icon-button"
+              aria-label={
+                layout.railOpen
+                  ? "Hide main navigation"
+                  : "Show main navigation"
+              }
+              aria-expanded={layout.railOpen}
+              aria-controls="public-main-navigation"
+              onClick={() =>
+                setLayout((old) => ({ ...old, railOpen: !old.railOpen }))
+              }
+            >
+              <Menu size={19} />
+            </button>
+            <button
+              className="icon-button"
+              aria-label={
+                layout.sidebarOpen
+                  ? "Hide secondary sidebar"
+                  : "Show secondary sidebar"
+              }
+              aria-expanded={layout.sidebarOpen}
+              aria-controls="public-secondary-navigation"
+              onClick={() =>
+                setLayout((old) => ({ ...old, sidebarOpen: !old.sidebarOpen }))
+              }
+            >
+              {layout.sidebarOpen ? (
+                <PanelLeftClose size={19} />
+              ) : (
+                <PanelLeftOpen size={19} />
+              )}
+            </button>
+          </div>
           <div className="public-breadcrumb">
             <Compass size={17} />
             <span>Community</span>
@@ -225,13 +271,15 @@ export default function PublicApp() {
             <strong>
               {location.pathname === "/"
                 ? "Welcome to Blue Ripple"
-                : location.pathname === "/leaderboard"
-                  ? "Leaderboard"
-                  : location.pathname === "/viewer"
-                    ? "Your profile"
-                    : adId
-                      ? "Ad profile"
-                      : "Discover ads"}
+                : location.pathname === "/about"
+                  ? "About BRM"
+                  : location.pathname === "/leaderboard"
+                    ? "Leaderboard"
+                    : location.pathname === "/viewer"
+                      ? "Your profile"
+                      : adId
+                        ? "Ad profile"
+                        : "Discover ads"}
             </strong>
           </div>
           <span className="public-access-note">
@@ -268,6 +316,8 @@ export default function PublicApp() {
               campaigns={campaigns}
               onSupport={setSupport}
             />
+          ) : location.pathname === "/about" ? (
+            <PublicAbout />
           ) : location.pathname === "/viewer" ? (
             <>
               <div className="discovery-heading">
