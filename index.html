@@ -15,11 +15,28 @@
   </head>
   <body>
 <!-- BRM PUBLIC DEMO LINKS START -->
+<style>
+#brm-public-demo-links { position: sticky; top: 0; z-index: 70; }
+.brm-demo-index.public-demo .public-notice { top: var(--brm-demo-links-height, 54px); }
+.brm-demo-index.public-demo .sidebar,
+.brm-demo-index.public-demo .topbar { top: calc(var(--public-notice-height) + var(--brm-demo-links-height, 54px)); }
+.brm-demo-index.public-demo .app-shell { min-height: calc(100vh - var(--public-notice-height) - var(--brm-demo-links-height, 54px)); }
+</style>
 <nav id="brm-public-demo-links" aria-label="Public demos" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 3%;border-bottom:1px solid #203b5c;background:#07121b;color:#abc4d4;font:12px/1.5 system-ui,sans-serif">
   <strong style="margin-right:6px;font-size:11px">Public demos</strong>
   <a href="/slander/demo-shared-with-john/" style="display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border:1px solid #315268;border-radius:7px;background:#102237;color:#fff;text-decoration:none">John — Frozen demo</a>
   <a href="/slander/working/" style="display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border:1px solid #315268;border-radius:7px;background:#102237;color:#fff;text-decoration:none">Working — Editable demo</a>
 </nav>
+<script>
+(() => {
+  const bar = document.getElementById("brm-public-demo-links");
+  const update = () => document.documentElement.style.setProperty("--brm-demo-links-height", bar.getBoundingClientRect().height + "px");
+  document.body.classList.add("brm-demo-index");
+  update();
+  if ("ResizeObserver" in window) new ResizeObserver(update).observe(bar);
+  else window.addEventListener("resize", update);
+})();
+</script>
 <!-- BRM PUBLIC DEMO LINKS END -->
 
     <div id="root"></div>
