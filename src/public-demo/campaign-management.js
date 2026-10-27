@@ -1,4 +1,5 @@
 import { projectSchema, addActivity } from "../../server/domain.js";
+import { campaignAdPlatformAction } from "./ad-platforms.ts";
 
 export function ensureCampaignHierarchy(state) {
   state.managedCampaigns ||= [];
@@ -55,6 +56,18 @@ export function campaignManagementRequest(
       throw new Error("Campaign management is available to Admin only.");
     if (path === "/management/campaigns" && method === "GET")
       return { data: state.managedCampaigns };
+    const adPlatformMatch =
+      /^\/management\/campaigns\/([^/]+)\/ad-platforms(?:\/(connect|disconnect|rules|preview))?$/.exec(
+        path,
+      );
+    if (adPlatformMatch)
+      return campaignAdPlatformAction(
+        state,
+        requireCampaign(state, adPlatformMatch[1]),
+        adPlatformMatch[2],
+        method,
+        body,
+      );
     if (path === "/management/campaigns" && method === "POST") {
       const owner = state.nonprofits.find(
         (item) => item.id === body.ownerOrganizationId,
@@ -88,6 +101,8 @@ export function campaignManagementRequest(
       if (archive === (campaign.status === "archived"))
         return { data: campaign };
       if (archive) campaign.statusBeforeArchive = campaign.status;
+      if (archive && state.adPlatformSetups?.[campaign.id])
+        state.adPlatformSetups[campaign.id].rules.enabled = false;
       campaign.status = archive
         ? "archived"
         : campaign.statusBeforeArchive || "active";

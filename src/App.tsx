@@ -36,6 +36,7 @@ import {
   UserRound,
   Settings2,
   Bell,
+  Link2,
   type LucideIcon,
 } from "lucide-react";
 import { WorkspaceContext } from "./context";
@@ -68,6 +69,12 @@ type WorkspaceNavItem = {
   icon: LucideIcon;
   label: string;
   count?: number;
+};
+const campaignToolTitles: Record<string, string> = {
+  spending: "Ad spending",
+  archives: "Archived projects",
+  creatives: "Creatives",
+  "ad-platforms": "Ad platforms",
 };
 
 export default function App({
@@ -179,13 +186,8 @@ export default function App({
           : PUBLIC_DEMO && location.pathname === "/project-requests"
             ? "Project requests"
             : selectedCampaignId
-              ? location.pathname.endsWith("/spending")
-                ? "Ad spending"
-                : location.pathname.endsWith("/archives")
-                  ? "Archived projects"
-                  : location.pathname.endsWith("/creatives")
-                    ? "Creatives"
-                    : "Projects"
+              ? campaignToolTitles[location.pathname.split("/").pop() || ""] ||
+                "Projects"
               : PUBLIC_DEMO && location.pathname === "/spending"
                 ? "Ad spending"
                 : PUBLIC_DEMO && location.pathname === "/archives"
@@ -274,6 +276,11 @@ export default function App({
                 to: `/campaigns/${selectedCampaignId}/spending`,
                 icon: Wallet,
                 label: "Ad spending",
+              },
+              {
+                to: `/campaigns/${selectedCampaignId}/ad-platforms`,
+                icon: Link2,
+                label: "Ad platforms",
               },
               {
                 to: `/campaigns/${selectedCampaignId}/archives`,

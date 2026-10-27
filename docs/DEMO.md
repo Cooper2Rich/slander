@@ -65,6 +65,18 @@ The earlier approved-post-count leaderboard is an eligibility-count feature, not
 
 ## Architecture and checks
 
+### Campaign ad platform setup
+
+In the public working demo, choose Admin, then **Campaigns → a campaign → Ad platforms**. Every campaign card also has an Ad platforms shortcut, and the campaign Ad spending page links to the setup. Owners and creators cannot access or mutate these settings. Archived campaigns retain readable connections and previews; restoring them does not re-enable automation.
+
+The connection dialogs select fictional Meta or TikTok USD ad accounts and a traffic or video-view target belonging to the BRM campaign. No real credentials or access tokens are requested or stored. Configure the daily limit and campaign cap in USD, set the Meta percentage (TikTok receives the remainder), enable demo automation and save. A platform receiving a nonzero share must have a selected destination. Daily limits cannot exceed the campaign cap. Changing or disconnecting an account pauses automation and invalidates the previous preview.
+
+**Preview next allocation** uses the saved rules, current campaign/project state and existing deterministic creative eligibility. Meta traffic targets support eligible images and videos; TikTok and video-view targets use eligible videos. The budget is split in integer cents, then equally among eligible creatives on each platform with deterministic remainder allocation. Draft, inactive, expired, held, withdrawn, stale-snapshot and other-campaign creatives are excluded. Shares without usable creatives remain unallocated. The latest preview persists with its timestamp, selected destinations and individual allocations.
+
+This is a browser-local planning preview. Its campaign cap is a configured limit, not a verified balance. Repeated previews do not consume a cumulative budget, place platform orders, mutate contributor allocations, manufacture spend or alter earnings. Actual platform spend stays $0. There is no timer or background runner. Tests cover role/campaign isolation, cent conservation, media eligibility, invalid settings, refresh persistence, disconnect and archive behavior on desktop and mobile.
+
+A later live integration would need a deployed server for advertiser authorization callbacks and secret storage, access verification, external campaign/ad mapping, platform review, authenticated spending authorization, reservations, an idempotent worker, cumulative cap enforcement and spend reconciliation. Provider references: [Meta Marketing API](https://developers.facebook.com/docs/marketing-apis/), [TikTok authorization](https://business-api.tiktok.com/gateway/docs/index?doc_id=1738373141733378), and [TikTok Marketing API](https://business-api.tiktok.com/portal/docs/marketing-api/v2.0). The current UI provides a clearly labeled demo rather than initiating provider authorization.
+
 `server/demo-showcase.js` composes existing domain operations for the explicit fictional scenario. `src/pages/Campaigns.tsx` provides discovery/details, funding/performance/statement tabs and the public giving screen. Existing pages remain in their established shell.
 
 `tests/showcase.test.js` verifies append-only idempotence and original-record preservation, restricted pool amounts, consent → eligibility → tracked gift, cookie renewal, replay-safe confirmation, current-week statement, role scope, grade arithmetic and immediate public-media suspension. `tests/browser/marketplace.spec.ts` clicks the visible desktop/mobile core journey, confirms $10/$90/+1, checks scopes and downloads, checks overflow and records screenshots. Existing browser/unit/financial/analytics suites remain required.

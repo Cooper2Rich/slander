@@ -229,7 +229,7 @@ export function CreatorAds({ past = false }: { past?: boolean }) {
   );
 }
 export function SpendingPage() {
-  const { posts } = useWorkspace();
+  const { posts, role, campaignScope } = useWorkspace();
   const support = viewerState().support.filter((s) =>
     posts.some((p) => p.id === s.adId),
   );
@@ -243,7 +243,16 @@ export function SpendingPage() {
             Ad-fund contributions and recorded ad delivery for these projects.
           </p>
         </div>
-        <Wallet size={30} />
+        {role === "admin" && campaignScope ? (
+          <Link
+            className="button secondary"
+            to={`/campaigns/${campaignScope.id}/ad-platforms`}
+          >
+            Manage ad platforms ↗
+          </Link>
+        ) : (
+          <Wallet size={30} />
+        )}
       </div>
       <div className="creator-summary">
         <div>

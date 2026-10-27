@@ -1,0 +1,297 @@
+.ad-platform-page {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.ad-platform-notice {
+  border: 1px solid #24445e;
+  background: #102436;
+  color: #c9e5f8;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.ad-platform-message {
+  color: #93e4bd;
+  font-size: 13px;
+  min-height: 20px;
+}
+.ad-platform-error {
+  color: #ffb6b6;
+}
+.ad-platform-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 18px 0 24px;
+}
+.ad-platform-card,
+.ad-platform-panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 24px;
+  min-width: 0;
+}
+.ad-platform-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.ad-platform-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.ad-platform-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  font-size: 34px;
+  background: #153c63;
+  color: #9ed7ff;
+  border-radius: 12px;
+}
+.ad-platform-mark.tiktok {
+  background: #232634;
+  color: #fff;
+  text-shadow: 2px 1px #f56b98;
+}
+.ad-platform-card h2 {
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+.ad-platform-card-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.ad-platform-state {
+  display: inline-block;
+  background: #1e2936;
+  color: #b5c3d1;
+  font-size: 11px;
+  padding: 5px 9px;
+  border-radius: 20px;
+}
+.ad-platform-state.selected {
+  background: #183d35;
+  color: #9ce7c2;
+}
+.ad-platform-card dl {
+  font-size: 13px;
+  margin: 22px 0;
+  width: 100%;
+}
+.ad-platform-card dt {
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.ad-platform-card dd {
+  margin: 0 0 18px;
+  overflow-wrap: anywhere;
+}
+.ad-platform-card-copy {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 22px 0;
+}
+.ad-platform-card-actions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+.ad-platform-panel {
+  margin: 0 0 24px;
+}
+.ad-platform-section-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.ad-platform-section-heading > svg {
+  color: #8ad0ff;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.ad-platform-section-heading > div {
+  flex: 1;
+  min-width: 0;
+}
+.ad-platform-section-heading h2 {
+  font-size: 18px;
+  margin: 0 0 7px;
+}
+.ad-platform-section-heading p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0;
+}
+.ad-platform-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  min-width: 0;
+}
+.ad-platform-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.ad-platform-fields input {
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%;
+  min-width: 0;
+  color: var(--ink);
+}
+.ad-platform-derived {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ad-platform-derived strong {
+  color: #a9dfff;
+  font-size: 22px;
+}
+.ad-platform-derived small {
+  font-size: 11px;
+}
+.ad-platform-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ad-platform-toggle input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0;
+  accent-color: #77c9ff;
+}
+.ad-platform-help {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.75;
+}
+.ad-platform-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin-top: 20px;
+}
+.ad-platform-form-actions > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.ad-platform-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.ad-platform-summary small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.ad-platform-summary strong {
+  display: block;
+  font-size: 23px;
+  margin-top: 10px;
+}
+.ad-platform-preview-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  font-size: 13px;
+  margin: 20px 0;
+}
+.ad-platform-table {
+  overflow-x: auto;
+}
+.ad-platform-table table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+.ad-platform-table :is(th, td) {
+  padding: 14px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.ad-platform-table th {
+  color: var(--muted);
+  font-size: 11px;
+}
+.ad-platform-table :is(th, td):last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+.ad-platform-live summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+.ad-platform-live p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.ad-platform-live > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 12px;
+  color: #8dd3ff;
+}
+@media (max-width: 760px) {
+  .ad-platform-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ad-platform-card,
+  .ad-platform-panel {
+    padding: 20px;
+  }
+  .ad-platform-section-heading {
+    flex-wrap: wrap;
+  }
+  .ad-platform-section-heading > .button {
+    flex-basis: 100%;
+  }
+  .ad-platform-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ad-platform-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ad-platform-summary > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ad-platform-summary strong {
+    margin: 0;
+    font-size: 20px;
+  }
+}

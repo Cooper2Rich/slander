@@ -10,6 +10,7 @@ import { PostsPage } from "../pages/Posts";
 import { CampaignsPage } from "../pages/Campaigns";
 import { ArchivesPage, SpendingPage } from "./WorkspaceViews";
 import type { DemoOptions, ManagedCampaign } from "../types";
+import { AdPlatformsPage } from "./AdPlatforms";
 
 export function AdminCampaigns({ archived = false }: { archived?: boolean }) {
   const {
@@ -73,6 +74,12 @@ export function AdminCampaigns({ archived = false }: { archived?: boolean }) {
                 {projectCounts.get(campaign.id) === 1 ? "project" : "projects"}{" "}
                 · {campaign.status === "active" ? "Open" : campaign.status}
               </span>
+              <Link
+                to={`/campaigns/${campaign.id}/ad-platforms`}
+                aria-label={`Ad platforms for ${campaign.name}`}
+              >
+                Ad platforms ↗
+              </Link>
               {archived && (
                 <button
                   className="text-button"
@@ -265,6 +272,10 @@ export function CampaignWorkspace() {
         <Route path="projects/:id" element={<ProjectDetail />} />
         <Route path="creatives" element={<PostsPage mode="all" />} />
         <Route path="spending" element={<SpendingPage />} />
+        <Route
+          path="ad-platforms"
+          element={<AdPlatformsPage key={campaign.id} />}
+        />
         <Route path="archives" element={<ArchivesPage />} />
         <Route path="gift-records/:id" element={<ProjectGiftRecords />} />
         <Route
