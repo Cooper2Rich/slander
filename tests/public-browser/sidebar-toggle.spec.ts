@@ -63,14 +63,21 @@ test("main tabs toggle secondary menus while preserving the page and filters", a
 });
 
 const roleCases = [
-  { role: "creator", tabs: ["My ads", "Earnings", "Projects"] },
+  { role: "creator", tabs: ["My ads", "Earnings", "Projects", "Profile"] },
   {
     role: "nonprofit",
-    tabs: ["Projects", "Creatives", "Ad spending", "Activity"],
+    tabs: ["Projects", "Creatives", "Ad spending", "Activity", "Profile"],
   },
   {
     role: "admin",
-    tabs: ["Campaigns", "Project requests", "Creatives", "Funding", "Activity"],
+    tabs: [
+      "Campaigns",
+      "Project requests",
+      "Creatives",
+      "Funding",
+      "Activity",
+      "Profile",
+    ],
   },
 ];
 for (const scenario of roleCases) {

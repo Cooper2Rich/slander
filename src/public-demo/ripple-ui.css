@@ -923,6 +923,7 @@ body.public-demo {
     padding: 0 10px;
     border-bottom: 1px solid var(--line);
     background: #0b131f;
+    overflow-x: auto;
   }
   .public-demo .role-mobile-nav .nav-item {
     display: flex;
@@ -934,6 +935,7 @@ body.public-demo {
     min-height: 54px;
     border-radius: 0;
     color: #9db2c9;
+    flex: 1 0 auto;
   }
   .public-demo .role-mobile-nav .nav-item.active {
     color: #dcefff;

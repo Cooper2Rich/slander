@@ -66,7 +66,7 @@ export function WorkspaceRail({
         <Link
           key={to}
           to={to}
-          className={`rail-item ${area === itemArea ? "selected" : ""}`}
+          className={`rail-item ${role && itemArea === "profile" ? "rail-profile" : ""} ${area === itemArea ? "selected" : ""}`}
           aria-label={name}
           aria-current={area === itemArea ? "page" : undefined}
           aria-expanded={

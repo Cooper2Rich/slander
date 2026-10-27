@@ -33,6 +33,9 @@ import {
   X,
   Trophy,
   Wallet,
+  UserRound,
+  Settings2,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 import { WorkspaceContext } from "./context";
@@ -41,6 +44,8 @@ import { useDemoWorkspace } from "./useDemoWorkspace";
 import { IdentityPicker } from "./components/IdentityPicker";
 import { Avatar, Logo, Modal } from "./components/ui";
 import { ProjectsPage } from "./pages/Projects";
+import { ProfilePage } from "./pages/Profile";
+import { profileRoles, useRoleProfile } from "./role-profile";
 import { PostsPage } from "./pages/Posts";
 import { ProjectDetail } from "./pages/ProjectDetail";
 import { ActivityPage } from "./pages/Activity";
@@ -115,6 +120,8 @@ export default function App({
     loadOptions,
     scopeKey,
   } = useDemoWorkspace();
+  const { profile: accountProfile } = useRoleProfile(access, identity);
+  const profileName = accountProfile.name || identity?.name || "Select profile";
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
   const [help, setHelp] = useState(false);
@@ -163,49 +170,51 @@ export default function App({
       ? /^\/campaigns\/([^/]+)/.exec(location.pathname)?.[1]
       : undefined;
   const title =
-    PUBLIC_DEMO && location.pathname === "/earnings"
-      ? "Earnings"
-      : PUBLIC_DEMO && location.pathname === "/funding"
-        ? "Funding"
-        : PUBLIC_DEMO && location.pathname === "/project-requests"
-          ? "Project requests"
-          : selectedCampaignId
-            ? location.pathname.endsWith("/spending")
-              ? "Ad spending"
-              : location.pathname.endsWith("/archives")
-                ? "Archived projects"
-                : location.pathname.endsWith("/creatives")
-                  ? "Creatives"
-                  : "Projects"
-            : PUBLIC_DEMO && location.pathname === "/spending"
-              ? "Ad spending"
-              : PUBLIC_DEMO && location.pathname === "/archives"
-                ? role === "creator"
-                  ? "Past ads"
-                  : role === "admin"
-                    ? "Archived campaigns"
-                    : "Archived projects"
-                : PUBLIC_DEMO &&
-                    role === "creator" &&
-                    location.pathname === "/review"
-                  ? "My ads"
-                  : location.pathname.startsWith("/campaigns")
-                    ? "Campaigns"
-                    : PUBLIC_DEMO && location.pathname === "/posts"
-                      ? "Creatives"
-                      : location.pathname === "/review"
-                        ? role === "creator"
-                          ? "My creatives"
-                          : "Platform exceptions"
-                        : location.pathname === "/approved"
+    location.pathname === "/profile"
+      ? "Profile"
+      : PUBLIC_DEMO && location.pathname === "/earnings"
+        ? "Earnings"
+        : PUBLIC_DEMO && location.pathname === "/funding"
+          ? "Funding"
+          : PUBLIC_DEMO && location.pathname === "/project-requests"
+            ? "Project requests"
+            : selectedCampaignId
+              ? location.pathname.endsWith("/spending")
+                ? "Ad spending"
+                : location.pathname.endsWith("/archives")
+                  ? "Archived projects"
+                  : location.pathname.endsWith("/creatives")
+                    ? "Creatives"
+                    : "Projects"
+              : PUBLIC_DEMO && location.pathname === "/spending"
+                ? "Ad spending"
+                : PUBLIC_DEMO && location.pathname === "/archives"
+                  ? role === "creator"
+                    ? "Past ads"
+                    : role === "admin"
+                      ? "Archived campaigns"
+                      : "Archived projects"
+                  : PUBLIC_DEMO &&
+                      role === "creator" &&
+                      location.pathname === "/review"
+                    ? "My ads"
+                    : location.pathname.startsWith("/campaigns")
+                      ? "Campaigns"
+                      : PUBLIC_DEMO && location.pathname === "/posts"
+                        ? "Creatives"
+                        : location.pathname === "/review"
                           ? role === "creator"
-                            ? "Eligible library & counts"
-                            : "Eligible creatives"
-                          : location.pathname === "/activity"
-                            ? "Activity"
-                            : location.pathname === "/posts"
-                              ? "All submissions"
-                              : "Projects";
+                            ? "My creatives"
+                            : "Platform exceptions"
+                          : location.pathname === "/approved"
+                            ? role === "creator"
+                              ? "Eligible library & counts"
+                              : "Eligible creatives"
+                            : location.pathname === "/activity"
+                              ? "Activity"
+                              : location.pathname === "/posts"
+                                ? "All submissions"
+                                : "Projects";
   useEffect(() => {
     document.title = `${title} · ${APP_NAME}`;
   }, [title]);
@@ -312,9 +321,28 @@ export default function App({
   const activeRoleTab = roleTabs[role].find(
     (tab) => tab.key === roleTabKey(role, location.pathname),
   )!;
+  nav.push({ to: "/profile", icon: UserRound, label: "Profile overview" });
   const secondaryNav: WorkspaceNavItem[] = PUBLIC_DEMO
     ? nav.filter((item) => roleTabKey(role, item.to) === activeRoleTab.key)
     : nav;
+  if (PUBLIC_DEMO && activeRoleTab.key === "profile")
+    secondaryNav.push(
+      {
+        to: "/profile?section=role-details",
+        label: profileRoles[role].details,
+        icon: UserRound,
+      },
+      {
+        to: "/profile?section=account-settings",
+        label: "Account settings",
+        icon: Settings2,
+      },
+      {
+        to: "/profile?section=notifications",
+        label: "Notifications",
+        icon: Bell,
+      },
+    );
   if (PUBLIC_DEMO && role === "creator" && activeRoleTab.key === "earnings")
     secondaryNav.push(
       {
@@ -553,22 +581,9 @@ export default function App({
             <Logo />
           </NavLink>
           <div className="workspace-identity">
-            <Avatar
-              name={
-                role === "admin"
-                  ? "Demo Administrator"
-                  : identity?.name || "Select profile"
-              }
-              index={2}
-            />
+            <Avatar name={profileName} index={2} />
             <div>
-              <strong>
-                {role === "admin"
-                  ? PUBLIC_DEMO
-                    ? "Administrator"
-                    : `${APP_NAME} administration`
-                  : identity?.name || "Choose a profile"}
-              </strong>
+              <strong>{profileName}</strong>
               <small>
                 {role === "admin"
                   ? "All organizations & projects"
@@ -741,6 +756,7 @@ export default function App({
               }}
             >
               <Routes>
+                <Route path="/profile" element={<ProfilePage />} />
                 {PUBLIC_DEMO ? (
                   <>
                     <Route

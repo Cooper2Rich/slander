@@ -5,6 +5,7 @@ import {
   Layers3,
   Megaphone,
   Wallet,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "../types";
@@ -15,6 +16,14 @@ export type RoleTab = {
   label: string;
   name: string;
   icon: LucideIcon;
+};
+
+const profileTab: RoleTab = {
+  key: "profile",
+  to: "/profile",
+  label: "Profile",
+  name: "Profile",
+  icon: UserRound,
 };
 
 export const roleTabs: Record<Role, RoleTab[]> = {
@@ -40,6 +49,7 @@ export const roleTabs: Record<Role, RoleTab[]> = {
       name: "Projects",
       icon: FolderHeart,
     },
+    profileTab,
   ],
   nonprofit: [
     {
@@ -70,6 +80,7 @@ export const roleTabs: Record<Role, RoleTab[]> = {
       name: "Activity",
       icon: Activity,
     },
+    profileTab,
   ],
   admin: [
     {
@@ -107,11 +118,13 @@ export const roleTabs: Record<Role, RoleTab[]> = {
       name: "Activity",
       icon: Activity,
     },
+    profileTab,
   ],
 };
 
 export function roleTabKey(role: Role, pathname: string) {
   const path = pathname.split("?")[0];
+  if (path === "/profile") return "profile";
   if (role === "creator") {
     if (path === "/earnings") return "earnings";
     if (path.startsWith("/projects")) return "projects";

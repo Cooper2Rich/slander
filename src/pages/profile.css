@@ -1,0 +1,210 @@
+.role-profile-page {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.role-profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(120deg, #152b42, #101b29);
+}
+.role-profile-summary > .avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.role-profile-summary > div {
+  min-width: 0;
+}
+.role-profile-summary h2 {
+  margin: 8px 0;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+.role-profile-summary p {
+  max-width: 600px;
+  color: var(--muted);
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.role-profile-summary small {
+  color: var(--muted);
+}
+.role-profile-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 650;
+  color: #a7d9ff;
+  background: #204563;
+  padding: 4px 9px;
+  border-radius: 20px;
+}
+.role-profile-local {
+  margin-left: auto;
+  align-self: flex-start;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.role-profile-form {
+  display: grid;
+  gap: 20px;
+}
+.role-profile-panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 26px;
+  min-width: 0;
+}
+.role-profile-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.role-profile-section-heading > svg {
+  color: #84c9fc;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.role-profile-section-heading h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  scroll-margin-top: 90px;
+}
+.role-profile-section-heading p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.role-profile-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.role-profile-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.role-profile-fields :is(input, textarea, select) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+  color: inherit;
+  padding: 12px;
+  font: inherit;
+  font-size: 14px;
+}
+.role-profile-fields :is(input, textarea, select):focus-visible {
+  outline: 2px solid #68bfff;
+  outline-offset: 2px;
+}
+.role-profile-fields textarea {
+  resize: vertical;
+}
+.role-profile-wide {
+  grid-column: 1 / -1;
+}
+.role-profile-alerts {
+  display: grid;
+  gap: 0;
+}
+.role-profile-alerts label {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  cursor: pointer;
+}
+.role-profile-alerts label:first-child {
+  padding-top: 0;
+}
+.role-profile-alerts input {
+  width: 18px;
+  height: 18px;
+  accent-color: #79c8ff;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+}
+.role-profile-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 18px 0 0;
+}
+.role-profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 24px;
+}
+.role-profile-actions > div {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+.role-profile-actions [role="alert"] {
+  color: #ffb3b3;
+}
+.role-profile-saved {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #8ee2ba;
+}
+.role-profile-actions .button {
+  flex-shrink: 0;
+}
+@media (max-width: 700px) {
+  .role-profile-summary {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 20px;
+    gap: 14px;
+  }
+  .role-profile-summary > div {
+    flex: 1;
+  }
+  .role-profile-summary h2 {
+    font-size: 21px;
+  }
+  .role-profile-local {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+  .role-profile-panel {
+    padding: 20px;
+  }
+  .role-profile-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .role-profile-actions {
+    flex-wrap: wrap;
+  }
+  .role-profile-actions > div {
+    flex-basis: 100%;
+    min-height: 20px;
+  }
+  .role-profile-actions .button {
+    flex: 1;
+  }
+}
