@@ -10,7 +10,7 @@ import App from "../App";
 import { Logo, Modal } from "../components/ui";
 import { APP_NAME } from "../runtime";
 import { WorkspaceRail } from "../components/WorkspaceRail";
-import { PublicLinks, PublicNavigation } from "./PublicNavigation";
+import { PublicMobileNavigation, PublicNavigation } from "./PublicNavigation";
 import { PublicHome } from "./PublicHome";
 import { AdCard } from "./AdCard";
 import { AdMedia } from "./AdMedia";
@@ -43,6 +43,27 @@ const workspaceViews = {
   CreatorEarnings,
 };
 
+function resumeWorkspace(navigate: ReturnType<typeof useNavigate>) {
+  try {
+    const access = JSON.parse(
+      localStorage.getItem("slander-public-access-v1") || "null",
+    );
+    if (["admin", "nonprofit", "creator"].includes(access?.role)) {
+      navigate(
+        access.role === "creator"
+          ? "/review"
+          : access.role === "admin"
+            ? "/campaigns"
+            : "/projects",
+      );
+      return;
+    }
+  } catch {
+    /* An outdated preference can use the default studio. */
+  }
+  enterWorkspace("creator", navigate);
+}
+
 export function enterWorkspace(
   role: string,
   navigate: ReturnType<typeof useNavigate>,
@@ -70,20 +91,37 @@ export default function PublicApp() {
     location.pathname === "/viewer";
   const [ads, setAds] = useState<PublicAd[] | null>(null),
     [error, setError] = useState("");
-  const [search, setSearch] = useState(""),
-    [category, setCategory] = useState("All causes");
   const [support, setSupport] = useState<PublicAd | null>(null);
   const [campaigns, setCampaigns] = useState<PublicCampaign[]>([]);
   const [params, setParams] = useSearchParams();
+  const search = params.get("q") || "";
+  const category = params.get("cause") || "All causes";
+  const setSearch = (value: string) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set("q", value);
+    else next.delete("q");
+    setParams(next, { replace: true });
+  };
+  const setCategory = (value: string) => {
+    const next = new URLSearchParams(params);
+    if (value === "All causes") next.delete("cause");
+    else next.set("cause", value);
+    setParams(next);
+  };
   const section = params.get("section");
   useEffect(() => {
-    if (location.pathname !== "/") return;
-    if (section === "mission" || section === "how-it-works") {
-      requestAnimationFrame(() =>
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+  useEffect(() => {
+    if (location.pathname !== "/" && location.pathname !== "/viewer") return;
+    if (section) {
+      const frame = requestAnimationFrame(() =>
         document.getElementById(section)?.scrollIntoView(),
       );
-    } else window.scrollTo(0, 0);
-  }, [location.pathname, section]);
+      return () => cancelAnimationFrame(frame);
+    }
+    window.scrollTo(0, 0);
+  }, [location.pathname, section, ads]);
   const campaign = params.get("campaign") || "all";
   const period: LeaderboardPeriod =
     params.get("period") === "daily" ? "daily" : "weekly";
@@ -146,9 +184,17 @@ export default function PublicApp() {
       `${ad.title} ${ad.creator} ${ad.project} ${ad.campaign || ""}`
         .toLowerCase()
         .includes(search.toLowerCase()) &&
-      (category === "All causes" || ad.category === category),
+      (category === "All causes" || ad.category === category) &&
+      (campaign === "all" || (ad.campaignId || ad.projectId) === campaign),
   );
-  const update = () => setVersion(version + 1);
+  const update = () => {
+    setVersion((value) => value + 1);
+    if (location.pathname === "/viewer" && section) {
+      const next = new URLSearchParams(params);
+      next.delete("section");
+      setParams(next, { replace: true });
+    }
+  };
   return (
     <div className="discovery-shell ripple-public">
       <a
@@ -162,8 +208,14 @@ export default function PublicApp() {
       >
         Skip to content
       </a>
-      <WorkspaceRail onWorkspace={() => enterWorkspace("creator", navigate)} />
-      <PublicNavigation campaigns={campaigns} />
+      <WorkspaceRail
+        profileLabel={viewer ? "My giving" : "Viewer account"}
+        onWorkspace={() => resumeWorkspace(navigate)}
+      />
+      <PublicNavigation
+        campaigns={campaigns}
+        categories={[...new Set(ads?.map((ad) => ad.category))]}
+      />
       <div className="public-main-shell">
         <header className="discovery-header">
           <div className="public-breadcrumb">
@@ -200,12 +252,10 @@ export default function PublicApp() {
             </select>
           </label>
         </header>
-        <nav
-          className="public-mobile-nav"
-          aria-label="Mobile public navigation"
-        >
-          <PublicLinks />
-        </nav>
+        <PublicMobileNavigation
+          campaigns={campaigns}
+          categories={[...new Set(ads?.map((ad) => ad.category))]}
+        />
         <main
           id="discovery-content"
           className="discovery-content"
@@ -228,8 +278,11 @@ export default function PublicApp() {
                 </p>
               </div>
               {viewer ? (
-                <section className="market-panel giving-history">
-                  <div className="section-toolbar">
+                <section
+                  id="giving-history"
+                  className="market-panel giving-history"
+                >
+                  <div id="profile-actions" className="section-toolbar">
                     <h2>My giving</h2>
                     <button
                       className="text-button"
@@ -455,7 +508,7 @@ function ViewerForm({ onDone }: { onDone: () => void }) {
     [error, setError] = useState("");
   const profiles = viewerState().profiles;
   return (
-    <div className="viewer-form market-panel">
+    <div id="viewer-profile" className="viewer-form market-panel">
       <h2>Create a viewer profile</h2>
       <p>For the general public: support ads and keep a giving history.</p>
       <form
@@ -501,7 +554,7 @@ function ViewerForm({ onDone }: { onDone: () => void }) {
         </button>
       </form>
       {!!profiles.length && (
-        <label className="saved-viewers">
+        <label id="saved-viewers" className="saved-viewers">
           Saved viewer profiles
           <select
             aria-label="Saved viewer profiles"

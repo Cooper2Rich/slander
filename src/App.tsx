@@ -374,7 +374,15 @@ export default function App({
             <ArrowUpRight size={13} />
           </button>
         )}
-        <span className="nav-label">WORKSPACE</span>
+        <span className="nav-label">
+          {PUBLIC_DEMO
+            ? role === "creator"
+              ? "CREATOR STUDIO"
+              : role === "admin"
+                ? "ADMIN WORKSPACE"
+                : "CAMPAIGN OWNER"
+            : "WORKSPACE"}
+        </span>
         <nav aria-label="Main navigation">
           {!needsSelection &&
             nav.map((item) => (

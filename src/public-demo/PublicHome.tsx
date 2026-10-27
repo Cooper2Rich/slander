@@ -134,6 +134,7 @@ export function PublicHome({
       </div>
 
       <section
+        id="current-leaders"
         className="home-showcase"
         aria-labelledby="current-leaders-title"
       >
@@ -191,7 +192,11 @@ export function PublicHome({
         </p>
       </section>
 
-      <section className="home-showcase" aria-labelledby="past-leaders-title">
+      <section
+        id="past-leaders"
+        className="home-showcase"
+        aria-labelledby="past-leaders-title"
+      >
         <div className="home-section-heading">
           <div>
             <span className="home-eyebrow">
