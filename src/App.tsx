@@ -385,6 +385,11 @@ export default function App({
             ))}
         </nav>
         <div className="sidebar-bottom">
+          {PUBLIC_DEMO && (
+            <NavLink className="help-button" to="/support/adoption-is">
+              Support Adoption Is <ArrowUpRight size={15} />
+            </NavLink>
+          )}
           {!PUBLIC_DEMO && (
             <div className="sidebar-note">
               <span className="note-doodle">✳</span>

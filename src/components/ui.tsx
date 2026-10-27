@@ -140,10 +140,22 @@ export function Modal({
   wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const d = ref.current;
+    if (!previousFocus.current && document.activeElement instanceof HTMLElement)
+      previousFocus.current = document.activeElement;
     d?.showModal();
-    return () => d?.close();
+    return () => {
+      d?.close();
+      queueMicrotask(() => {
+        if (
+          previousFocus.current?.isConnected &&
+          !document.querySelector("dialog[open]")
+        )
+          previousFocus.current.focus();
+      });
+    };
   }, []);
   return (
     <dialog

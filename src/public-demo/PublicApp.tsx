@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Link,
   NavLink,
@@ -19,6 +19,8 @@ import {
   durationLabel,
   loadAds,
   loadPublicCampaigns,
+  loadPublicProjects,
+  type PublicProject,
   type PublicCampaign,
   money,
   selectViewer,
@@ -32,6 +34,8 @@ import { AdminFunding } from "./AdminFunding";
 import { CreatorEarnings } from "./CreatorEarnings";
 import { AdStats } from "./AdStats";
 import { PublicLeaderboard } from "./PublicLeaderboard";
+import { DonorJourney } from "./DonorJourney";
+import { AdInsightTabs } from "./AdInsightTabs";
 import type { LeaderboardPeriod } from "./leaderboard-periods";
 const workspaceViews = {
   ...demoViews,
@@ -64,6 +68,8 @@ export default function PublicApp() {
     location.pathname === "/" ||
     location.pathname === "/explore" ||
     location.pathname === "/leaderboard" ||
+    location.pathname === "/support" ||
+    location.pathname.startsWith("/support/") ||
     location.pathname.startsWith("/ads/") ||
     location.pathname === "/viewer";
   const [ads, setAds] = useState<PublicAd[] | null>(null),
@@ -72,6 +78,7 @@ export default function PublicApp() {
     [category, setCategory] = useState("All causes");
   const [support, setSupport] = useState<PublicAd | null>(null);
   const [campaigns, setCampaigns] = useState<PublicCampaign[]>([]);
+  const [projects, setProjects] = useState<PublicProject[]>([]);
   const [params, setParams] = useSearchParams();
   const campaign = params.get("campaign") || "all";
   const period: LeaderboardPeriod =
@@ -109,19 +116,31 @@ export default function PublicApp() {
   };
   const [version, setVersion] = useState(0);
   useEffect(() => {
+    let cancelled = false;
     if (publicRoute) {
       setAds(null);
-      void Promise.all([loadAds(), loadPublicCampaigns()])
-        .then(([loadedAds, loadedCampaigns]) => {
+      setError("");
+      void Promise.all([loadAds(), loadPublicCampaigns(), loadPublicProjects()])
+        .then(([loadedAds, loadedCampaigns, loadedProjects]) => {
+          if (cancelled) return;
           setAds(loadedAds);
           setCampaigns(loadedCampaigns);
+          setProjects(loadedProjects);
         })
-        .catch((e) => setError(e.message));
+        .catch((e) => {
+          if (!cancelled) setError(e.message);
+        });
     }
+    return () => {
+      cancelled = true;
+    };
   }, [publicRoute, location.pathname]);
   useEffect(() => {
+    setSupport(null);
+  }, [location.key]);
+  useEffect(() => {
     if (publicRoute)
-      document.title = `${location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
+      document.title = `${location.pathname.startsWith("/support") ? "Support projects" : location.pathname === "/leaderboard" ? "Leaderboard" : location.pathname === "/viewer" ? "Viewer account" : "Discover stories"} · ${APP_NAME}`;
   }, [publicRoute, location.pathname]);
   if (!publicRoute) return <App demoViews={workspaceViews} />;
   const adId = location.pathname.startsWith("/ads/")
@@ -156,6 +175,7 @@ export default function PublicApp() {
           <Logo />
         </Link>
         <nav aria-label="Public navigation">
+          <NavLink to="/support">Support projects</NavLink>
           <NavLink to="/explore">Discover ads</NavLink>
           <NavLink to="/leaderboard">Leaderboard</NavLink>
           <NavLink to="/viewer">
@@ -178,7 +198,15 @@ export default function PublicApp() {
       </header>
       <main id="discovery-content" className="discovery-content" tabIndex={-1}>
         {error && <p role="alert">{error}</p>}
-        {location.pathname === "/viewer" ? (
+        {location.pathname === "/support" ||
+        location.pathname.startsWith("/support/") ? (
+          <DonorJourney
+            ads={ads}
+            campaigns={campaigns}
+            projects={projects}
+            onSupport={setSupport}
+          />
+        ) : location.pathname === "/viewer" ? (
           <>
             <div className="discovery-heading">
               <h1>{viewer ? `Hello, ${viewer.name}.` : "Viewer account"}</h1>
@@ -277,7 +305,7 @@ export default function PublicApp() {
               </Link>
               <div className="ad-profile">
                 <section className="profile-media">
-                  <AdMedia ad={selected} full />
+                  <AdInsightTabs ad={selected} />
                 </section>
                 <section className="profile-copy">
                   <span className="eyebrow">
@@ -292,6 +320,12 @@ export default function PublicApp() {
                     <small>SUPPORTING</small>
                     <h2>{selected.project}</h2>
                     <p>{selected.nonprofit}</p>
+                    <Link
+                      className="text-button"
+                      to={`/support/${selected.campaignId}/${selected.projectId}`}
+                    >
+                      Explore supporting project <ArrowUpRight size={14} />
+                    </Link>
                     <Link
                       className="text-button"
                       to={`/leaderboard?campaign=${encodeURIComponent(selected.campaignId || selected.projectId)}`}
@@ -338,6 +372,12 @@ export default function PublicApp() {
         ) : (
           <>
             <section id="stories">
+              <aside className="donor-entry market-panel">
+                <p>Support the work behind the stories. Donor preview.</p>
+                <Link className="button primary" to="/support/adoption-is">
+                  Explore Adoption Is <ArrowUpRight size={16} />
+                </Link>
+              </aside>
               <div className="discovery-toolbar">
                 <h1>
                   Discover ads<span className="title-dot">.</span>
@@ -537,6 +577,8 @@ function SupportDialog({ ad, onClose }: { ad: PublicAd; onClose: () => void }) {
     [done, setDone] = useState(false),
     [version, setVersion] = useState(0);
   const [requestId] = useState(() => crypto.randomUUID());
+  const inFlight = useRef(false);
+  const [busy, setBusy] = useState(false);
   return (
     <Modal
       title={
@@ -565,11 +607,18 @@ function SupportDialog({ ad, onClose }: { ad: PublicAd; onClose: () => void }) {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
+              if (inFlight.current) return;
+              inFlight.current = true;
+              setBusy(true);
+              setError("");
               try {
                 await fundAd(ad, amount, requestId);
                 setDone(true);
               } catch (e) {
                 setError((e as Error).message);
+              } finally {
+                inFlight.current = false;
+                setBusy(false);
               }
             }}
           >
@@ -577,9 +626,11 @@ function SupportDialog({ ad, onClose }: { ad: PublicAd; onClose: () => void }) {
               Contributing as <strong>{activeViewer()?.name}</strong> · Viewer
             </p>
             <p>
-              This contribution supports the ad fund for “{ad.title}”. The
-              creator receives 10%. Ad-fund contributions do not create donation
-              votes.
+              This contribution supports the ad fund for “{ad.title}”. The demo
+              allocation is illustrative. The creator receives 10%, the
+              application 5% and the nonprofit 85%. These illustrative terms do
+              not authorize real funding. Ad-fund contributions do not create
+              donation votes.
             </p>
             <div className="giving-presets">
               {[10, 25, 50, 100].map((n) => (
@@ -587,6 +638,7 @@ function SupportDialog({ ad, onClose }: { ad: PublicAd; onClose: () => void }) {
                   type="button"
                   className={`button ${amount === String(n) ? "primary" : "secondary"}`}
                   key={n}
+                  disabled={busy}
                   onClick={() => setAmount(String(n))}
                 >
                   {money(n * 100)}
@@ -602,6 +654,7 @@ function SupportDialog({ ad, onClose }: { ad: PublicAd; onClose: () => void }) {
                 max="1000"
                 step="0.01"
                 value={amount}
+                disabled={busy}
                 onChange={(e) => setAmount(e.target.value)}
               />
             </label>
@@ -610,8 +663,18 @@ function SupportDialog({ ad, onClose }: { ad: PublicAd; onClose: () => void }) {
               movement.
             </p>
             {error && <p role="alert">{error}</p>}
-            <button className="button primary full" type="submit">
-              Confirm simulated contribution <Heart size={16} />
+            <button
+              className="button primary full"
+              type="submit"
+              disabled={busy}
+            >
+              {busy
+                ? "Saving simulated support…"
+                : "Confirm simulated contribution"}{" "}
+              <Heart size={16} />
+            </button>
+            <button className="button secondary full" type="button" disabled>
+              Real payment unavailable
             </button>
           </form>
         )}

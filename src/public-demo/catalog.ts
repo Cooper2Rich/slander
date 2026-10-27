@@ -2,6 +2,18 @@ import { workspaceRequest } from "./workspace.js";
 import type { DailyMetrics } from "./leaderboard-periods";
 import { allocateAdFund, type AdFundAllocation } from "./ad-fund-policy";
 export type PublicCampaign = { id: string; name: string };
+export type PublicProject = {
+  id: string;
+  campaignId: string;
+  name: string;
+  nonprofit: string;
+  description: string;
+  category: string;
+};
+export async function loadPublicProjects(): Promise<PublicProject[]> {
+  const result = await workspaceRequest("/public/projects");
+  return result.data as PublicProject[];
+}
 export async function loadPublicCampaigns(): Promise<PublicCampaign[]> {
   const result = await workspaceRequest("/public/campaigns");
   return result.data as PublicCampaign[];

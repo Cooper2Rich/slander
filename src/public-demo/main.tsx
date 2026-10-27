@@ -7,6 +7,7 @@ import "../styles.css";
 import "./styles.css";
 import "./night-theme.css";
 import "./refinements.css";
+import "./donor.css";
 
 document.body.classList.add("public-demo");
 createRoot(document.getElementById("root")!).render(

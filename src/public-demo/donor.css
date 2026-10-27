@@ -1,0 +1,385 @@
+.public-demo .donor-journey {
+  padding-top: 24px;
+}
+.public-demo {
+  --sidebar: 212px;
+}
+.public-demo .sidebar {
+  width: var(--sidebar);
+  padding: 22px 14px 0;
+}
+.public-demo .nav-item {
+  min-height: 36px;
+  padding: 9px 10px;
+  gap: 9px;
+  font-size: 12px;
+}
+.public-demo .workspace-identity {
+  gap: 9px;
+  padding-block: 15px;
+}
+.public-demo .sidebar-bottom {
+  padding-top: 20px;
+}
+.public-demo .sidebar-bottom .help-button {
+  font-size: 11px;
+  padding-block: 10px;
+}
+.public-demo .topbar {
+  height: 58px;
+  min-height: 58px;
+  padding-inline: 24px;
+}
+.public-demo .topbar-right {
+  gap: 12px;
+}
+.public-demo .discovery-header {
+  padding-block: 12px;
+  gap: 18px;
+}
+.public-demo .discovery-header nav {
+  gap: 8px;
+  font-size: 12px;
+}
+.public-demo .discovery-header nav a {
+  padding: 8px 10px;
+  border-radius: 7px;
+}
+.public-demo .discovery-header nav a.active {
+  background: var(--raised);
+}
+.public-demo :is(select, .demo-view-picker select, .discovery-filters select) {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 12px;
+}
+.public-demo .demo-view-picker {
+  padding-left: 14px;
+  font-size: 11px;
+}
+.public-demo .donor-card .eyebrow {
+  margin-top: 4px;
+}
+.public-demo .ad-insights {
+  width: 100%;
+  min-width: 0;
+}
+.public-demo .insight-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+.public-demo .insight-tabs button {
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 7px 10px;
+  min-height: 34px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.public-demo .insight-tabs button[aria-selected="true"] {
+  border-color: var(--brand-blue);
+  color: var(--ink);
+  background: var(--accent);
+}
+.public-demo .insight-value {
+  padding: 24px 18px;
+  background: var(--surface);
+  border-radius: 10px;
+  min-height: 220px;
+}
+.public-demo .insight-value > strong {
+  display: block;
+  font-size: 32px;
+  color: var(--brand-light);
+}
+.public-demo .insight-value p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.public-demo .ad-insights [hidden] {
+  display: none;
+}
+.public-demo .donor-breadcrumbs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted);
+}
+.public-demo .donor-breadcrumbs a {
+  color: var(--brand-light);
+}
+.public-demo .donor-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 40px;
+  padding: 38px 0;
+  align-items: center;
+}
+.public-demo .donor-hero h1 {
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  margin: 16px 0;
+}
+.public-demo .donor-journey p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+.public-demo .donor-boundary {
+  background: #0c1b29;
+  border: 1px solid #25618a;
+  border-radius: 16px;
+  padding: 24px;
+}
+.public-demo .donor-boundary svg {
+  color: var(--brand-light);
+}
+.public-demo .donor-boundary h2 {
+  font-size: 20px;
+}
+.public-demo .donor-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  list-style: none;
+  padding: 22px 0 32px;
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+.public-demo .donor-steps span {
+  display: block;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 9px;
+  font-size: 13px;
+}
+.public-demo .donor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.public-demo .donor-card {
+  border: 0;
+  background: transparent;
+  padding: 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.public-demo .donor-card .button {
+  margin-top: auto;
+}
+.public-demo .donor-cover {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 22px;
+}
+.public-demo .donor-card h3 {
+  font-size: 18px;
+  margin: 12px 0 0;
+}
+.public-demo .donor-card p {
+  margin-bottom: 22px;
+}
+.public-demo .donor-project-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 30px;
+  align-items: start;
+}
+.public-demo .donor-story {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.public-demo .donor-story video,
+.public-demo .donor-story img {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  background: #000;
+  border-radius: 10px;
+}
+.public-demo .donor-story h3 {
+  font-size: 23px;
+}
+.public-demo .donor-story h3 a {
+  color: var(--brand-light);
+}
+.public-demo .donor-support-panel {
+  padding: 24px;
+  margin-top: 20px;
+}
+.public-demo .donor-total {
+  font-size: 30px;
+}
+.public-demo .donor-evidence {
+  border-block: 1px solid var(--line);
+  padding: 16px 0;
+  margin: 20px 0;
+}
+.public-demo .donor-evidence h4 {
+  margin: 0 0 18px;
+  font-size: 14px;
+}
+.public-demo .donor-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.public-demo .donor-metrics dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.public-demo .donor-metrics dd {
+  margin: 8px 0;
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+.public-demo .donor-evidence p,
+.public-demo .donor-support-panel p {
+  font-size: 13px;
+}
+.public-demo .donor-evidence summary {
+  cursor: pointer;
+  color: var(--brand-light);
+  padding: 8px 0;
+}
+.public-demo .donor-delivery {
+  padding: 24px;
+  margin-top: 28px;
+}
+.public-demo .donor-gates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.public-demo .donor-gates span {
+  padding: 9px 12px;
+  background: #142231;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.public-demo .donor-entry {
+  margin: 8px 0 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.public-demo .donor-entry p {
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.6;
+}
+.public-demo .donor-entry .button {
+  flex-shrink: 0;
+}
+.public-demo .form-content .button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+@media (max-width: 1100px) {
+  .public-demo .discovery-header {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .public-demo .discovery-header nav {
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-left: 0;
+  }
+  .public-demo .donor-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .public-demo .donor-hero,
+  .public-demo .donor-project-layout,
+  .public-demo .donor-grid,
+  .public-demo .donor-steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .public-demo .donor-entry {
+    flex-direction: row;
+  }
+  .public-demo .donor-entry p {
+    display: none;
+  }
+  .public-demo .donor-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .public-demo .donor-story,
+  .public-demo .donor-support-panel,
+  .public-demo .donor-delivery {
+    padding: 18px;
+  }
+  .public-demo .donor-support-panel {
+    margin-top: 0;
+  }
+  .public-demo .donor-hero {
+    padding: 28px 0;
+  }
+  .public-demo .donor-hero h1 {
+    letter-spacing: -0.8px;
+  }
+}
+
+@media (max-width: 760px) {
+  .public-demo .topbar {
+    height: auto;
+    min-height: 88px;
+    padding: 12px 18px;
+  }
+  .public-demo .discovery-header nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 2px;
+    width: 100%;
+  }
+  .public-demo .discovery-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 10px;
+  }
+  .public-demo .discovery-header nav a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 8px;
+    font-size: 11px;
+  }
+  .public-demo .demo-view-picker {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .public-demo .discovery-header .demo-view-picker {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+    gap: 0;
+  }
+  .public-demo .discovery-header .demo-view-picker > span {
+    display: none;
+  }
+  .public-demo .discovery-header .demo-view-picker select {
+    flex: none;
+  }
+  .public-demo .donor-entry {
+    display: none;
+  }
+}

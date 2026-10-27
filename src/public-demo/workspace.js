@@ -353,6 +353,29 @@ export async function workspaceRequest(
 ) {
   await prepareWorkspace();
   const value = state();
+  if (path === "/public/projects" && method === "GET") {
+    return {
+      handled: true,
+      data: value.projects
+        .filter(
+          (project) =>
+            project.status === "active" &&
+            value.managedCampaigns.some(
+              (campaign) =>
+                campaign.id === project.campaignId &&
+                campaign.status === "active",
+            ),
+        )
+        .map(({ id, campaignId, name, nonprofit, description, category }) => ({
+          id,
+          campaignId,
+          name,
+          nonprofit,
+          description,
+          category,
+        })),
+    };
+  }
   if (path === "/public/campaigns" && method === "GET") {
     return {
       handled: true,
