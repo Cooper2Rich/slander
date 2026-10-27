@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { navigate, selectOwner } from "./helpers";
+import { navigate, openWorkspaceMenu, selectOwner } from "./helpers";
 
 test("owners request projects; only Admin assigns a campaign and approval creates a pricing-pending draft", async ({
   page,
@@ -90,6 +90,7 @@ test("owners request projects; only Admin assigns a campaign and approval create
   expect(stored.project.pricingStatus).toBe("pending");
   expect(stored.project.campaignId).toBe(stored.request.campaignId);
   await page.getByRole("link", { name: "Open project", exact: true }).click();
+  await openWorkspaceMenu(page);
   await expect(
     mainNav().getByRole("link", { name: "Ad spending", exact: true }),
   ).toBeVisible();
@@ -195,6 +196,7 @@ test("Admin funding uses recorded 10/5/85 allocations and campaign archives reta
     })
     .click();
   const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await openWorkspaceMenu(page);
   await expect(
     nav.getByRole("link", { name: "Projects", exact: true }),
   ).toBeVisible();

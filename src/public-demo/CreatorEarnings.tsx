@@ -115,7 +115,9 @@ export function CreatorEarnings() {
         </p>
       )}
       <CreatorWins />
-      <h2 className="earnings-section-title">Earnings by ad</h2>
+      <h2 id="earnings-by-ad" className="earnings-section-title">
+        Earnings by ad
+      </h2>
       <div className="earnings-list">
         {ads.map((ad) => {
           const post = posts.find((entry) => entry.id === ad.adId);

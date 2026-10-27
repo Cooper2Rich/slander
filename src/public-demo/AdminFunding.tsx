@@ -132,7 +132,7 @@ export function AdminFunding() {
       )}
       <div className="section-toolbar">
         <div>
-          <h2>Campaign performance</h2>
+          <h2 id="campaign-performance">Campaign performance</h2>
           <p className="metrics-note">
             Growth compares today’s funds raised with yesterday, UTC.
             Performance figures are illustrative sample metrics; ad-fund

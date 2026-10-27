@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { navigate, selectCreator } from "./helpers";
+import { navigate, openWorkspaceMenu, selectCreator } from "./helpers";
 
 test("public discovery previews video, opens profiles, filters, and supports ad spend as a viewer", async ({
   page,
@@ -127,9 +127,10 @@ test("creators have current and past ads; public excludes archived or held ads",
   await page.goto("./#/explore");
   await selectCreator(page, "Maya Chen");
   await navigate(page, "My ads");
+  await openWorkspaceMenu(page);
   await expect(
     page.getByRole("navigation", { name: "Main navigation" }).getByRole("link"),
-  ).toHaveCount(4);
+  ).toHaveCount(2);
   await expect(page.locator(".creator-card")).toHaveCount(2);
   await expect(
     page.getByRole("heading", { name: "Small hands, big impact", exact: true }),

@@ -216,10 +216,7 @@ test("Profile menu follows viewer state and role previews remain available witho
     page.getByRole("heading", { name: "Campaigns.", exact: true }),
   ).toBeVisible();
   if (info.project.name === "desktop") {
-    await page
-      .getByRole("navigation", { name: "Workspace shortcuts" })
-      .getByRole("link", { name: "Discover ads", exact: true })
-      .click();
+    await page.getByLabel("Demo role").selectOption("public");
     await expect(
       page.getByRole("button", { name: "Studio", exact: true }),
     ).toHaveCount(0);

@@ -70,6 +70,18 @@ body.public-demo {
 .public-demo .rail-profile {
   margin-top: auto;
 }
+.public-demo .role-mobile-nav {
+  display: none;
+}
+.public-demo
+  :is(
+    #earnings-by-ad,
+    #creator-wins-title,
+    #campaign-performance,
+    #ad-contributions
+  ) {
+  scroll-margin-top: calc(var(--public-notice-height) + 20px);
+}
 .public-demo .sidebar {
   left: var(--rail);
   width: var(--sidebar);
@@ -903,6 +915,51 @@ body.public-demo {
   }
 }
 @media (max-width: 760px) {
+  .public-demo .role-mobile-nav {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 2px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--line);
+    background: #0b131f;
+  }
+  .public-demo .role-mobile-nav .nav-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 5px;
+    font-size: 10px;
+    min-height: 54px;
+    border-radius: 0;
+    color: #9db2c9;
+  }
+  .public-demo .role-mobile-nav .nav-item.active {
+    color: #dcefff;
+    background: transparent;
+    border-bottom: 2px solid var(--brand-light);
+  }
+  .public-demo .app-shell .sidebar {
+    position: static;
+    inset: auto;
+    width: auto;
+    transform: none;
+    transition: none;
+    display: none;
+    max-height: 55vh;
+    padding: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .public-demo .app-shell .sidebar.open:not([hidden]) {
+    display: flex;
+  }
+  .public-demo .app-shell .sidebar .brand {
+    display: none;
+  }
+  .public-demo .app-shell .sidebar .sidebar-bottom {
+    padding-top: 16px;
+  }
   .public-demo .public-mobile-context {
     display: block;
     padding: 0 20px;

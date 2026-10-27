@@ -33,6 +33,7 @@ import {
   X,
   Trophy,
   Wallet,
+  type LucideIcon,
 } from "lucide-react";
 import { WorkspaceContext } from "./context";
 import type { Role } from "./types";
@@ -46,8 +47,23 @@ import { ActivityPage } from "./pages/Activity";
 import { CampaignsPage, GivingPage } from "./pages/Campaigns";
 import { APP_NAME, PUBLIC_DEMO } from "./runtime";
 import { reloadPublicDemo } from "./public-demo/update-recovery";
-import { WorkspaceRail } from "./components/WorkspaceRail";
+import {
+  RoleMobileNavigation,
+  WorkspaceRail,
+} from "./components/WorkspaceRail";
 import type { NavigationControls } from "./components/navigation-controls";
+import {
+  roleTabs,
+  roleTabKey,
+  roleSecondaryActive,
+} from "./components/role-navigation";
+
+type WorkspaceNavItem = {
+  to: string;
+  icon: LucideIcon;
+  label: string;
+  count?: number;
+};
 
 export default function App({
   demoViews = {},
@@ -103,12 +119,15 @@ export default function App({
   const [toast, setToast] = useState("");
   const [help, setHelp] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  useEffect(() => {
+    if (navigation?.sidebarOpen === false) setMobileNav(false);
+  }, [navigation?.sidebarOpen]);
   const closePanel = () => {
     setMobileNav(false);
     navigation?.setSidebarOpen(false);
   };
   useLayoutEffect(() => {
-    setMobileNav(false);
+    if (!PUBLIC_DEMO) setMobileNav(false);
     setSearch("");
   }, [location.pathname]);
   useEffect(() => {
@@ -219,7 +238,7 @@ export default function App({
       ? [{ to: "/activity", icon: Activity, label: "Activity" }]
       : []),
   ];
-  const nav = !PUBLIC_DEMO
+  const nav: WorkspaceNavItem[] = !PUBLIC_DEMO
     ? legacyNav
     : role === "creator"
       ? [
@@ -290,6 +309,66 @@ export default function App({
             { to: "/archives", icon: Inbox, label: "Archived projects" },
             { to: "/activity", icon: Activity, label: "Activity" },
           ];
+  const activeRoleTab = roleTabs[role].find(
+    (tab) => tab.key === roleTabKey(role, location.pathname),
+  )!;
+  const secondaryNav: WorkspaceNavItem[] = PUBLIC_DEMO
+    ? nav.filter((item) => roleTabKey(role, item.to) === activeRoleTab.key)
+    : nav;
+  if (PUBLIC_DEMO && role === "creator" && activeRoleTab.key === "earnings")
+    secondaryNav.push(
+      {
+        to: "/earnings?section=earnings-by-ad",
+        label: "Earnings by ad",
+        icon: Wallet,
+      },
+      {
+        to: "/earnings?section=creator-wins-title",
+        label: "Past leaderboard wins",
+        icon: Trophy,
+      },
+    );
+  if (PUBLIC_DEMO && role === "admin" && activeRoleTab.key === "funding")
+    secondaryNav.push({
+      to: "/funding?section=campaign-performance",
+      label: "Campaign performance",
+      icon: Trophy,
+    });
+  if (PUBLIC_DEMO && role === "nonprofit" && activeRoleTab.key === "spending")
+    secondaryNav.push({
+      to: "/spending?section=ad-contributions",
+      label: "Ad spend contributions",
+      icon: Wallet,
+    });
+  const roleNavigation: NavigationControls | undefined = navigation && {
+    ...navigation,
+    selectTab: (to) => {
+      const same = roleTabKey(role, to) === activeRoleTab.key;
+      navigation.setSidebarOpen(same ? !navigation.sidebarOpen : true);
+      if (!same) navigate(to);
+    },
+  };
+  const mobileNavigation: NavigationControls | undefined = roleNavigation && {
+    ...roleNavigation,
+    sidebarOpen: mobileNav,
+    selectTab: (to) => {
+      const same = roleTabKey(role, to) === activeRoleTab.key;
+      const open = same ? !mobileNav : true;
+      setMobileNav(open);
+      roleNavigation.setSidebarOpen(open);
+      if (!same) navigate(to);
+    },
+  };
+  useEffect(() => {
+    if (!PUBLIC_DEMO) return;
+    const section = new URLSearchParams(location.search).get("section");
+    const frame = requestAnimationFrame(() =>
+      section
+        ? document.getElementById(section)?.scrollIntoView()
+        : window.scrollTo(0, 0),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [location.pathname, location.search, Boolean(workspace)]);
   if (/^\/campaigns\/[^/]+\/give\/?$/.test(location.pathname)) {
     return (
       <Routes>
@@ -303,8 +382,8 @@ export default function App({
     >
       {PUBLIC_DEMO && (
         <WorkspaceRail
-          workspace
-          navigation={navigation}
+          role={role}
+          navigation={roleNavigation}
           hidden={navigation ? !navigation.railOpen : false}
         />
       )}
@@ -323,153 +402,14 @@ export default function App({
       >
         Skip to content
       </a>
-      {mobileNav && (
+      {mobileNav && !PUBLIC_DEMO && (
         <button
           className="mobile-backdrop"
           onClick={closePanel}
           aria-label="Close navigation"
         />
       )}
-      <aside
-        id="public-secondary-navigation"
-        hidden={navigation ? !navigation.sidebarOpen : false}
-        className={`sidebar ${mobileNav ? "open" : ""}`}
-      >
-        <NavLink
-          to="/projects"
-          className="brand"
-          aria-label={`${APP_NAME} home`}
-        >
-          <Logo />
-        </NavLink>
-        <div className="workspace-identity">
-          <Avatar
-            name={
-              role === "admin"
-                ? "Demo Administrator"
-                : identity?.name || "Select profile"
-            }
-            index={2}
-          />
-          <div>
-            <strong>
-              {role === "admin"
-                ? PUBLIC_DEMO
-                  ? "Administrator"
-                  : `${APP_NAME} administration`
-                : identity?.name || "Choose a profile"}
-            </strong>
-            <small>
-              {role === "admin"
-                ? "All organizations & projects"
-                : role === "nonprofit"
-                  ? "Campaign Owner workspace"
-                  : "Creator studio"}
-            </small>
-          </div>
-        </div>
-        {role !== "admin" && identity && (
-          <button
-            className="change-identity"
-            onClick={() => {
-              chooseIdentity(null);
-              setMobileNav(false);
-              setSearch("");
-              setToast("");
-              navigate("/projects");
-            }}
-          >
-            Change {role === "nonprofit" ? "nonprofit" : "creator"}
-            <ArrowUpRight size={13} />
-          </button>
-        )}
-        <span className="nav-label">
-          {PUBLIC_DEMO
-            ? role === "creator"
-              ? "CREATOR STUDIO"
-              : role === "admin"
-                ? "ADMIN WORKSPACE"
-                : "CAMPAIGN OWNER"
-            : "WORKSPACE"}
-        </span>
-        <nav aria-label="Main navigation">
-          {!needsSelection &&
-            nav.map((item) => (
-              <NavLink
-                to={item.to}
-                end={
-                  PUBLIC_DEMO &&
-                  (item.to === "/campaigns" ||
-                    item.to === `/campaigns/${selectedCampaignId}`)
-                }
-                onClick={() => setMobileNav(false)}
-                key={item.to}
-                className={({ isActive }) =>
-                  `nav-item ${isActive ? "active" : ""}`
-                }
-              >
-                <item.icon size={19} />
-                <span>{item.label}</span>
-                {item.count ? (
-                  <span className="nav-count">{item.count}</span>
-                ) : null}
-              </NavLink>
-            ))}
-        </nav>
-        <div className="sidebar-bottom">
-          {!PUBLIC_DEMO && (
-            <div className="sidebar-note">
-              <span className="note-doodle">✳</span>
-              <h3>
-                Built for the
-                <br />
-                good you do.
-              </h3>
-              <p>
-                Your mission deserves
-                <br />
-                to be heard.
-              </p>
-              <button onClick={() => setHelp(true)}>
-                Take a quick tour
-                <ArrowUpRight size={14} />
-              </button>
-            </div>
-          )}
-          <button className="help-button" onClick={() => setHelp(true)}>
-            <CircleHelp size={18} />
-            How this demo works
-            <ArrowUpRight size={15} />
-          </button>
-          {!PUBLIC_DEMO && (
-            <div className="sidebar-user">
-              <Avatar
-                name={
-                  role === "admin"
-                    ? "Demo Administrator"
-                    : identity?.name || "Select Profile"
-                }
-                index={2}
-              />
-              <div>
-                <strong>
-                  {role === "admin"
-                    ? "Administrator"
-                    : identity?.name || "Select your profile"}
-                </strong>
-                <small>
-                  {role === "admin"
-                    ? "Admin View"
-                    : role === "nonprofit"
-                      ? "Campaign Owner"
-                      : "Creator"}
-                </small>
-              </div>
-              <span className="online-dot" />
-            </div>
-          )}
-        </div>
-      </aside>
+
       <div className="main-shell">
         <header className="topbar">
           <button
@@ -576,6 +516,158 @@ export default function App({
             </label>
           </div>
         </header>
+        {PUBLIC_DEMO && mobileNavigation && (
+          <RoleMobileNavigation role={role} navigation={mobileNavigation} />
+        )}
+        <aside
+          id="public-secondary-navigation"
+          hidden={navigation ? !navigation.sidebarOpen : false}
+          className={`sidebar ${mobileNav ? "open" : ""}`}
+        >
+          <NavLink
+            to={PUBLIC_DEMO ? roleTabs[role][0].to : "/projects"}
+            className="brand"
+            aria-label={`${APP_NAME} home`}
+          >
+            <Logo />
+          </NavLink>
+          <div className="workspace-identity">
+            <Avatar
+              name={
+                role === "admin"
+                  ? "Demo Administrator"
+                  : identity?.name || "Select profile"
+              }
+              index={2}
+            />
+            <div>
+              <strong>
+                {role === "admin"
+                  ? PUBLIC_DEMO
+                    ? "Administrator"
+                    : `${APP_NAME} administration`
+                  : identity?.name || "Choose a profile"}
+              </strong>
+              <small>
+                {role === "admin"
+                  ? "All organizations & projects"
+                  : role === "nonprofit"
+                    ? "Campaign Owner workspace"
+                    : "Creator workspace"}
+              </small>
+            </div>
+          </div>
+          {role !== "admin" && identity && (
+            <button
+              className="change-identity"
+              onClick={() => {
+                chooseIdentity(null);
+                setMobileNav(false);
+                setSearch("");
+                setToast("");
+                navigate("/projects");
+              }}
+            >
+              Change {role === "nonprofit" ? "nonprofit" : "creator"}
+              <ArrowUpRight size={13} />
+            </button>
+          )}
+          <span className="nav-label">
+            {PUBLIC_DEMO
+              ? selectedCampaignId
+                ? "CAMPAIGN TOOLS"
+                : activeRoleTab.name.toUpperCase()
+              : "WORKSPACE"}
+          </span>
+          <nav aria-label="Main navigation">
+            {!needsSelection &&
+              secondaryNav.map((item) => (
+                <NavLink
+                  to={item.to}
+                  end={
+                    PUBLIC_DEMO &&
+                    (item.to === "/campaigns" ||
+                      item.to === `/campaigns/${selectedCampaignId}`)
+                  }
+                  onClick={() => setMobileNav(false)}
+                  aria-current={
+                    PUBLIC_DEMO
+                      ? roleSecondaryActive(
+                          location.pathname,
+                          location.search,
+                          item.to,
+                        )
+                        ? "page"
+                        : false
+                      : undefined
+                  }
+                  key={item.to}
+                  className={({ isActive }) =>
+                    `nav-item ${(PUBLIC_DEMO ? roleSecondaryActive(location.pathname, location.search, item.to) : isActive) ? "active" : ""}`
+                  }
+                >
+                  <item.icon size={19} />
+                  <span>{item.label}</span>
+                  {item.count ? (
+                    <span className="nav-count">{item.count}</span>
+                  ) : null}
+                </NavLink>
+              ))}
+          </nav>
+          <div className="sidebar-bottom">
+            {!PUBLIC_DEMO && (
+              <div className="sidebar-note">
+                <span className="note-doodle">✳</span>
+                <h3>
+                  Built for the
+                  <br />
+                  good you do.
+                </h3>
+                <p>
+                  Your mission deserves
+                  <br />
+                  to be heard.
+                </p>
+                <button onClick={() => setHelp(true)}>
+                  Take a quick tour
+                  <ArrowUpRight size={14} />
+                </button>
+              </div>
+            )}
+            <button className="help-button" onClick={() => setHelp(true)}>
+              <CircleHelp size={18} />
+              How this demo works
+              <ArrowUpRight size={15} />
+            </button>
+            {!PUBLIC_DEMO && (
+              <div className="sidebar-user">
+                <Avatar
+                  name={
+                    role === "admin"
+                      ? "Demo Administrator"
+                      : identity?.name || "Select Profile"
+                  }
+                  index={2}
+                />
+                <div>
+                  <strong>
+                    {role === "admin"
+                      ? "Administrator"
+                      : identity?.name || "Select your profile"}
+                  </strong>
+                  <small>
+                    {role === "admin"
+                      ? "Admin View"
+                      : role === "nonprofit"
+                        ? "Campaign Owner"
+                        : "Creator"}
+                  </small>
+                </div>
+                <span className="online-dot" />
+              </div>
+            )}
+          </div>
+        </aside>
         <main id="main-content" className="main-content" tabIndex={-1}>
           {error && (
             <div className="load-error" role="alert">
@@ -601,9 +693,7 @@ export default function App({
               options={options}
               onSelect={(id) => {
                 chooseIdentity(id);
-                navigate(
-                  PUBLIC_DEMO && role === "creator" ? "/review" : "/projects",
-                );
+                if (!PUBLIC_DEMO) navigate("/projects");
               }}
               refreshOptions={loadOptions}
             />

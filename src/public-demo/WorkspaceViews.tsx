@@ -262,7 +262,7 @@ export function SpendingPage() {
         </div>
       </div>
       <div className="market-panel">
-        <h2>Ad spend contributions</h2>
+        <h2 id="ad-contributions">Ad spend contributions</h2>
         <p>
           Browser-local simulations. No ad purchases or money movement.
           Allocation does not mean a payout has been made.

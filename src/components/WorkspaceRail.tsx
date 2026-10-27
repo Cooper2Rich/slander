@@ -2,35 +2,29 @@ import { Compass, House, Info, Trophy, UserRound } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Logo } from "./ui";
 import { publicArea } from "../public-demo/navigation";
+import type { Role } from "../types";
+import { roleTabs, roleTabKey } from "./role-navigation";
 import {
   selectNavigationTab,
   type NavigationControls,
 } from "./navigation-controls";
 
 export function WorkspaceRail({
-  workspace = false,
+  role,
   profileLabel = "Your profile",
   hidden = false,
   navigation,
 }: {
-  workspace?: boolean;
+  role?: Role;
   profileLabel?: string;
   hidden?: boolean;
   navigation?: NavigationControls;
 }) {
   const { pathname } = useLocation();
-  const area = publicArea(pathname);
-  return (
-    <nav
-      id="public-main-navigation"
-      hidden={hidden}
-      className="workspace-rail"
-      aria-label="Workspace shortcuts"
-    >
-      <Link to="/" className="rail-brand" aria-label="Blue Ripple home">
-        <Logo small />
-      </Link>
-      {[
+  const area = role ? roleTabKey(role, pathname) : publicArea(pathname);
+  const tabs = role
+    ? roleTabs[role].map((tab) => ({ ...tab, area: tab.key, Icon: tab.icon }))
+    : [
         { to: "/", label: "Home", name: "Home", area: "home", Icon: House },
         {
           to: "/explore",
@@ -53,17 +47,30 @@ export function WorkspaceRail({
           area: "leaders",
           Icon: Trophy,
         },
-      ].map(({ to, label, name, area: itemArea, Icon }) => (
+      ];
+  return (
+    <nav
+      id="public-main-navigation"
+      hidden={hidden}
+      className="workspace-rail"
+      aria-label="Workspace shortcuts"
+    >
+      <Link
+        to={role ? roleTabs[role][0].to : "/"}
+        className="rail-brand"
+        aria-label={role ? "Workspace home" : "Blue Ripple home"}
+      >
+        <Logo small />
+      </Link>
+      {tabs.map(({ to, label, name, area: itemArea, Icon }) => (
         <Link
           key={to}
           to={to}
-          className={`rail-item ${!workspace && area === itemArea ? "selected" : ""}`}
+          className={`rail-item ${area === itemArea ? "selected" : ""}`}
           aria-label={name}
-          aria-current={!workspace && area === itemArea ? "page" : undefined}
+          aria-current={area === itemArea ? "page" : undefined}
           aria-expanded={
-            navigation
-              ? !workspace && area === itemArea && navigation.sidebarOpen
-              : undefined
+            navigation ? area === itemArea && navigation.sidebarOpen : undefined
           }
           aria-controls={navigation ? "public-secondary-navigation" : undefined}
           onClick={(event) => selectNavigationTab(event, to, navigation)}
@@ -74,24 +81,56 @@ export function WorkspaceRail({
           <small>{label}</small>
         </Link>
       ))}
-      <Link
-        to="/viewer"
-        className={`rail-item rail-profile ${!workspace && area === "profile" ? "selected" : ""}`}
-        aria-label={profileLabel}
-        aria-current={!workspace && area === "profile" ? "page" : undefined}
-        aria-expanded={
-          navigation
-            ? !workspace && area === "profile" && navigation.sidebarOpen
-            : undefined
-        }
-        aria-controls={navigation ? "public-secondary-navigation" : undefined}
-        onClick={(event) => selectNavigationTab(event, "/viewer", navigation)}
-      >
-        <span>
-          <UserRound size={20} />
-        </span>
-        <small>Profile</small>
-      </Link>
+      {!role && (
+        <Link
+          to="/viewer"
+          className={`rail-item rail-profile ${area === "profile" ? "selected" : ""}`}
+          aria-label={profileLabel}
+          aria-current={area === "profile" ? "page" : undefined}
+          aria-expanded={
+            navigation
+              ? area === "profile" && navigation.sidebarOpen
+              : undefined
+          }
+          aria-controls={navigation ? "public-secondary-navigation" : undefined}
+          onClick={(event) => selectNavigationTab(event, "/viewer", navigation)}
+        >
+          <span>
+            <UserRound size={20} />
+          </span>
+          <small>Profile</small>
+        </Link>
+      )}
+    </nav>
+  );
+}
+
+export function RoleMobileNavigation({
+  role,
+  navigation,
+}: {
+  role: Role;
+  navigation: NavigationControls;
+}) {
+  const { pathname } = useLocation();
+  const active = roleTabKey(role, pathname);
+  return (
+    <nav className="role-mobile-nav" aria-label="Mobile workspace navigation">
+      {roleTabs[role].map((tab) => (
+        <Link
+          key={tab.key}
+          to={tab.to}
+          className={`nav-item ${active === tab.key ? "active" : ""}`}
+          aria-label={tab.name}
+          aria-current={active === tab.key ? "page" : undefined}
+          aria-expanded={active === tab.key && navigation.sidebarOpen}
+          aria-controls="public-secondary-navigation"
+          onClick={(event) => selectNavigationTab(event, tab.to, navigation)}
+        >
+          <tab.icon size={16} />
+          <span>{tab.label}</span>
+        </Link>
+      ))}
     </nav>
   );
 }
