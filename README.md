@@ -2,7 +2,7 @@
 
 [**Open the public interactive demo →**](https://cooper2rich.github.io/slander/)
 
-[**Demo Shared with John — open the live demo →**](https://cooper2rich.github.io/slander/demo-shared-with-john/)
+[**johns demo link**](https://cooper2rich.github.io/slander/demo-shared-with-john/)
 
 John's demo is a frozen copy of main at `47c3b75`. Changes to main or other branches do not update it.
 
