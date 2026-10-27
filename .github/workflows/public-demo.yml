@@ -1,0 +1,69 @@
+name: Publish public demo from main
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: public-demo-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out main source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check domain behavior
+        run: npm test
+      - name: Build public demo
+        run: npm run build:public
+      - name: Check out retained public assets
+        uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+          path: pages-archive
+          fetch-depth: 0
+      - name: Retain assets used by older open tabs
+        run: node scripts/stage-public.mjs --destination pages-archive
+      - name: Save the generated asset archive
+        run: |
+          git -C pages-archive config user.name 'github-actions[bot]'
+          git -C pages-archive config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C pages-archive add --all
+          if ! git -C pages-archive diff --cached --quiet; then
+            git -C pages-archive commit -m "Publish main ${GITHUB_SHA}"
+            git -C pages-archive push origin HEAD:gh-pages
+          fi
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+      - name: Upload the public site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: pages-archive
+          include-hidden-files: true
+      - name: Publish GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

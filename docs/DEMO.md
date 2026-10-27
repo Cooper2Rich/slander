@@ -1,5 +1,7 @@
 # Slander local demo
 
+The public site deploys automatically from **main** through `.github/workflows/public-demo.yml`, after domain tests and a public production build. Its source link points to main. GitHub Pages uses Actions deployments; the `gh-pages` branch archives generated assets so older open tabs keep working. A manual workflow run on main republishes the current source without resetting any visitor's browser records.
+
 Public visitors can open the [GitHub Pages demo](https://cooper2rich.github.io/slander/) without signing in. The default discovery grid supports muted hover/keyboard previews, ad profiles with playable video, search/cause filters, illustrative impressions/CTR/cause donations, and a per-ad **Fund ad spend** action. The coffee collection uses real filmed footage throughout; original photo creatives appear as images. New eligible ads show N/A for unconnected metrics. Only eligible ads in active campaigns enter public discovery; private eligibility evidence and history are excluded.
 
 Video previews loop the first five seconds while the pointer is over the ad and stop when it leaves. The shared player supports pointer and traditional mouse events and can retry an interrupted play request on subsequent movement. The Girl in the Middle previews in public cards/profiles, current and past leaderboards, Admin/owner creatives, creator ads, and the creator's earnings and win cards. Explicit Play retains full-length playback with sound; reduced-motion preferences continue to suppress automatic previews.

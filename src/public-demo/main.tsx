@@ -18,7 +18,7 @@ createRoot(document.getElementById("root")!).render(
           Public demo · fictional workspace saved in this browser · no real
           payments
         </span>
-        <a href="https://github.com/Cooper2Rich/slander/tree/demo-2">
+        <a href="https://github.com/Cooper2Rich/slander/tree/main">
           Source & local version ↗
         </a>
       </div>
