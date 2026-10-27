@@ -52,13 +52,13 @@ jobs:
           ref: gh-pages
           path: pages-archive
           fetch-depth: 0
-      - name: Stage only working preview and preserve main and John
+      - name: Stage working preview and approved main demo links
         run: node scripts/stage-working.mjs --destination pages-archive
-      - name: Save generated working directory only
+      - name: Save working preview and labeled main-page links
         run: |
           git -C pages-archive config user.name 'github-actions[bot]'
           git -C pages-archive config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git -C pages-archive add -- working
+          git -C pages-archive add -- working index.html
           node scripts/stage-working.mjs --destination pages-archive --verify-staged
           if ! git -C pages-archive diff --cached --quiet; then
             git -C pages-archive commit -m "Publish isolated working ${GITHUB_SHA}"

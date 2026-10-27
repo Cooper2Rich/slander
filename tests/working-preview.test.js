@@ -16,6 +16,10 @@ import {
   assertWorkingChanges,
 } from "../scripts/stage-working.mjs";
 import { previewStorageKey } from "../src/public-demo/storage.ts";
+import {
+  withMainDemoLinks,
+  withoutMainDemoLinks,
+} from "../scripts/main-demo-links.mjs";
 
 test("working storage isolates every key and media database without migrating main or John", () => {
   for (const key of [
@@ -37,7 +41,7 @@ test("working storage isolates every key and media database without migrating ma
   }
 });
 
-test("working staging changes only working/, preserving the main entry, John tree and old preview chunks", (t) => {
+test("working staging adds approved main links and working files, preserving the main application, John and old chunks", (t) => {
   const root = mkdtempSync(join(tmpdir(), "working-preview-"));
   t.after(() => {
     if (!resolve(root).startsWith(resolve(tmpdir()) + sep))
@@ -56,7 +60,9 @@ test("working staging changes only working/, preserving the main entry, John tre
   git("init", "-b", "gh-pages");
   git("config", "user.name", "Preview test");
   git("config", "user.email", "test@example.test");
-  writeFileSync(join(destination, "index.html"), "frozen main");
+  const originalMain =
+    '<!doctype html><html><body><div id="root">frozen main</div><script src="/slander/assets/original.js"></script></body></html>';
+  writeFileSync(join(destination, "index.html"), originalMain);
   writeFileSync(
     join(destination, "demo-shared-with-john/index.html"),
     "frozen John",
@@ -86,8 +92,8 @@ test("working staging changes only working/, preserving the main entry, John tre
   assert.equal(result.mainIndex, main);
   assert.equal(result.johnTree, john);
   assert.equal(
-    readFileSync(join(destination, "index.html"), "utf8"),
-    "frozen main",
+    withoutMainDemoLinks(readFileSync(join(destination, "index.html"), "utf8")),
+    originalMain,
   );
   assert.equal(
     readFileSync(join(destination, "demo-shared-with-john/index.html"), "utf8"),
@@ -96,15 +102,44 @@ test("working staging changes only working/, preserving the main entry, John tre
   assert.ok(
     existsSync(join(destination, "working/assets/previous-old12345.js")),
   );
-  git("add", "--", "working");
+  const labeled = readFileSync(join(destination, "index.html"), "utf8");
+  assert.match(labeled, /John — Frozen demo/);
+  assert.match(labeled, /Working — Editable demo/);
+  git("add", "--", "working", "index.html");
   assertWorkingChanges(destination, true);
   git("commit", "-m", "Isolated preview");
-  assert.equal(git("rev-parse", "HEAD:index.html"), main);
+  assert.notEqual(git("rev-parse", "HEAD:index.html"), main);
   assert.equal(git("rev-parse", "HEAD:demo-shared-with-john"), john);
-  writeFileSync(join(destination, "index.html"), "unexpected root change");
+  stageWorking(source, destination);
+  assert.equal(readFileSync(join(destination, "index.html"), "utf8"), labeled);
+  assert.equal(git("status", "--porcelain"), "");
+  writeFileSync(
+    join(destination, "index.html"),
+    withMainDemoLinks(originalMain.replace("original.js", "tampered.js")),
+  );
   git("add", "index.html");
   assert.throws(
     () => assertWorkingChanges(destination, true),
-    /outside working/,
+    /beyond its approved demo links/,
+  );
+  git("reset", "--hard", "HEAD");
+  writeFileSync(
+    join(destination, "demo-shared-with-john/index.html"),
+    "unexpected John change",
+  );
+  git("add", "demo-shared-with-john/index.html");
+  assert.throws(() => assertWorkingChanges(destination, true), /outside working/);
+});
+
+test("main labels are idempotent and preserve the application payload byte for byte", () => {
+  const html =
+    '<html>\r\n<body class="demo">\r\n<div id="root"></div><script src="/slander/assets/frozen.js"></script>\r\n</body></html>';
+  const labeled = withMainDemoLinks(html);
+  assert.equal(withMainDemoLinks(labeled), labeled);
+  assert.equal(withoutMainDemoLinks(labeled), html);
+  assert.equal((labeled.match(/aria-label="Public demos"/g) || []).length, 1);
+  assert.throws(
+    () => withoutMainDemoLinks(labeled.replace("BRM PUBLIC DEMO LINKS END", "broken")),
+    /Malformed/,
   );
 });

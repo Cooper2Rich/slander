@@ -5,10 +5,12 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  writeFileSync,
 } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { withMainDemoLinks } from "./main-demo-links.mjs";
 
 function git(destination, ...args) {
   return execFileSync("git", ["-C", destination, ...args], {
@@ -41,8 +43,24 @@ export function assertWorkingChanges(destination, staged = false) {
   )
     .split("\0")
     .filter(Boolean);
-  if ([...changed, ...untracked].some((path) => !path.startsWith("working/")))
-    throw new Error("Refusing publication: a path outside working/ changed");
+  if (
+    [...changed, ...untracked].some(
+      (path) => path !== "index.html" && !path.startsWith("working/"),
+    )
+  )
+    throw new Error(
+      "Refusing publication: a path outside working/ and the approved main links changed",
+    );
+  if (changed.includes("index.html") || untracked.includes("index.html")) {
+    const original = git(destination, "show", "HEAD:index.html");
+    const current = staged
+      ? git(destination, "show", ":index.html")
+      : readFileSync(join(destination, "index.html"), "utf8");
+    if (current !== withMainDemoLinks(original))
+      throw new Error(
+        "Refusing publication: main entry changed beyond its approved demo links",
+      );
+  }
   return changed;
 }
 export function stageWorking(source, destination) {
@@ -75,6 +93,9 @@ export function stageWorking(source, destination) {
     // Merge within working/ to retain hashed assets needed by already-open tabs.
     cpSync(join(source, entry), join(target, entry), { recursive: true });
   }
+  const mainPath = join(destination, "index.html");
+  noLinks(mainPath);
+  writeFileSync(mainPath, withMainDemoLinks(readFileSync(mainPath, "utf8")));
   assertWorkingChanges(destination);
   if (readFileSync(join(target, "index.html"), "utf8") !== html)
     throw new Error("Working entry point differs from build");
@@ -82,6 +103,7 @@ export function stageWorking(source, destination) {
     ...manifest,
     target,
     mainIndex: git(destination, "rev-parse", "HEAD:index.html").trim(),
+    mainIndexWithLinks: git(destination, "hash-object", mainPath).trim(),
     johnTree: git(
       destination,
       "rev-parse",
