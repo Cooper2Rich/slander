@@ -10,6 +10,7 @@ import { AdMedia } from "./AdMedia";
 import { useCreatorEarnings } from "./CreatorEarnings";
 import { FinancialSampleControl } from "./FinancialSamples";
 import { CompletedAdSpend } from "./CompletedAdSpend";
+import { CampaignBudgetPanel } from "./CampaignBudgetBreakdown";
 import {
   loadAds,
   money,
@@ -255,6 +256,7 @@ export function SpendingPage() {
           <Wallet size={30} />
         )}
       </div>
+      <CampaignBudgetPanel />
       <div className="creator-summary">
         <div>
           <small>Ad spend funded here</small>

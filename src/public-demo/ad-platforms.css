@@ -54,6 +54,75 @@
 .completed-ad-spend .ad-platform-state {
   white-space: nowrap;
 }
+.campaign-budget-platforms {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.campaign-budget-platform {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--raised);
+  min-width: 0;
+}
+.campaign-budget-platform-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.campaign-budget-platform h3 {
+  margin: 0;
+  font-size: 17px;
+}
+.campaign-budget-platform-heading > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.campaign-budget-platform dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 22px 0;
+}
+.campaign-budget-platform dt {
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+.campaign-budget-platform dd {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.campaign-budget-breakdown .budget-over {
+  color: #ffb3ad;
+}
+.campaign-budget-breakdown .budget-left {
+  color: #9ae4c4;
+}
+.campaign-budget-platform p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 12px 0 0;
+}
+.campaign-budget-meter {
+  height: 7px;
+  background: #263d51;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.campaign-budget-meter > span {
+  display: block;
+  height: 100%;
+  background: #73c6ff;
+  border-radius: inherit;
+}
+.campaign-budget-meter.over > span {
+  background: #f68e83;
+}
 .ad-platform-notice {
   border: 1px solid #24445e;
   background: #102436;
@@ -318,6 +387,12 @@
   color: #8dd3ff;
 }
 @media (max-width: 760px) {
+  .campaign-budget-breakdown .ad-platform-section-heading > div {
+    flex-basis: calc(100% - 32px);
+  }
+  .campaign-budget-platforms {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .completed-ad-spend :is(th, td):nth-child(3) {
     display: none;
   }

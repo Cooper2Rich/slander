@@ -93,6 +93,51 @@ function ready(state) {
   call(state, "rules", rules());
 }
 
+test("included completed samples cap previews by both overall and platform budget left", () => {
+  const state = fresh();
+  state.projects[0].id = "nocturne-coffee-showcase-v1";
+  state.posts.forEach((post) => {
+    if (post.projectId === "p1") post.projectId = state.projects[0].id;
+  });
+  ready(state);
+  call(
+    state,
+    "rules",
+    rules({
+      dailyLimitCents: 40000,
+      campaignLimitCents: 100000,
+      metaPercent: 50,
+    }),
+  );
+  const included = call(state, "preview", { includeSamples: true }).preview;
+  assert.equal(included.budgetCents, 30000);
+  assert.equal(included.plannedCents, 23000);
+  assert.equal(included.unallocatedCents, 7000);
+  assert.equal(
+    included.rows
+      .filter((row) => row.platform === "meta")
+      .reduce((sum, row) => sum + row.amountCents, 0),
+    8000,
+  );
+  assert.equal(included.includesSampleSpend, true);
+  const excluded = call(state, "preview", { includeSamples: false }).preview;
+  assert.equal(excluded.plannedCents, 40000);
+  assert.equal(excluded.includesSampleSpend, false);
+  call(
+    state,
+    "rules",
+    rules({
+      dailyLimitCents: 10000,
+      campaignLimitCents: 60000,
+      metaPercent: 50,
+    }),
+  );
+  const exhausted = call(state, "preview", { includeSamples: true }).preview;
+  assert.equal(exhausted.plannedCents, 0);
+  assert.equal(exhausted.budgetCents, 0);
+  assert.match(exhausted.notes[0], /no remaining funds/);
+});
+
 test("campaign ad setup is Admin only and settings do not cross campaigns", () => {
   const state = fresh();
   for (const role of ["owner", "creator", "nonprofit"]) {

@@ -75,7 +75,7 @@ test("campaign connections, spending rules and allocation previews persist witho
   await connect(page, "Meta");
   await connect(page, "TikTok");
   await page.getByLabel("Daily limit (USD)", { exact: true }).fill("0.29");
-  await page.getByLabel("Campaign cap (USD)", { exact: true }).fill("1.00");
+  await page.getByLabel("Campaign cap (USD)", { exact: true }).fill("1000.00");
   await page.getByLabel("Meta allocation (%)", { exact: true }).fill("70");
   await enable(page);
   await page

@@ -1,5 +1,7 @@
 import { currentEligibility } from "../../server/eligibility.js";
 import type { ManagedCampaign, Post, Project } from "../types";
+import { campaignBudgetBreakdown } from "./campaign-budget.ts";
+import { completedAdSpendReport } from "./completed-ad-spend.ts";
 
 export const adPlatforms = ["meta", "tiktok"] as const;
 export type AdPlatform = (typeof adPlatforms)[number];
@@ -29,6 +31,7 @@ type Allocation = {
   targetId: string;
 };
 export type AdSpendPreview = {
+  includesSampleSpend?: boolean;
   at: string;
   budgetCents: number;
   plannedCents: number;
@@ -125,6 +128,7 @@ export function previewAdSpend(
   state: AdSetupState,
   campaign: ManagedCampaign,
   setup: CampaignAdSetup,
+  includeSamples = false,
 ): AdSpendPreview {
   if (campaign.status !== "active")
     throw new Error("Open an active campaign before previewing spending.");
@@ -146,15 +150,33 @@ export function previewAdSpend(
       );
     })
     .sort((a, b) => a.id.localeCompare(b.id));
+  const breakdown = campaignBudgetBreakdown(
+    setup.rules,
+    completedAdSpendReport(projects, includeSamples).byPlatform,
+  );
   const budgetCents = Math.min(
     setup.rules.dailyLimitCents,
-    setup.rules.campaignLimitCents,
+    Math.max(0, breakdown.remainingCents),
   );
   const metaCents = Math.floor((budgetCents * setup.rules.metaPercent) / 100);
   const rows: Allocation[] = [],
     notes: string[] = [];
+  if (!budgetCents)
+    notes.push(
+      "The campaign budget has no remaining funds in this preview. Increase the cap or review the included sample history.",
+    );
   for (const provider of adPlatforms) {
-    const amount = provider === "meta" ? metaCents : budgetCents - metaCents;
+    const requested = provider === "meta" ? metaCents : budgetCents - metaCents;
+    if (!requested) continue;
+    const remaining = Math.max(
+      0,
+      breakdown.rows.find((row) => row.platform === provider)!.remainingCents,
+    );
+    const amount = Math.min(requested, remaining);
+    if (amount < requested)
+      notes.push(
+        `${platformNames[provider]} is limited by its remaining allocation. Unused budget is not shifted to another platform.`,
+      );
     if (!amount) continue;
     const connection = setup.connections[provider]!;
     const requiresVideo =
@@ -185,6 +207,7 @@ export function previewAdSpend(
   }
   const plannedCents = rows.reduce((sum, row) => sum + row.amountCents, 0);
   return {
+    includesSampleSpend: includeSamples,
     at: new Date().toISOString(),
     budgetCents,
     plannedCents,
@@ -262,7 +285,12 @@ export function campaignAdPlatformAction(
     }
     delete next.preview;
   } else if (action === "preview")
-    next.preview = previewAdSpend(state, campaign, next);
+    next.preview = previewAdSpend(
+      state,
+      campaign,
+      next,
+      body.includeSamples === true,
+    );
   else throw new Error("Ad platform action unavailable.");
   state.adPlatformSetups ||= {};
   state.adPlatformSetups[campaign.id] = next;

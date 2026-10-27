@@ -92,8 +92,9 @@ export function CompletedAdSpend() {
       )}
       <p className="ad-platform-help">
         These fixed historical examples do not change contributions, creator
-        earnings, future allocation caps or actual platform spend. Live platform
-        spend remains $0.00.
+        earnings or actual platform spend. Budget breakdowns and previews use
+        included examples to illustrate remaining budget. Live platform spend
+        remains $0.00.
       </p>
     </section>
   );

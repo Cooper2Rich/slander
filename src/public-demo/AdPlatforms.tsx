@@ -15,10 +15,19 @@ import {
 } from "./ad-platforms";
 import "./ad-platforms.css";
 import { CompletedAdSpend } from "./CompletedAdSpend";
+import { CampaignBudgetBreakdown } from "./CampaignBudgetBreakdown";
+import { useFinancialSamples } from "./FinancialSamples";
 
-export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
+export function AdPlatformsPage({
+  embedded = false,
+  onSetupChange,
+}: {
+  embedded?: boolean;
+  onSetupChange?: (setup: CampaignAdSetup) => void;
+}) {
   const { access, role, campaignScope: campaign } = useWorkspace();
   const [setup, setSetup] = useState<CampaignAdSetup>();
+  const { enabled: includeSamples } = useFinancialSamples();
   const [daily, setDaily] = useState("100.00"),
     [cap, setCap] = useState("1000.00");
   const [metaPercent, setMetaPercent] = useState("50"),
@@ -31,6 +40,7 @@ export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
   const base = `/management/campaigns/${campaign?.id}/ad-platforms`;
   function apply(next: CampaignAdSetup) {
     setSetup(next);
+    onSetupChange?.(next);
     setDaily((next.rules.dailyLimitCents / 100).toFixed(2));
     setCap((next.rules.campaignLimitCents / 100).toFixed(2));
     setMetaPercent(String(next.rules.metaPercent));
@@ -54,6 +64,11 @@ export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
   if (!campaign) return <Navigate to="/campaigns" replace />;
   const archived = campaign.status === "archived";
   const locked = busy || archived;
+  const preview =
+    setup?.preview &&
+    (setup.preview.includesSampleSpend ?? false) === includeSamples
+      ? setup.preview
+      : undefined;
   const dirty =
     !!setup &&
     (cents(daily) !== setup.rules.dailyLimitCents ||
@@ -215,6 +230,7 @@ export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
               })}
             </div>
           )}
+          {!embedded && <CampaignBudgetBreakdown rules={setup.rules} />}
           <form className="ad-platform-panel" onSubmit={saveRules}>
             <div className="ad-platform-section-heading">
               <Settings2 size={20} />
@@ -348,7 +364,7 @@ export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
                 onClick={() =>
                   void mutate(
                     "preview",
-                    {},
+                    { includeSamples },
                     "Allocation preview updated. No ad spend was placed.",
                   )
                 }
@@ -370,28 +386,27 @@ export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
                 <strong>$0.00</strong>
               </div>
             </div>
-            {setup.preview ? (
+            {preview ? (
               <>
                 <p className="ad-platform-help">
-                  Last preview: {new Date(setup.preview.at).toLocaleString()}.
+                  Last preview: {new Date(preview.at).toLocaleString()}.
                   Repeating a preview does not consume the budget.
                 </p>
                 <div className="ad-platform-preview-totals">
                   <span>
-                    Planned:{" "}
-                    <strong>{money(setup.preview.plannedCents)}</strong>
+                    Planned: <strong>{money(preview.plannedCents)}</strong>
                   </span>
                   <span>
                     Unallocated:{" "}
-                    <strong>{money(setup.preview.unallocatedCents)}</strong>
+                    <strong>{money(preview.unallocatedCents)}</strong>
                   </span>
                 </div>
-                {setup.preview.notes.map((note) => (
+                {preview.notes.map((note) => (
                   <p className="info-banner" key={note}>
                     {note}
                   </p>
                 ))}
-                {!!setup.preview.rows.length && (
+                {!!preview.rows.length && (
                   <div className="ad-platform-table">
                     <table>
                       <caption className="sr-only">
@@ -405,7 +420,7 @@ export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {setup.preview.rows.map((row) => (
+                        {preview.rows.map((row) => (
                           <tr key={`${row.platform}-${row.adId}`}>
                             <td>{platformNames[row.platform]}</td>
                             <td>{row.title}</td>
@@ -421,7 +436,8 @@ export function AdPlatformsPage({ embedded = false }: { embedded?: boolean }) {
               <p className="ad-platform-help">
                 Connect the platforms receiving a budget share, enable and save
                 the rules, then run a preview. Draft, held, withdrawn and
-                inactive creatives are excluded.
+                inactive creatives are excluded. Run a fresh preview after
+                changing sample visibility.
               </p>
             )}
           </section>
