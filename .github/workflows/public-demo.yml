@@ -40,6 +40,10 @@ jobs:
         run: npm test
       - name: Build public demo
         run: npm run build:public
+      - name: Install Chromium for playback checks
+        run: npx playwright install --with-deps chromium
+      - name: Verify hover playback across every ad view
+        run: npx playwright test --config playwright.public.config.ts tests/public-browser/girl-hover.spec.ts
       - name: Check out retained public assets
         uses: actions/checkout@v7
         with:
