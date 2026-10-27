@@ -119,6 +119,46 @@
 .role-profile-wide {
   grid-column: 1 / -1;
 }
+.profile-image-upload {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.profile-image-upload > .avatar {
+  width: 80px;
+  height: 80px;
+  font-size: 26px;
+}
+.profile-image-upload > div {
+  min-width: 0;
+}
+.profile-image-upload h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+.profile-image-upload p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.profile-image-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.profile-image-buttons .button {
+  white-space: normal;
+  text-align: left;
+}
+.profile-image-upload .profile-image-error {
+  margin-top: 12px;
+  color: #ffb3b3;
+}
 .role-profile-alerts {
   display: grid;
   gap: 0;
@@ -175,6 +215,10 @@
   flex-shrink: 0;
 }
 @media (max-width: 700px) {
+  .profile-image-upload {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
   .role-profile-summary {
     align-items: flex-start;
     flex-wrap: wrap;

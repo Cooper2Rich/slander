@@ -999,6 +999,20 @@ nav {
   font-size: 7px;
   margin-right: -8px;
 }
+.avatar > img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  display: block;
+}
+.avatar.avatar-logo {
+  border-radius: 8px;
+}
+.avatar-logo > img {
+  object-fit: contain;
+  padding: 3px;
+}
 .avatar-stack > span:last-child:not(.avatar) {
   margin-left: 14px;
 }

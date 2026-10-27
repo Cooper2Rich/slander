@@ -1,6 +1,6 @@
 import { Compass, House, Info, Trophy, UserRound } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { Logo } from "./ui";
+import { Avatar, Logo } from "./ui";
 import { publicArea } from "../public-demo/navigation";
 import type { Role } from "../types";
 import { roleTabs, roleTabKey } from "./role-navigation";
@@ -12,11 +12,15 @@ import {
 export function WorkspaceRail({
   role,
   profileLabel = "Your profile",
+  profileImage,
+  profileName = "Your profile",
   hidden = false,
   navigation,
 }: {
   role?: Role;
   profileLabel?: string;
+  profileImage?: string;
+  profileName?: string;
   hidden?: boolean;
   navigation?: NavigationControls;
 }) {
@@ -76,7 +80,15 @@ export function WorkspaceRail({
           onClick={(event) => selectNavigationTab(event, to, navigation)}
         >
           <span>
-            <Icon size={21} />
+            {role && itemArea === "profile" && profileImage ? (
+              <Avatar
+                name={profileName}
+                src={profileImage}
+                logo={role === "nonprofit"}
+              />
+            ) : (
+              <Icon size={21} />
+            )}
           </span>
           <small>{label}</small>
         </Link>
@@ -108,9 +120,13 @@ export function WorkspaceRail({
 export function RoleMobileNavigation({
   role,
   navigation,
+  profileImage,
+  profileName = "Your profile",
 }: {
   role: Role;
   navigation: NavigationControls;
+  profileImage?: string;
+  profileName?: string;
 }) {
   const { pathname } = useLocation();
   const active = roleTabKey(role, pathname);
@@ -127,7 +143,15 @@ export function RoleMobileNavigation({
           aria-controls="public-secondary-navigation"
           onClick={(event) => selectNavigationTab(event, tab.to, navigation)}
         >
-          <tab.icon size={16} />
+          {tab.key === "profile" && profileImage ? (
+            <Avatar
+              name={profileName}
+              src={profileImage}
+              logo={role === "nonprofit"}
+            />
+          ) : (
+            <tab.icon size={16} />
+          )}
           <span>{tab.label}</span>
         </Link>
       ))}

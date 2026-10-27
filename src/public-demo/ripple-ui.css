@@ -35,6 +35,11 @@ body.public-demo {
   width: 36px;
   height: 36px;
 }
+.public-demo .workspace-rail .avatar {
+  width: 30px;
+  height: 30px;
+  border: 0;
+}
 .public-demo .rail-item {
   display: flex;
   flex-direction: column;
@@ -107,6 +112,9 @@ body.public-demo {
   margin: 0 0 10px;
   border-radius: 0;
   border-bottom: 1px solid var(--line);
+}
+.public-demo .workspace-identity .avatar-logo {
+  border-radius: 8px;
 }
 .public-demo .sidebar .nav-label {
   font-size: 10px;
@@ -941,6 +949,11 @@ body.public-demo {
     color: #dcefff;
     background: transparent;
     border-bottom: 2px solid var(--brand-light);
+  }
+  .public-demo .role-mobile-nav .avatar {
+    width: 18px;
+    height: 18px;
+    border: 0;
   }
   .public-demo .app-shell .sidebar {
     position: static;

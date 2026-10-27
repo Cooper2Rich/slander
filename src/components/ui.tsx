@@ -95,14 +95,41 @@ export function StatusBadge({ status }: { status: PostStatus }) {
     </span>
   );
 }
-export function Avatar({ name, index = 0 }: { name: string; index?: number }) {
+export function Avatar({
+  name,
+  index = 0,
+  src,
+  alt,
+  logo = false,
+}: {
+  name: string;
+  index?: number;
+  src?: string;
+  alt?: string;
+  logo?: boolean;
+}) {
+  const [failedSrc, setFailedSrc] = useState<string>();
+  const showImage = src && src !== failedSrc;
   return (
-    <span className={`avatar avatar-${index % 4}`} aria-label={name}>
-      {name
-        .split(" ")
-        .map((x) => x[0])
-        .slice(0, 2)
-        .join("")}
+    <span
+      className={`avatar avatar-${index % 4} ${logo ? "avatar-logo" : ""}`}
+      aria-label={showImage ? undefined : name}
+    >
+      {showImage ? (
+        <img
+          src={src}
+          alt={
+            alt || `${name} ${logo ? "organization logo" : "profile picture"}`
+          }
+          onError={() => setFailedSrc(src)}
+        />
+      ) : (
+        name
+          .split(" ")
+          .map((x) => x[0])
+          .slice(0, 2)
+          .join("")
+      )}
     </span>
   );
 }

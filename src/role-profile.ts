@@ -4,6 +4,7 @@ import type { DemoAccess, Identity, Role } from "./types";
 
 export type RoleProfile = {
   name: string;
+  image: string;
   email: string;
   bio: string;
   website: string;
@@ -70,6 +71,7 @@ export function useRoleProfile(access: DemoAccess, identity: Identity | null) {
     name:
       identity?.name || (access.role === "admin" ? "Demo Administrator" : ""),
     email: "",
+    image: "",
     bio: "",
     website: "",
     focus: "",
@@ -93,6 +95,12 @@ export function useRoleProfile(access: DemoAccess, identity: Identity | null) {
             value[field].every((item: unknown) => typeof item === "boolean")
           )
             result[field] = value[field];
+        } else if (field === "image") {
+          if (
+            typeof value.image === "string" &&
+            /^data:image\/(webp|png|jpeg);base64,/.test(value.image)
+          )
+            result.image = value.image;
         } else if (typeof value[field] === "string")
           result[field] = value[field];
       }

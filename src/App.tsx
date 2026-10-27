@@ -432,6 +432,8 @@ export default function App({
       {PUBLIC_DEMO && (
         <WorkspaceRail
           role={role}
+          profileImage={accountProfile.image}
+          profileName={profileName}
           navigation={roleNavigation}
           hidden={navigation ? !navigation.railOpen : false}
         />
@@ -566,7 +568,12 @@ export default function App({
           </div>
         </header>
         {PUBLIC_DEMO && mobileNavigation && (
-          <RoleMobileNavigation role={role} navigation={mobileNavigation} />
+          <RoleMobileNavigation
+            role={role}
+            navigation={mobileNavigation}
+            profileImage={accountProfile.image}
+            profileName={profileName}
+          />
         )}
         <aside
           id="public-secondary-navigation"
@@ -581,7 +588,12 @@ export default function App({
             <Logo />
           </NavLink>
           <div className="workspace-identity">
-            <Avatar name={profileName} index={2} />
+            <Avatar
+              name={profileName}
+              src={accountProfile.image}
+              logo={role === "nonprofit"}
+              index={2}
+            />
             <div>
               <strong>{profileName}</strong>
               <small>
@@ -678,11 +690,9 @@ export default function App({
             {!PUBLIC_DEMO && (
               <div className="sidebar-user">
                 <Avatar
-                  name={
-                    role === "admin"
-                      ? "Demo Administrator"
-                      : identity?.name || "Select Profile"
-                  }
+                  name={profileName}
+                  src={accountProfile.image}
+                  logo={role === "nonprofit"}
                   index={2}
                 />
                 <div>

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Bell, Check, Settings2, UserRound } from "lucide-react";
 import { useWorkspace } from "../context";
 import { Avatar } from "../components/ui";
+import { ProfileImageUpload } from "../components/ProfileImageUpload";
 import {
   profileRoles,
   useRoleProfile,
@@ -16,6 +17,7 @@ export function ProfilePage() {
   useEffect(() => setDraft(profile), [profile]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [imageBusy, setImageBusy] = useState(false);
   const config = profileRoles[role];
   const dirty = JSON.stringify(draft) !== JSON.stringify(profile);
   function update<Key extends keyof RoleProfile>(
@@ -28,6 +30,7 @@ export function ProfilePage() {
   }
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (imageBusy) return;
     try {
       const next = {
         ...draft,
@@ -58,7 +61,12 @@ export function ProfilePage() {
         </div>
       </div>
       <section className="role-profile-summary" aria-label="Profile overview">
-        <Avatar name={profile.name} index={2} />
+        <Avatar
+          name={profile.name}
+          src={profile.image}
+          logo={role === "nonprofit"}
+          index={2}
+        />
         <div>
           <span className="role-profile-badge">{config.label}</span>
           <h2>{profile.name}</h2>
@@ -76,6 +84,13 @@ export function ProfilePage() {
               <p>Choose how you appear in your workspace.</p>
             </div>
           </div>
+          <ProfileImageUpload
+            image={draft.image}
+            name={draft.name}
+            organization={role === "nonprofit"}
+            onChange={(image) => update("image", image)}
+            onBusyChange={setImageBusy}
+          />
           <div className="role-profile-fields">
             <label>
               {role === "nonprofit" ? "Organization name" : "Display name"}
@@ -265,7 +280,7 @@ export function ProfilePage() {
           <button
             type="button"
             className="button secondary"
-            disabled={!dirty}
+            disabled={!dirty || imageBusy}
             onClick={() => {
               setDraft(profile);
               setMessage("");
@@ -274,7 +289,11 @@ export function ProfilePage() {
           >
             Discard changes
           </button>
-          <button type="submit" className="button primary" disabled={!dirty}>
+          <button
+            type="submit"
+            className="button primary"
+            disabled={!dirty || imageBusy}
+          >
             Save changes
           </button>
         </div>

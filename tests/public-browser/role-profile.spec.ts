@@ -214,6 +214,12 @@ test("failed profile saves preserve edits without changing the saved identity", 
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Unsaved administrator");
+  await page
+    .getByLabel("Upload profile picture", { exact: true })
+    .setInputFiles("public/images/forest.jpg");
+  await expect(
+    page.getByRole("button", { name: "Replace profile picture", exact: true }),
+  ).toBeEnabled();
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {
@@ -232,6 +238,10 @@ test("failed profile saves preserve edits without changing the saved identity", 
   await expect(page.locator(".workspace-identity strong")).toHaveText(
     "Demo Administrator",
   );
+  await expect(page.locator(".profile-image-upload img")).toBeVisible();
+  await expect(
+    page.locator(".workspace-identity img, .role-profile-summary img"),
+  ).toHaveCount(0);
   await expect(
     page.getByText("Changes saved on this browser.", { exact: true }),
   ).toHaveCount(0);
