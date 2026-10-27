@@ -58,6 +58,7 @@ test("working staging adds approved main links and working files, preserving the
       encoding: "utf8",
     }).trim();
   git("init", "-b", "gh-pages");
+  git("config", "core.autocrlf", "false");
   git("config", "user.name", "Preview test");
   git("config", "user.email", "test@example.test");
   const originalMain =
@@ -128,7 +129,48 @@ test("working staging adds approved main links and working files, preserving the
     "unexpected John change",
   );
   git("add", "demo-shared-with-john/index.html");
-  assert.throws(() => assertWorkingChanges(destination, true), /outside working/);
+  assert.throws(
+    () => assertWorkingChanges(destination, true),
+    /outside working/,
+  );
+  git("reset", "--hard", "HEAD");
+  const johnSource = join(root, "restricted-john");
+  mkdirSync(join(johnSource, "assets"), { recursive: true });
+  writeFileSync(
+    join(johnSource, "index.html"),
+    '<script src="/slander/demo-shared-with-john/assets/restricted-new12345.js"></script>',
+  );
+  writeFileSync(
+    join(johnSource, "assets/restricted-new12345.js"),
+    "restricted role build",
+  );
+  writeFileSync(
+    join(johnSource, "john-preview.json"),
+    JSON.stringify({
+      sourceRevision: "47c3b75688110d1b9a8b7111dd46c1f252cc8ccb",
+      roleRestrictionCommit: "a".repeat(40),
+      dirty: false,
+      allowedRoles: ["public", "nonprofit", "creator"],
+    }),
+  );
+  stageWorking(source, destination, johnSource);
+  git("add", "--", "working", "index.html", "demo-shared-with-john");
+  assertWorkingChanges(destination, true, johnSource);
+  assert.equal(readFileSync(join(destination, "index.html"), "utf8"), labeled);
+  assert.equal(
+    readFileSync(join(destination, "demo-shared-with-john/index.html"), "utf8"),
+    readFileSync(join(johnSource, "index.html"), "utf8"),
+  );
+  writeFileSync(
+    join(destination, "demo-shared-with-john/index.html"),
+    "unexpected replacement",
+  );
+  git("add", "demo-shared-with-john/index.html");
+  assert.throws(
+    () => assertWorkingChanges(destination, true, johnSource),
+    /differs from the approved/,
+  );
+  git("reset", "--hard", "HEAD");
 });
 
 test("main labels are idempotent and preserve the application payload byte for byte", () => {
@@ -139,7 +181,10 @@ test("main labels are idempotent and preserve the application payload byte for b
   assert.equal(withoutMainDemoLinks(labeled), html);
   assert.equal((labeled.match(/aria-label="Public demos"/g) || []).length, 1);
   assert.throws(
-    () => withoutMainDemoLinks(labeled.replace("BRM PUBLIC DEMO LINKS END", "broken")),
+    () =>
+      withoutMainDemoLinks(
+        labeled.replace("BRM PUBLIC DEMO LINKS END", "broken"),
+      ),
     /Malformed/,
   );
 });

@@ -11,6 +11,7 @@ import { execFileSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { withMainDemoLinks } from "./main-demo-links.mjs";
+import { assertJohnChange, stageJohn } from "./stage-john.mjs";
 
 function git(destination, ...args) {
   return execFileSync("git", ["-C", destination, ...args], {
@@ -24,7 +25,7 @@ function noLinks(path) {
   if (lstatSync(path).isDirectory())
     for (const entry of readdirSync(path)) noLinks(join(path, entry));
 }
-export function assertWorkingChanges(destination, staged = false) {
+export function assertWorkingChanges(destination, staged = false, johnSource) {
   const changed = git(
     destination,
     "diff",
@@ -45,12 +46,18 @@ export function assertWorkingChanges(destination, staged = false) {
     .filter(Boolean);
   if (
     [...changed, ...untracked].some(
-      (path) => path !== "index.html" && !path.startsWith("working/"),
+      (path) =>
+        path !== "index.html" &&
+        !path.startsWith("working/") &&
+        !(johnSource && path.startsWith("demo-shared-with-john/")),
     )
   )
     throw new Error(
       "Refusing publication: a path outside working/ and the approved main links changed",
     );
+  for (const path of new Set([...changed, ...untracked]))
+    if (path.startsWith("demo-shared-with-john/"))
+      assertJohnChange(destination, path, johnSource, staged);
   if (changed.includes("index.html") || untracked.includes("index.html")) {
     const original = git(destination, "show", "HEAD:index.html");
     const current = staged
@@ -63,7 +70,7 @@ export function assertWorkingChanges(destination, staged = false) {
   }
   return changed;
 }
-export function stageWorking(source, destination) {
+export function stageWorking(source, destination, johnSource) {
   source = resolve(source);
   destination = resolve(destination);
   if (git(destination, "branch", "--show-current").trim() !== "gh-pages")
@@ -96,7 +103,8 @@ export function stageWorking(source, destination) {
   const mainPath = join(destination, "index.html");
   noLinks(mainPath);
   writeFileSync(mainPath, withMainDemoLinks(readFileSync(mainPath, "utf8")));
-  assertWorkingChanges(destination);
+  if (johnSource) stageJohn(johnSource, destination);
+  assertWorkingChanges(destination, false, johnSource);
   if (readFileSync(join(target, "index.html"), "utf8") !== html)
     throw new Error("Working entry point differs from build");
   return {
@@ -119,11 +127,13 @@ if (
   if (i < 0 || !process.argv[i + 1])
     throw new Error("Expected --destination <gh-pages checkout>");
   const destination = process.argv[i + 1];
+  const johnIndex = process.argv.indexOf("--john-source");
+  const johnSource = johnIndex >= 0 ? process.argv[johnIndex + 1] : undefined;
   console.log(
     JSON.stringify(
       process.argv.includes("--verify-staged")
-        ? assertWorkingChanges(destination, true)
-        : stageWorking("public-site", destination),
+        ? assertWorkingChanges(destination, true, johnSource)
+        : stageWorking("public-site", destination, johnSource),
     ),
   );
 }

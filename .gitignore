@@ -1,6 +1,7 @@
 node_modules/
 dist/
 public-site/
+john-site/
 data/
 test-results/
 playwright-report/

@@ -2,9 +2,15 @@ import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { resolve, extname, sep } from "node:path";
 
-const root = resolve("public-site");
+const root = resolve(process.env.PUBLIC_DEMO_DIRECTORY || "public-site");
 const base = process.env.PUBLIC_DEMO_BASE_PATH || "/slander/";
-if (!["/slander/", "/slander/working/"].includes(base))
+if (
+  ![
+    "/slander/",
+    "/slander/working/",
+    "/slander/demo-shared-with-john/",
+  ].includes(base)
+)
   throw new Error("Unsupported preview base");
 const port = Number(process.env.PUBLIC_DEMO_PORT || 3200);
 const mime = {

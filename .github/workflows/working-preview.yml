@@ -31,6 +31,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
@@ -46,20 +47,24 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify working navigation and browser storage isolation
         run: npx playwright test --config playwright.working.config.ts
+      - name: Build frozen John application with approved role restriction
+        run: node scripts/build-john.mjs
+      - name: Verify John's three views and rejected admin paths
+        run: npx playwright test --config playwright.john.config.ts
       - name: Fetch latest complete generated archive after serialized checks
         uses: actions/checkout@v7
         with:
           ref: gh-pages
           path: pages-archive
           fetch-depth: 0
-      - name: Stage working preview and approved main demo links
-        run: node scripts/stage-working.mjs --destination pages-archive
-      - name: Save working preview and labeled main-page links
+      - name: Stage working preview, main links and restricted frozen John view
+        run: node scripts/stage-working.mjs --destination pages-archive --john-source john-site
+      - name: Save working preview, main links and restricted John entry
         run: |
           git -C pages-archive config user.name 'github-actions[bot]'
           git -C pages-archive config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git -C pages-archive add -- working index.html
-          node scripts/stage-working.mjs --destination pages-archive --verify-staged
+          git -C pages-archive add -- working index.html demo-shared-with-john
+          node scripts/stage-working.mjs --destination pages-archive --john-source john-site --verify-staged
           if ! git -C pages-archive diff --cached --quiet; then
             git -C pages-archive commit -m "Publish isolated working ${GITHUB_SHA}"
             git -C pages-archive push origin HEAD:gh-pages
