@@ -1,0 +1,10 @@
+{
+  "sourceRevision": "47c3b75688110d1b9a8b7111dd46c1f252cc8ccb",
+  "roleRestrictionCommit": "e65b2c596568bda552d4844caf1d11553c936526",
+  "dirty": false,
+  "allowedRoles": [
+    "public",
+    "nonprofit",
+    "creator"
+  ]
+}
