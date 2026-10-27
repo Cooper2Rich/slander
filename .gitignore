@@ -1,1 +1,10 @@
 node_modules/
+dist/
+public-site/
+data/
+test-results/
+playwright-report/
+*.log
+.env
+*.tsbuildinfo
+outputs/coffee-footage/

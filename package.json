@@ -1,0 +1,42 @@
+{
+  "name": "slander-demo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "node server/index.js --dev",
+    "build": "tsc -b && vite build",
+    "build:public": "tsc -b && node scripts/build-public.mjs",
+    "stage:public": "node scripts/stage-public.mjs",
+    "test:public": "npm run build:public && playwright test --config playwright.public.config.ts",
+    "start": "node server/index.js",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "npm run build && playwright test",
+    "check": "npm run build && npm test",
+    "format": "prettier --write src server tests *.json *.ts index.html README.md docs/DEMO.md",
+    "format:check": "prettier --check src server tests *.json *.ts index.html README.md docs/DEMO.md"
+  },
+  "dependencies": {
+    "@noble/hashes": "^2.0.1",
+    "express": "^5.2.1",
+    "lucide-react": "^1.48.0",
+    "multer": "^2.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
+  }
+}

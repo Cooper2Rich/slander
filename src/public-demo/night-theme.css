@@ -1,0 +1,680 @@
+/* Blue Ripple Media palette sampled from the supplied brand artwork. */
+html:has(body.public-demo) {
+  background: #000000;
+}
+body.public-demo {
+  --brand-blue: #2b9bff;
+  --brand-light: #5cc2ff;
+  --brand-mid: #1a82e2;
+  --brand-deep: #1466c4;
+  --ink: #ffffff;
+  --muted: #abc4d4;
+  --line: #203b5c;
+  --lime: var(--brand-light);
+  --green: var(--brand-blue);
+  --night: #000000;
+  --surface: #07121b;
+  --raised: #102237;
+  --accent: #0c2b4d;
+  --accent-strong: #143e68;
+  --amber: #a9d5ff;
+  color-scheme: dark;
+  color: var(--ink);
+  background: var(--night);
+}
+.public-demo ::selection {
+  background: var(--brand-deep);
+  color: #fff;
+}
+.public-demo :is(button, a):focus-visible {
+  outline-color: var(--brand-light);
+}
+.public-demo :is(input, select, textarea):focus {
+  outline-color: var(--brand-light);
+}
+.public-demo :is(input, select, textarea) {
+  accent-color: var(--brand-light);
+}
+.public-demo .public-notice {
+  background: #0a2638;
+  color: #d0e7f5;
+  border-bottom: 1px solid #244454;
+}
+.public-demo .discovery-shell {
+  background:
+    radial-gradient(ellipse at 12% 14%, #10365b40, transparent 45%),
+    var(--night);
+}
+.public-demo .discovery-hero h1 em {
+  color: var(--brand-light);
+}
+.public-demo .discovery-art {
+  transform: none;
+  height: 360px;
+  border: 1px solid #244454;
+}
+.public-demo .discovery-art img {
+  object-position: center 66%;
+}
+.public-demo .discovery-art span {
+  color: #eef8ff;
+  background: #071b2cf2;
+  border: 1px solid #327fac;
+  transform: none;
+  backdrop-filter: blur(12px);
+}
+.public-demo
+  :is(
+    .discovery-header nav a:hover,
+    .text-button,
+    .hero-link,
+    .back-link,
+    .help-button,
+    .change-identity
+  ) {
+  color: var(--brand-light);
+}
+.public-demo
+  :is(
+    .demo-view-picker,
+    .discovery-hero p,
+    .metrics-note,
+    .ad-stats dt,
+    .ad-card-copy > p,
+    .ad-card-copy > small,
+    .profile-copy > p,
+    .profile-cause p,
+    .profile-cause small,
+    .spend-callout p,
+    .discovery-heading p,
+    .discovery-footer,
+    .creator-summary small
+  ) {
+  color: var(--muted);
+}
+.public-demo
+  :is(
+    .ad-card,
+    .market-panel,
+    .creator-summary > div,
+    .workspace-identity,
+    .topbar,
+    .modal,
+    .modal-footer,
+    .identity-panel,
+    .post-row,
+    .project-card,
+    .project-brief,
+    .account-panel,
+    .queue-summary,
+    .stats-row > *,
+    .metric,
+    .metric-card,
+    .ig-preview,
+    .ig-post,
+    .project-form,
+    .review-details,
+    .eligible-summary
+  ) {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+}
+.public-demo
+  :is(
+    .demo-view-picker select,
+    .discovery-filters select,
+    .discovery-search,
+    .viewer-form input,
+    .viewer-form select,
+    .amount-field input,
+    .search-box,
+    .post-filters select,
+    .sort-control,
+    .role-switch,
+    .form-field input,
+    .form-field select,
+    .form-field textarea,
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea
+  ) {
+  background: var(--raised);
+  border-color: #315268;
+  color: var(--ink);
+}
+.public-demo :is(input, textarea)::placeholder {
+  color: #a0b7c7;
+}
+.public-demo .ad-card:hover {
+  border-color: var(--brand-mid);
+  box-shadow: 0 12px 32px #0005;
+}
+.public-demo :is(.ad-card-media, .profile-media) {
+  background: #030b12;
+}
+.public-demo .ad-category {
+  color: #d5ebfa;
+  background: #071725ed;
+  border: 1px solid #42677f;
+}
+.public-demo .ad-play {
+  color: var(--ink);
+  background: #0a2d49ed;
+}
+.public-demo :is(.logo-dot, .title-dot, .eyebrow) {
+  color: var(--brand-light);
+}
+.public-demo .profile-copy .profile-cause {
+  background: #0a2d45;
+  border: 1px solid #326c93;
+}
+.public-demo .button.primary {
+  background: var(--brand-blue);
+  border-color: var(--brand-blue);
+  color: #031b29;
+}
+.public-demo .button.primary:hover {
+  background: var(--brand-light);
+}
+.public-demo .button.secondary {
+  background: #a9d5ff;
+  border-color: #c4e4ff;
+  color: #031b29;
+}
+.public-demo .button.secondary:hover {
+  background: #c4e4ff;
+}
+.public-demo .button.ghost {
+  background: transparent;
+  color: #a9d5ff;
+}
+.public-demo .sidebar {
+  background: #000000;
+  border-color: var(--line);
+}
+.public-demo .sidebar-note {
+  background: #0a2638;
+  border-color: #295879;
+}
+.public-demo
+  :is(
+    .sidebar-note p,
+    .sidebar-user small,
+    .workspace-identity small,
+    .nav-label,
+    .breadcrumb > span,
+    .breadcrumb > svg,
+    .page-heading p,
+    .project-description,
+    .post-row-main p,
+    .post-author small,
+    .terms-list,
+    .market-panel p,
+    .muted,
+    .form-hint,
+    .app-footer,
+    .help-content p
+  ) {
+  color: var(--muted);
+}
+.public-demo
+  :is(
+    .workspace-symbol,
+    .nav-count,
+    .stat-icon,
+    .count-pill,
+    .big-count,
+    .empty-icon,
+    .format-proposal,
+    .info-banner,
+    .callout,
+    .metric-note
+  ) {
+  background: #102c40;
+  color: #b3deef;
+  border-color: #315268;
+}
+.public-demo .nav-item {
+  color: #b7cedd;
+}
+.public-demo .nav-item.active {
+  background: var(--accent);
+  color: #eef8ff;
+}
+.public-demo .nav-item:hover {
+  background: #12334d;
+}
+.public-demo .nav-item.active .nav-count {
+  background: #235677;
+  color: #e3f5ff;
+}
+.public-demo .note-doodle {
+  color: #4187af;
+}
+.public-demo .online-dot {
+  background: var(--brand-light);
+}
+.public-demo .demo-pill {
+  background: #102c40;
+  color: #c1e4f4;
+}
+.public-demo .demo-pill > span {
+  background: var(--brand-light);
+}
+.public-demo :is(.tabs button, .market-tabs button) {
+  color: #abc4d4;
+}
+.public-demo .tabs button.active {
+  background: var(--accent);
+}
+.public-demo .tabs button:hover {
+  background: #102435;
+}
+.public-demo .role-switch select {
+  color: #d5ebfa;
+}
+.public-demo .role-switch svg {
+  color: #abc4d4;
+}
+.public-demo
+  :is(.tabs button.active, .market-tabs button[aria-selected="true"]) {
+  color: #eef8ff;
+  border-color: var(--brand-light);
+}
+.public-demo :is(.workspace-hero, .market-intro, .showcase-banner) {
+  background: linear-gradient(120deg, #0b2a42, #03090f);
+  border-color: #244454;
+}
+.public-demo
+  :is(
+    .hero-copy p,
+    .hero-kicker,
+    .hero-copy h2 span,
+    .terms-version,
+    .section-heading p,
+    .post-state small,
+    .post-row-main .format,
+    .project-org,
+    .project-progress,
+    .creator-info span
+  ) {
+  color: #abc4d4;
+}
+.public-demo
+  :is(
+    .hero-sticker,
+    .project-status.active,
+    .badge.approved,
+    .eligibility-result
+  ) {
+  background: #102e40;
+  color: var(--brand-light);
+  border-color: #315c70;
+}
+.public-demo
+  :is(
+    .badge.changes,
+    .badge.held,
+    .badge.pending,
+    .project-status.draft,
+    .closed-note
+  ) {
+  background: #3a2b23;
+  color: #e7bd89;
+}
+.public-demo :is(.project-status.archived, .badge.rejected) {
+  background: #10212e;
+  color: #bdd4e3;
+}
+.public-demo
+  :is(.post-row:hover, .project-card:hover, .view-toggle button.active) {
+  background: #102435;
+}
+.public-demo :is(.org-dot.green, .org-dot.orange, .org-dot.purple) {
+  background: var(--brand-light);
+}
+.public-demo :is(.avatar-0, .avatar-1, .avatar-2, .avatar-3) {
+  background: #173b52;
+  color: #d0ecfa;
+}
+.public-demo .modal::backdrop {
+  background: #000000cc;
+}
+.public-demo
+  :is(.modal-header, .modal-footer, .section-toolbar, .ig-top, .ig-bottom) {
+  border-color: var(--line);
+}
+.public-demo
+  :is(.form-content input, .form-content textarea, .form-content select) {
+  color: var(--ink);
+  background: #102435;
+  border-color: #315268;
+}
+.public-demo .discovery-search input {
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+}
+.public-demo .discovery-footer {
+  border-color: var(--line);
+}
+.public-demo .collection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  margin-bottom: 35px;
+  border: 1px solid #32779a;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #103b5b, #061724);
+}
+.public-demo .collection-banner h2 {
+  font:
+    27px Georgia,
+    serif;
+  margin: 8px 0;
+  color: #eef8ff;
+}
+.public-demo .collection-banner p {
+  color: #abc4d4;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.public-demo .ad-duration {
+  position: absolute;
+  right: 13px;
+  bottom: 15px;
+  background: #031322e8;
+  color: #eef8ff;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.public-demo .ad-card-media:has(.ad-duration) {
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+.public-demo .ad-card-media:has(.ad-duration) video {
+  object-fit: contain;
+}
+@media (max-width: 760px) {
+  .public-demo .discovery-art {
+    height: 240px;
+  }
+  .public-demo .collection-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 22px;
+    gap: 17px;
+  }
+  .public-demo .collection-banner h2 {
+    font-size: 25px;
+  }
+}
+
+/* Responsive lockups use the supplied monogram and lettering without redrawing them. */
+.public-demo .ripple-logo {
+  gap: 8px;
+  max-width: 100%;
+  vertical-align: middle;
+  color: var(--ink);
+}
+.public-demo .ripple-mark {
+  display: block;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+.public-demo .ripple-wordmark {
+  display: block;
+  width: 154px;
+  min-width: 0;
+  height: auto;
+  object-fit: contain;
+}
+.public-demo .sidebar .brand {
+  margin-inline: 0;
+  margin-bottom: 24px;
+}
+.public-demo .sidebar .ripple-mark {
+  width: 38px;
+  height: 38px;
+}
+.public-demo .sidebar .ripple-wordmark {
+  width: 128px;
+  flex: 1 1 auto;
+}
+.public-demo .ripple-logo.small .ripple-mark {
+  width: 30px;
+  height: 30px;
+}
+.public-demo .giving-page .brand .ripple-logo {
+  margin-left: 0;
+  color: var(--ink);
+}
+.public-demo .skip-link {
+  color: #031b29;
+}
+.public-demo .icon-button {
+  color: var(--muted);
+}
+/* Public discovery puts compact, playable cards above the fold. */
+.public-demo .discovery-header {
+  padding: 16px 3%;
+  background: var(--night);
+  gap: 20px;
+}
+.public-demo .discovery-content {
+  padding-inline: 3%;
+  padding-bottom: 32px;
+}
+.public-demo .discovery-toolbar {
+  padding-top: 22px;
+  border-top: 0;
+}
+.public-demo .discovery-toolbar h1 {
+  font-size: 27px;
+  letter-spacing: -1px;
+}
+.public-demo .discovery-grid-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 16px;
+}
+.public-demo .discovery-grid-meta .metrics-note {
+  margin: 0;
+  font-size: 11px;
+}
+.public-demo .compact-ads .ad-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+.public-demo .compact-ads .ad-card {
+  border-radius: 10px;
+}
+.public-demo .compact-ads .ad-card-media {
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+.public-demo .compact-ads .ad-card-media > a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.public-demo .compact-ads .ad-card-copy {
+  padding: 13px;
+}
+.public-demo .compact-ads .ad-card-copy h3 {
+  font-size: 15px;
+  line-height: 1.4;
+  letter-spacing: -0.2px;
+  margin: 0;
+  min-height: 42px;
+}
+.public-demo .compact-ads .ad-stats {
+  padding: 10px 0;
+  margin: 8px 0 10px;
+  gap: 5px;
+}
+.public-demo .compact-ads .ad-stats dt {
+  font-size: 10px;
+  margin-bottom: 5px;
+}
+.public-demo .compact-ads .ad-stats dd {
+  font-size: 15px;
+}
+.public-demo .compact-ads .ad-card-copy .button {
+  min-height: 32px;
+  padding: 8px 10px;
+  font-size: 11px;
+}
+.public-demo .inline-play {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  border: 1px solid #42677f;
+  border-radius: 20px;
+  padding: 7px 10px;
+  background: #0a2d49ed;
+  color: var(--ink);
+  font-size: 11px;
+}
+.public-demo .compact-ads .ad-duration {
+  top: 10px;
+  bottom: auto;
+  right: 10px;
+  padding: 5px 7px;
+  pointer-events: none;
+}
+.public-demo .creator-ads {
+  container: creator-cards / inline-size;
+}
+.public-demo .creator-ads .page-heading {
+  margin-bottom: 14px;
+}
+.public-demo .creator-ads .page-heading h1 {
+  font-size: 27px;
+  margin-top: 0;
+}
+.public-demo .creator-ads .creator-summary {
+  margin-bottom: 12px;
+  gap: 12px;
+}
+.public-demo .creator-ads .creator-summary > div {
+  padding: 10px 12px;
+}
+.public-demo .creator-ads .creator-summary small {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.public-demo .creator-ads .creator-summary strong {
+  font-size: 20px;
+}
+.public-demo .creator-ads .creator-tabs {
+  padding: 6px 0;
+  margin-bottom: 0;
+}
+.public-demo .creator-ads > .metrics-note {
+  font-size: 11px;
+  margin: 8px 0 14px;
+}
+.public-demo .creator-ads .creator-card-actions {
+  gap: 8px;
+}
+.public-demo .creator-ads .creator-card-actions .text-button {
+  font-size: 11px;
+}
+.public-demo .creator-card .ad-card-media > .badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  pointer-events: none;
+}
+@media (max-width: 1199px) {
+  .public-demo .compact-ads .ad-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 959px) {
+  .public-demo .compact-ads .ad-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+@media (max-width: 760px) {
+  .public-demo .discovery-header {
+    gap: 12px;
+    padding-block: 12px;
+  }
+  .public-demo .discovery-toolbar {
+    padding-top: 18px;
+    gap: 14px;
+  }
+  .public-demo .discovery-grid-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+@media (max-width: 539px) {
+  .public-demo .compact-ads .ad-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* The creator sidebar reduces the space available to cards. */
+@container creator-cards (min-width: 1040px) {
+  .public-demo .creator-ads .ad-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@container creator-cards (max-width: 1039px) and (min-width: 780px) {
+  .public-demo .creator-ads .ad-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container creator-cards (max-width: 779px) and (min-width: 510px) {
+  .public-demo .creator-ads .ad-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container creator-cards (max-width: 509px) {
+  .public-demo .creator-ads .ad-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 640px) and (max-width: 760px) {
+  body.public-demo {
+    --public-notice-height: 48px;
+  }
+  .public-demo .discovery-header {
+    flex-wrap: nowrap;
+  }
+  .public-demo .discovery-header .demo-view-picker {
+    width: auto;
+    gap: 0;
+  }
+  .public-demo .discovery-header .demo-view-picker > span {
+    display: none;
+  }
+  .public-demo .discovery-header .demo-view-picker select {
+    flex: none;
+  }
+  .public-demo .discovery-grid-meta {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+@media (max-width: 760px) {
+  .public-demo .ripple-mark {
+    width: 33px;
+    height: 33px;
+  }
+}

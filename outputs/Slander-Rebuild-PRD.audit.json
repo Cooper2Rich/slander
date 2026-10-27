@@ -1,0 +1,49 @@
+{
+  "prd": "C:\\Users\\CooperRich\\OneDrive - Enriched Life Medical\\Documents\\ChatGPT\\Slander\\outputs\\Slander-Rebuild-PRD.md",
+  "passed": true,
+  "summary": {
+    "sections": 15,
+    "requirements": 32,
+    "errors": 0,
+    "warnings": 0
+  },
+  "findings": [],
+  "document_sha256": "d6aa6867b8166ae8d9e2e07528579f8255284c417ae92d0f1a19a84491b312a6",
+  "semantic_review": {
+    "passed": true,
+    "version": "2.2",
+    "scope": "Documentation consistency and specification arithmetic; application not tested",
+    "requirements": 32,
+    "requirement_ids_preserved": true,
+    "baseline_aliases_preserved": 14,
+    "dependency_graph": "All references resolve; no cycles",
+    "official_grading_policy": {
+      "id": "grading-v2",
+      "CTR": 15,
+      "views": 10,
+      "donation_linked_votes": 35,
+      "donation_amount": 40,
+      "normalization": "fixed targets with CTR smoothing and capped square-root volume components",
+      "all_four_metrics_required": true
+    },
+    "superseded": [
+      "Candidate P01 status",
+      "Old active 40/30/15/15 weights",
+      "Cohort-maximum normalization for new grades"
+    ],
+    "protected_invariants": [
+      "Creator commission remains 10%",
+      "Beneficiary allocation remains 90% before fees",
+      "Crowdfunding preserved",
+      "Separate seed guarantees preserved",
+      "Automatic creative eligibility and participation; no routine owner sign-off",
+      "No provider selected"
+    ],
+    "financial_effect": "Grade is official; no additional bonus liability or ad-spend permission without a separately funded configured rule; earned commission and guarantees independent of grade",
+    "configuration": "Targets, CTR prior/strength, evidence thresholds, cohorts, cutoff and arithmetic version must be frozen before measurement; missing values block final grading only",
+    "specification_arithmetic": "Weights total 100; .6/.5/.9/.8 components yield 77.5; all .5 yield 50",
+    "implementation_readiness": "Blocked: new features and acceptance tests remain unimplemented; local phase does not require provider selection",
+    "application_tests_run": false,
+    "ralph_ready": false
+  }
+}
