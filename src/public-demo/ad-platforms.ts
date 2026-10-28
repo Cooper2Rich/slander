@@ -1,7 +1,6 @@
-import { currentEligibility } from "../../server/eligibility.js";
 import type { ManagedCampaign, Post, Project } from "../types";
-import { campaignBudgetBreakdown } from "./campaign-budget.ts";
 import { completedAdSpendReport } from "./completed-ad-spend.ts";
+import { adBudgetBreakdown, splitAdBudget } from "./ad-budget.ts";
 
 export const adPlatforms = ["meta", "tiktok"] as const;
 export type AdPlatform = (typeof adPlatforms)[number];
@@ -140,23 +139,16 @@ export function previewAdSpend(
   const projects = state.projects.filter(
     (project) => project.campaignId === campaign.id,
   );
-  const eligible = state.posts
-    .filter((post) => {
-      const project = projects.find((project) => project.id === post.projectId);
-      return (
-        project &&
-        post.status === "approved" &&
-        currentEligibility(post, project)
-      );
-    })
-    .sort((a, b) => a.id.localeCompare(b.id));
-  const breakdown = campaignBudgetBreakdown(
+  const breakdown = adBudgetBreakdown(
     setup.rules,
-    completedAdSpendReport(projects, includeSamples).byPlatform,
+    projects,
+    state.posts,
+    completedAdSpendReport(projects, includeSamples).rows,
+    setup.connections,
   );
   const budgetCents = Math.min(
     setup.rules.dailyLimitCents,
-    Math.max(0, breakdown.remainingCents),
+    Math.max(0, breakdown.campaign.remainingCents),
   );
   const metaCents = Math.floor((budgetCents * setup.rules.metaPercent) / 100);
   const rows: Allocation[] = [],
@@ -170,7 +162,8 @@ export function previewAdSpend(
     if (!requested) continue;
     const remaining = Math.max(
       0,
-      breakdown.rows.find((row) => row.platform === provider)!.remainingCents,
+      breakdown.campaign.rows.find((row) => row.platform === provider)!
+        .remainingCents,
     );
     const amount = Math.min(requested, remaining);
     if (amount < requested)
@@ -181,8 +174,8 @@ export function previewAdSpend(
     const connection = setup.connections[provider]!;
     const requiresVideo =
       provider === "tiktok" || connection.targetId.endsWith("-video");
-    const ads = eligible.filter(
-      (ad) => !requiresVideo || ad.mediaType === "video",
+    const ads = breakdown.rows.filter((row) =>
+      row.eligiblePlatforms.includes(provider),
     );
     if (!ads.length) {
       notes.push(
@@ -190,14 +183,24 @@ export function previewAdSpend(
       );
       continue;
     }
-    const base = Math.floor(amount / ads.length),
-      remainder = amount % ads.length;
-    ads.forEach((ad, index) => {
-      const cents = base + (index < remainder ? 1 : 0);
+    const shares = splitAdBudget(
+      amount,
+      ads.map((ad) => ({
+        id: ad.adId,
+        limitCents: Math.max(0, ad.platforms[provider].remainingCents),
+      })),
+    );
+    if (shares.reduce((sum, share) => sum + share.amountCents, 0) < amount)
+      notes.push(
+        `${platformNames[provider]} is also limited by the remaining budgets of its eligible ads.`,
+      );
+    shares.forEach((share) => {
+      const ad = ads.find((ad) => ad.adId === share.id)!;
+      const cents = share.amountCents;
       if (cents)
         rows.push({
           platform: provider,
-          adId: ad.id,
+          adId: ad.adId,
           title: ad.title,
           amountCents: cents,
           accountId: connection.accountId,

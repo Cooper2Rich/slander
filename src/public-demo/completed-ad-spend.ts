@@ -2,6 +2,7 @@ import type { AdPlatform } from "./ad-platforms";
 
 export type CompletedAdSpend = {
   id: string;
+  adId: string;
   projectId: string;
   platform: AdPlatform;
   creative: string;
@@ -13,6 +14,7 @@ export type CompletedAdSpend = {
 const examples: CompletedAdSpend[] = [
   {
     id: "coffee-meta-midnight",
+    adId: "nocturne-midnight",
     projectId: "nocturne-coffee-showcase-v1",
     platform: "meta",
     creative: "Your midnight ritual",
@@ -21,6 +23,7 @@ const examples: CompletedAdSpend[] = [
   },
   {
     id: "coffee-tiktok-midnight",
+    adId: "nocturne-midnight",
     projectId: "nocturne-coffee-showcase-v1",
     platform: "tiktok",
     creative: "Your midnight ritual",
@@ -29,6 +32,7 @@ const examples: CompletedAdSpend[] = [
   },
   {
     id: "coffee-meta-espresso",
+    adId: "nocturne-espresso",
     projectId: "nocturne-coffee-showcase-v1",
     platform: "meta",
     creative: "A little obsession, in every shot",
@@ -37,6 +41,7 @@ const examples: CompletedAdSpend[] = [
   },
   {
     id: "coffee-tiktok-afterhours",
+    adId: "nocturne-afterhours",
     projectId: "nocturne-coffee-showcase-v1",
     platform: "tiktok",
     creative: "A seat after dark",
@@ -45,6 +50,7 @@ const examples: CompletedAdSpend[] = [
   },
   {
     id: "river-meta",
+    adId: "sample-river-financial-story",
     projectId: "fictional-river-showcase-v1",
     platform: "meta",
     creative: "River stories · sample",
@@ -53,6 +59,7 @@ const examples: CompletedAdSpend[] = [
   },
   {
     id: "river-tiktok",
+    adId: "sample-river-financial-story",
     projectId: "fictional-river-showcase-v1",
     platform: "tiktok",
     creative: "River stories · sample",
@@ -61,6 +68,7 @@ const examples: CompletedAdSpend[] = [
   },
   {
     id: "adoption-meta",
+    adId: "adoption-girl-in-the-middle",
     projectId: "acu-ad-competition",
     platform: "meta",
     creative: "The Girl in the Middle",
@@ -69,6 +77,7 @@ const examples: CompletedAdSpend[] = [
   },
   {
     id: "adoption-tiktok",
+    adId: "adoption-girl-in-the-middle",
     projectId: "acu-ad-competition",
     platform: "tiktok",
     creative: "The Girl in the Middle",

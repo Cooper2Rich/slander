@@ -12,6 +12,8 @@ import {
   type CampaignAdSetup,
 } from "./ad-platforms";
 import "./ad-platforms.css";
+import { adBudgetBreakdown } from "./ad-budget";
+import { AdBudgetBreakdown } from "./AdBudgetBreakdown";
 
 export function CampaignBudgetPanel() {
   const { access, role, campaignScope } = useWorkspace();
@@ -46,17 +48,33 @@ export function CampaignBudgetPanel() {
   if (role !== "admin" || !campaignScope) return null;
   const data = loaded?.id === campaignScope.id ? loaded : undefined;
   return data?.setup ? (
-    <CampaignBudgetBreakdown rules={data.setup.rules} />
+    <CampaignBudgetBreakdown
+      rules={data.setup.rules}
+      connections={data.setup.connections}
+    />
   ) : (
     <p>{data?.error || "Loading campaign budget…"}</p>
   );
 }
 
-export function CampaignBudgetBreakdown({ rules }: { rules: AdSpendRules }) {
-  const { projects } = useWorkspace();
+export function CampaignBudgetBreakdown({
+  rules,
+  connections,
+}: {
+  rules: AdSpendRules;
+  connections?: CampaignAdSetup["connections"];
+}) {
+  const { projects, posts } = useWorkspace();
   const { enabled } = useFinancialSamples();
   const spent = completedAdSpendReport(projects, enabled);
   const report = campaignBudgetBreakdown(rules, spent.byPlatform);
+  const ads = adBudgetBreakdown(
+    rules,
+    projects,
+    posts,
+    spent.rows,
+    connections,
+  );
   return (
     <section
       className="ad-platform-panel campaign-budget-breakdown"
@@ -168,6 +186,7 @@ export function CampaignBudgetBreakdown({ rules }: { rules: AdSpendRules }) {
           : "Sample history is excluded from these figures."}{" "}
         No live provider balance or spending is connected.
       </p>
+      <AdBudgetBreakdown report={ads} includeSamples={enabled} />
     </section>
   );
 }

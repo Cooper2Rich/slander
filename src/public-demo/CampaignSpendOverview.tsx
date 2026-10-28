@@ -24,7 +24,12 @@ export function CampaignSpendOverview() {
           Platform connections ↗
         </Link>
       </div>
-      {setup && <CampaignBudgetBreakdown rules={setup.rules} />}
+      {setup && (
+        <CampaignBudgetBreakdown
+          rules={setup.rules}
+          connections={setup.connections}
+        />
+      )}
       <details className="campaign-allocation-setup">
         <summary>
           Set ad spend allocation{" "}

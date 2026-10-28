@@ -230,7 +230,12 @@ export function AdPlatformsPage({
               })}
             </div>
           )}
-          {!embedded && <CampaignBudgetBreakdown rules={setup.rules} />}
+          {!embedded && (
+            <CampaignBudgetBreakdown
+              rules={setup.rules}
+              connections={setup.connections}
+            />
+          )}
           <form className="ad-platform-panel" onSubmit={saveRules}>
             <div className="ad-platform-section-heading">
               <Settings2 size={20} />
