@@ -343,7 +343,7 @@
   .public-demo select::picker(select) {
     background: var(--raised);
     color: var(--ink);
-    border: 1px solid #315268;
+    border: 1px solid var(--theme-line, #315268);
     border-radius: 9px;
     padding: 5px;
     margin-block: 5px;
@@ -395,7 +395,7 @@
 .public-demo .post-thumbnail {
   width: 112px;
   height: 64px;
-  background: #030b12;
+  background: var(--theme-canvas, #030b12);
   position: relative;
 }
 .public-demo .post-thumbnail :is(img, video) {
@@ -707,19 +707,19 @@
   line-height: 1.6;
 }
 .public-demo .leaderboard-table .leaderboard-winner {
-  background: #0b2947;
+  background: var(--theme-raised, #0b2947);
 }
 .public-demo .leaderboard-table .leaderboard-winner:hover {
-  background: #103a60;
+  background: var(--theme-raised, #103a60);
 }
 .public-demo .leaderboard-winner td:first-child {
   box-shadow: inset 3px 0 var(--lime);
 }
 .public-demo .leaderboard-table .leaderboard-leading {
-  background: #102b45;
+  background: var(--theme-raised, #102b45);
 }
 .public-demo .leaderboard-table .leaderboard-leading:hover {
-  background: #163a5b;
+  background: var(--theme-raised, #163a5b);
 }
 .public-demo .leaderboard-leading td:first-child {
   box-shadow: inset 3px 0 var(--brand-light);
@@ -744,7 +744,7 @@
   color: var(--lime);
 }
 .public-demo .rank-movement.down {
-  color: #f1b5a0;
+  color: var(--theme-warning-text, #f1b5a0);
 }
 .public-demo .rank-movement.unchanged {
   color: var(--muted);
@@ -963,12 +963,12 @@
   line-height: 1.6;
 }
 .public-demo .check-card.failed {
-  background: #29241f;
-  border-color: #64513d;
-  color: #e7bd89;
+  background: var(--theme-warning-surface, #29241f);
+  border-color: var(--theme-line, #64513d);
+  color: var(--theme-warning-text, #e7bd89);
 }
 .public-demo .check-card.failed strong {
-  color: #e7bd89;
+  color: var(--theme-warning-text, #e7bd89);
 }
 .public-demo .modal-header {
   padding: 18px 20px;
@@ -1376,7 +1376,7 @@
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 5px;
-  background: #000;
+  background: var(--theme-canvas, #000);
 }
 .public-demo .earnings-ad-thumbnail :is(img, video) {
   width: 100%;

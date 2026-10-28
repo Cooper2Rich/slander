@@ -1,0 +1,172 @@
+/* Palette sampled from austinchristianuniversity.org on 2026-10-27.
+   Navy: #1f303e / #2a4a5a / #1a252e; bronze: #976230 / #b57a4a /
+   #7a4f26; ivory: #faf9f2 / #f0efe0. Theme tokens also cover legacy
+   component colors; their inline fallbacks preserve the original theme. */
+body.public-demo[data-theme="acu"] {
+  color-scheme: light;
+  --brand-blue: #1f303e;
+  --brand-light: #976230;
+  --brand-mid: #2a4a5a;
+  --brand-deep: #1a252e;
+  --ink: #1f303e;
+  --muted: #525252;
+  --line: #d4d4c8;
+  --night: #faf9f2;
+  --surface: #fffefa;
+  --raised: #f0efe0;
+  --accent: #ede4d6;
+  --accent-strong: #e1cbb5;
+  --amber: #7a4f26;
+  --theme-text: var(--ink);
+  --theme-muted: var(--muted);
+  --theme-link: #7a4f26;
+  --theme-line: var(--line);
+  --theme-canvas: var(--night);
+  --theme-surface: var(--surface);
+  --theme-raised: var(--raised);
+  --theme-accent: var(--accent);
+  --theme-warning-text: #7a4f26;
+  --theme-warning-surface: #f1e4cf;
+  --theme-success-text: #285943;
+  --theme-success-surface: #e7eee4;
+  --illustration-canvas: #1f303e;
+  --illustration-shape: #2a4a5a;
+  --illustration-line: #b57a4a;
+  --illustration-accent: #e1cbb5;
+  --illustration-ink: #faf9f2;
+}
+html:has(body.public-demo[data-theme="acu"]) {
+  background: #faf9f2;
+}
+
+/* Navy navigation frames the warm, light workspace in every role. */
+.public-demo[data-theme="acu"]
+  :is(
+    .workspace-rail,
+    .sidebar,
+    .public-notice,
+    .public-mobile-nav,
+    .role-mobile-nav,
+    .public-mobile-context
+  ) {
+  --ink: #faf9f2;
+  --muted: #d4d4c8;
+  --line: #4d626d;
+  --night: #1f303e;
+  --surface: #1f303e;
+  --raised: #2a4a5a;
+  --accent: #2a4a5a;
+  --brand-light: #e1cbb5;
+  --theme-text: #faf9f2;
+  --theme-muted: #d4d4c8;
+  --theme-link: #e1cbb5;
+  --theme-line: #4d626d;
+  --theme-canvas: #1f303e;
+  --theme-surface: #1f303e;
+  --theme-raised: #2a4a5a;
+  --theme-accent: #2a4a5a;
+  background: #1f303e;
+  color: #faf9f2;
+}
+.public-demo[data-theme="acu"]
+  :is(.button.primary, .button.secondary, .skip-link) {
+  background: #1f303e;
+  border-color: #1f303e;
+  color: #faf9f2;
+}
+.public-demo[data-theme="acu"] :is(.button.primary, .button.secondary):hover {
+  background: #2a4a5a;
+  border-color: #2a4a5a;
+}
+.public-demo[data-theme="acu"] :is(.button.ghost, .text-button) {
+  color: #7a4f26;
+}
+.public-demo[data-theme="acu"] :is(.sidebar, .public-notice) .text-button {
+  color: #e1cbb5;
+}
+.public-demo[data-theme="acu"]
+  :is(.hero-feature, .ad-play, .inline-play, .ad-duration) {
+  --ink: #faf9f2;
+  color: #faf9f2;
+}
+.public-demo[data-theme="acu"] .ripple-logo {
+  color: inherit;
+}
+.public-demo[data-theme="acu"] .public-access-note .live-dot {
+  background: #976230;
+}
+.public-demo[data-theme="acu"] :is(input, textarea)::placeholder {
+  color: #63635c;
+}
+.public-demo[data-theme="acu"]
+  :is(.button, a, select, input, textarea):focus-visible {
+  outline: 2px solid #976230;
+  outline-offset: 3px;
+}
+.public-demo[data-theme="acu"] .sidebar :focus-visible,
+.public-demo[data-theme="acu"] .public-notice :focus-visible {
+  outline-color: #e1cbb5;
+}
+.public-demo[data-theme="acu"] .modal::backdrop {
+  background: #1a252ebf;
+}
+
+/* One global control stays available on public pages and all workspaces. */
+.public-demo .theme-picker {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  margin-left: 14px;
+  font-size: 11px;
+  line-height: 1.2;
+  margin-bottom: 0;
+  color: inherit;
+}
+.public-demo .theme-picker select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 7px;
+  min-height: 30px;
+  width: 136px;
+  color-scheme: dark;
+  cursor: pointer;
+}
+.public-demo .public-notice {
+  padding-block: 6px;
+  flex-wrap: nowrap;
+}
+.public-demo .notice-compact {
+  display: none;
+}
+@media (max-width: 760px) {
+  .public-demo .public-notice {
+    gap: 8px;
+    padding: 5px 10px;
+  }
+  .public-demo .public-notice > svg,
+  .public-demo .theme-picker > span {
+    display: none;
+  }
+  .public-demo .theme-picker {
+    margin-left: auto;
+  }
+  .public-demo .notice-copy {
+    min-width: 0;
+    text-align: left;
+  }
+  .public-demo .notice-full {
+    display: none;
+  }
+  .public-demo .notice-compact {
+    display: inline;
+  }
+  .public-demo .theme-picker select {
+    width: 125px;
+    font-size: 10px;
+  }
+}

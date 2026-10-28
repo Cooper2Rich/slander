@@ -21,7 +21,7 @@
   margin: 0;
 }
 .campaign-spend-heading svg {
-  color: #9ad5ff;
+  color: var(--theme-link, #9ad5ff);
 }
 .campaign-allocation-setup {
   border: 1px solid var(--line);
@@ -98,10 +98,10 @@
   overflow-wrap: anywhere;
 }
 .campaign-budget-breakdown .budget-over {
-  color: #ffb3ad;
+  color: var(--theme-warning-text, #ffb3ad);
 }
 .campaign-budget-breakdown .budget-left {
-  color: #9ae4c4;
+  color: var(--theme-success-text, #9ae4c4);
 }
 .campaign-budget-platform p {
   font-size: 12px;
@@ -110,18 +110,18 @@
 }
 .campaign-budget-meter {
   height: 7px;
-  background: #263d51;
+  background: var(--theme-accent, #263d51);
   border-radius: 10px;
   overflow: hidden;
 }
 .campaign-budget-meter > span {
   display: block;
   height: 100%;
-  background: #73c6ff;
+  background: var(--theme-surface, #73c6ff);
   border-radius: inherit;
 }
 .campaign-budget-meter.over > span {
-  background: #f68e83;
+  background: var(--theme-warning-surface, #f68e83);
 }
 .ad-budget-breakdown {
   margin-top: 28px;
@@ -193,21 +193,21 @@
   line-height: 1.7;
 }
 .ad-platform-notice {
-  border: 1px solid #24445e;
-  background: #102436;
-  color: #c9e5f8;
+  border: 1px solid var(--theme-line, #24445e);
+  background: var(--theme-raised, #102436);
+  color: var(--theme-text, #c9e5f8);
   padding: 14px 18px;
   border-radius: 10px;
   font-size: 13px;
   line-height: 1.7;
 }
 .ad-platform-message {
-  color: #93e4bd;
+  color: var(--theme-success-text, #93e4bd);
   font-size: 13px;
   min-height: 20px;
 }
 .ad-platform-error {
-  color: #ffb6b6;
+  color: var(--theme-warning-text, #ffb6b6);
 }
 .ad-platform-cards {
   display: grid;
@@ -240,13 +240,13 @@
   width: 46px;
   height: 46px;
   font-size: 34px;
-  background: #153c63;
-  color: #9ed7ff;
+  background: var(--theme-accent, #153c63);
+  color: var(--theme-link, #9ed7ff);
   border-radius: 12px;
 }
 .ad-platform-mark.tiktok {
-  background: #232634;
-  color: #fff;
+  background: var(--theme-raised, #232634);
+  color: var(--theme-text, #fff);
   text-shadow: 2px 1px #f56b98;
 }
 .ad-platform-card h2 {
@@ -260,15 +260,15 @@
 }
 .ad-platform-state {
   display: inline-block;
-  background: #1e2936;
-  color: #b5c3d1;
+  background: var(--theme-raised, #1e2936);
+  color: var(--theme-muted, #b5c3d1);
   font-size: 11px;
   padding: 5px 9px;
   border-radius: 20px;
 }
 .ad-platform-state.selected {
-  background: #183d35;
-  color: #9ce7c2;
+  background: var(--theme-success-surface, #183d35);
+  color: var(--theme-success-text, #9ce7c2);
 }
 .ad-platform-card dl {
   font-size: 13px;
@@ -307,7 +307,7 @@
   margin-bottom: 24px;
 }
 .ad-platform-section-heading > svg {
-  color: #8ad0ff;
+  color: var(--theme-link, #8ad0ff);
   flex-shrink: 0;
   margin-top: 3px;
 }
@@ -358,7 +358,7 @@
   color: var(--muted);
 }
 .ad-platform-derived strong {
-  color: #a9dfff;
+  color: var(--theme-link, #a9dfff);
   font-size: 22px;
 }
 .ad-platform-derived small {
@@ -378,7 +378,7 @@
   height: 18px;
   padding: 0;
   margin: 0;
-  accent-color: #77c9ff;
+  accent-color: var(--theme-link, #77c9ff);
 }
 .ad-platform-help {
   color: var(--muted);
@@ -453,7 +453,7 @@
   flex-wrap: wrap;
   gap: 20px;
   font-size: 12px;
-  color: #8dd3ff;
+  color: var(--theme-link, #8dd3ff);
 }
 @media (max-width: 760px) {
   .ad-budget-grid {

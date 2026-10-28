@@ -8,8 +8,8 @@ body.public-demo {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: #344938;
-  color: white;
+  background: var(--theme-success-surface, #344938);
+  color: var(--theme-text, white);
   font-size: 12px;
   line-height: 1.5;
   position: sticky;
@@ -50,7 +50,7 @@ body.public-demo {
   font-weight: 600;
 }
 .discovery-header nav a:hover {
-  color: #617b37;
+  color: var(--theme-success-text, #617b37);
 }
 .demo-view-picker {
   display: flex;
@@ -60,14 +60,14 @@ body.public-demo {
   padding-left: 25px;
   border-left: 1px solid var(--line);
   font-size: 12px;
-  color: #636b5e;
+  color: var(--theme-muted, #636b5e);
 }
 .demo-view-picker select,
 .discovery-filters select {
   padding: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--theme-surface, white);
   color: var(--ink);
 }
 .discovery-content {
@@ -94,12 +94,12 @@ body.public-demo {
   margin: 19px 0 22px;
 }
 .discovery-hero h1 em {
-  color: #657948;
+  color: var(--theme-success-text, #657948);
   font-style: normal;
 }
 .discovery-hero p {
   max-width: 455px;
-  color: #70766a;
+  color: var(--theme-muted, #70766a);
   line-height: 1.8;
   font-size: 15px;
   margin-bottom: 28px;
@@ -153,7 +153,7 @@ body.public-demo {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 11px;
-  background: white;
+  background: var(--theme-surface, white);
 }
 .discovery-search input {
   border: 0;
@@ -163,7 +163,7 @@ body.public-demo {
   font-size: 13px;
 }
 .metrics-note {
-  color: #70766a;
+  color: var(--theme-muted, #70766a);
   line-height: 1.7;
   font-size: 12px;
   margin: 10px 0 20px;
@@ -176,7 +176,7 @@ body.public-demo {
 }
 .ad-card {
   min-width: 0;
-  background: white;
+  background: var(--theme-surface, white);
   border: 1px solid var(--line);
   border-radius: 15px;
   overflow: hidden;
@@ -233,13 +233,13 @@ body.public-demo {
   margin: 10px 0 6px;
 }
 .ad-card-copy > p {
-  color: #787e71;
+  color: var(--theme-muted, #787e71);
   font-size: 12px;
 }
 .ad-card-copy > small {
   display: block;
   text-align: center;
-  color: #737b6c;
+  color: var(--theme-muted, #737b6c);
   font-size: 11px;
   margin-top: 12px;
 }
@@ -252,7 +252,7 @@ body.public-demo {
   border-block: 1px solid var(--line);
 }
 .ad-stats dt {
-  color: #747b6d;
+  color: var(--theme-muted, #747b6d);
   font-size: 10px;
   margin-bottom: 7px;
 }
@@ -269,7 +269,7 @@ body.public-demo {
   padding: 26px 5%;
   border-top: 1px solid var(--line);
   font-size: 12px;
-  color: #777f70;
+  color: var(--theme-muted, #777f70);
 }
 .discovery-footer > span:last-child {
   margin-left: auto;
@@ -307,7 +307,7 @@ body.public-demo {
 .profile-copy > p {
   font-size: 14px;
   line-height: 1.85;
-  color: #6e7566;
+  color: var(--theme-muted, #6e7566);
 }
 .profile-copy .creator-byline {
   margin-bottom: 20px;
@@ -315,13 +315,13 @@ body.public-demo {
 .profile-copy .profile-cause {
   margin-top: 25px;
   padding: 20px;
-  background: #eff2e7;
+  background: var(--theme-surface, #eff2e7);
   border-radius: 10px;
 }
 .profile-cause small {
   font-size: 9px;
   letter-spacing: 1px;
-  color: #74815d;
+  color: var(--theme-muted, #74815d);
 }
 .profile-cause h2 {
   font-size: 19px;
@@ -329,7 +329,7 @@ body.public-demo {
 }
 .profile-cause p {
   font-size: 12px;
-  color: #737b69;
+  color: var(--theme-muted, #737b69);
 }
 .spend-callout {
   display: flex;
@@ -343,7 +343,7 @@ body.public-demo {
 .spend-callout p {
   font-size: 12px;
   line-height: 1.7;
-  color: #6e7566;
+  color: var(--theme-muted, #6e7566);
   margin-top: 5px;
 }
 .discovery-heading {
@@ -355,7 +355,7 @@ body.public-demo {
   margin: 15px 0;
 }
 .discovery-heading p {
-  color: #737b6c;
+  color: var(--theme-muted, #737b6c);
   line-height: 1.8;
   max-width: 650px;
 }
@@ -379,9 +379,9 @@ body.public-demo {
 .amount-field input {
   padding: 13px;
   width: 100%;
-  border: 1px solid #dce0d3;
+  border: 1px solid var(--theme-line, #dce0d3);
   border-radius: 8px;
-  background: white;
+  background: var(--theme-surface, white);
   color: var(--ink);
 }
 .giving-total {
@@ -412,12 +412,12 @@ body.public-demo {
 .creator-summary > div {
   padding: 24px;
   border: 1px solid var(--line);
-  background: white;
+  background: var(--theme-surface, white);
   border-radius: 12px;
 }
 .creator-summary small {
   display: block;
-  color: #737b6c;
+  color: var(--theme-muted, #737b6c);
   margin-bottom: 10px;
 }
 .creator-summary strong {

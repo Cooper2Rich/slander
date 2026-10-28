@@ -1,6 +1,6 @@
 /* Blue Ripple Media palette sampled from the supplied brand artwork. */
 html:has(body.public-demo) {
-  background: #000000;
+  background: var(--theme-canvas, #000000);
 }
 body.public-demo {
   --brand-blue: #2b9bff;
@@ -36,9 +36,9 @@ body.public-demo {
   accent-color: var(--brand-light);
 }
 .public-demo .public-notice {
-  background: #0a2638;
-  color: #d0e7f5;
-  border-bottom: 1px solid #244454;
+  background: var(--theme-raised, #0a2638);
+  color: var(--theme-text, #d0e7f5);
+  border-bottom: 1px solid var(--theme-line, #244454);
 }
 .public-demo .discovery-shell {
   background:
@@ -140,11 +140,11 @@ body.public-demo {
     .form-grid textarea
   ) {
   background: var(--raised);
-  border-color: #315268;
+  border-color: var(--theme-line, #315268);
   color: var(--ink);
 }
 .public-demo :is(input, textarea)::placeholder {
-  color: #a0b7c7;
+  color: var(--theme-muted, #a0b7c7);
 }
 .public-demo .ad-card:hover {
   border-color: var(--brand-mid);
@@ -166,36 +166,36 @@ body.public-demo {
   color: var(--brand-light);
 }
 .public-demo .profile-copy .profile-cause {
-  background: #0a2d45;
-  border: 1px solid #326c93;
+  background: var(--theme-raised, #0a2d45);
+  border: 1px solid var(--theme-line, #326c93);
 }
 .public-demo .button.primary {
   background: var(--brand-blue);
   border-color: var(--brand-blue);
-  color: #031b29;
+  color: var(--theme-muted, #031b29);
 }
 .public-demo .button.primary:hover {
   background: var(--brand-light);
 }
 .public-demo .button.secondary {
-  background: #a9d5ff;
-  border-color: #c4e4ff;
-  color: #031b29;
+  background: var(--theme-surface, #a9d5ff);
+  border-color: var(--theme-line, #c4e4ff);
+  color: var(--theme-muted, #031b29);
 }
 .public-demo .button.secondary:hover {
-  background: #c4e4ff;
+  background: var(--theme-surface, #c4e4ff);
 }
 .public-demo .button.ghost {
   background: transparent;
-  color: #a9d5ff;
+  color: var(--theme-link, #a9d5ff);
 }
 .public-demo .sidebar {
-  background: #000000;
+  background: var(--theme-canvas, #000000);
   border-color: var(--line);
 }
 .public-demo .sidebar-note {
-  background: #0a2638;
-  border-color: #295879;
+  background: var(--theme-raised, #0a2638);
+  border-color: var(--theme-line, #295879);
 }
 .public-demo
   :is(
@@ -231,60 +231,64 @@ body.public-demo {
     .callout,
     .metric-note
   ) {
-  background: #102c40;
-  color: #b3deef;
-  border-color: #315268;
+  background: var(--theme-raised, #102c40);
+  color: var(--theme-text, #b3deef);
+  border-color: var(--theme-line, #315268);
 }
 .public-demo .nav-item {
-  color: #b7cedd;
+  color: var(--theme-text, #b7cedd);
 }
 .public-demo .nav-item.active {
   background: var(--accent);
-  color: #eef8ff;
+  color: var(--theme-text, #eef8ff);
 }
 .public-demo .nav-item:hover {
-  background: #12334d;
+  background: var(--theme-raised, #12334d);
 }
 .public-demo .nav-item.active .nav-count {
-  background: #235677;
-  color: #e3f5ff;
+  background: var(--theme-accent, #235677);
+  color: var(--theme-text, #e3f5ff);
 }
 .public-demo .note-doodle {
-  color: #4187af;
+  color: var(--theme-link, #4187af);
 }
 .public-demo .online-dot {
   background: var(--brand-light);
 }
 .public-demo .demo-pill {
-  background: #102c40;
-  color: #c1e4f4;
+  background: var(--theme-raised, #102c40);
+  color: var(--theme-text, #c1e4f4);
 }
 .public-demo .demo-pill > span {
   background: var(--brand-light);
 }
 .public-demo :is(.tabs button, .market-tabs button) {
-  color: #abc4d4;
+  color: var(--theme-muted, #abc4d4);
 }
 .public-demo .tabs button.active {
   background: var(--accent);
 }
 .public-demo .tabs button:hover {
-  background: #102435;
+  background: var(--theme-raised, #102435);
 }
 .public-demo .role-switch select {
-  color: #d5ebfa;
+  color: var(--theme-text, #d5ebfa);
 }
 .public-demo .role-switch svg {
-  color: #abc4d4;
+  color: var(--theme-muted, #abc4d4);
 }
 .public-demo
   :is(.tabs button.active, .market-tabs button[aria-selected="true"]) {
-  color: #eef8ff;
+  color: var(--theme-text, #eef8ff);
   border-color: var(--brand-light);
 }
 .public-demo :is(.workspace-hero, .market-intro, .showcase-banner) {
-  background: linear-gradient(120deg, #0b2a42, #03090f);
-  border-color: #244454;
+  background: linear-gradient(
+    120deg,
+    var(--theme-raised, #0b2a42),
+    var(--theme-canvas, #03090f)
+  );
+  border-color: var(--theme-line, #244454);
 }
 .public-demo
   :is(
@@ -299,7 +303,7 @@ body.public-demo {
     .project-progress,
     .creator-info span
   ) {
-  color: #abc4d4;
+  color: var(--theme-muted, #abc4d4);
 }
 .public-demo
   :is(
@@ -308,9 +312,9 @@ body.public-demo {
     .badge.approved,
     .eligibility-result
   ) {
-  background: #102e40;
+  background: var(--theme-raised, #102e40);
   color: var(--brand-light);
-  border-color: #315c70;
+  border-color: var(--theme-line, #315c70);
 }
 .public-demo
   :is(
@@ -320,23 +324,23 @@ body.public-demo {
     .project-status.draft,
     .closed-note
   ) {
-  background: #3a2b23;
-  color: #e7bd89;
+  background: var(--theme-warning-surface, #3a2b23);
+  color: var(--theme-warning-text, #e7bd89);
 }
 .public-demo :is(.project-status.archived, .badge.rejected) {
-  background: #10212e;
-  color: #bdd4e3;
+  background: var(--theme-raised, #10212e);
+  color: var(--theme-text, #bdd4e3);
 }
 .public-demo
   :is(.post-row:hover, .project-card:hover, .view-toggle button.active) {
-  background: #102435;
+  background: var(--theme-raised, #102435);
 }
 .public-demo :is(.org-dot.green, .org-dot.orange, .org-dot.purple) {
   background: var(--brand-light);
 }
 .public-demo :is(.avatar-0, .avatar-1, .avatar-2, .avatar-3) {
-  background: #173b52;
-  color: #d0ecfa;
+  background: var(--theme-raised, #173b52);
+  color: var(--theme-text, #d0ecfa);
 }
 .public-demo .modal::backdrop {
   background: #000000cc;
@@ -348,8 +352,8 @@ body.public-demo {
 .public-demo
   :is(.form-content input, .form-content textarea, .form-content select) {
   color: var(--ink);
-  background: #102435;
-  border-color: #315268;
+  background: var(--theme-raised, #102435);
+  border-color: var(--theme-line, #315268);
 }
 .public-demo .discovery-search input {
   background: transparent;
@@ -366,19 +370,23 @@ body.public-demo {
   gap: 24px;
   padding: 24px 28px;
   margin-bottom: 35px;
-  border: 1px solid #32779a;
+  border: 1px solid var(--theme-line, #32779a);
   border-radius: 13px;
-  background: linear-gradient(110deg, #103b5b, #061724);
+  background: linear-gradient(
+    110deg,
+    var(--theme-raised, #103b5b),
+    var(--theme-canvas, #061724)
+  );
 }
 .public-demo .collection-banner h2 {
   font:
     27px Georgia,
     serif;
   margin: 8px 0;
-  color: #eef8ff;
+  color: var(--theme-text, #eef8ff);
 }
 .public-demo .collection-banner p {
-  color: #abc4d4;
+  color: var(--theme-muted, #abc4d4);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -456,7 +464,7 @@ body.public-demo {
   color: var(--ink);
 }
 .public-demo .skip-link {
-  color: #031b29;
+  color: var(--theme-muted, #031b29);
 }
 .public-demo .icon-button {
   color: var(--muted);

@@ -10,7 +10,11 @@
   margin: 24px 0;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: linear-gradient(120deg, #152b42, #101b29);
+  background: linear-gradient(
+    120deg,
+    var(--theme-raised, #152b42),
+    var(--theme-raised, #101b29)
+  );
 }
 .role-profile-summary > .avatar {
   width: 64px;
@@ -40,8 +44,8 @@
   display: inline-block;
   font-size: 11px;
   font-weight: 650;
-  color: #a7d9ff;
-  background: #204563;
+  color: var(--theme-link, #a7d9ff);
+  background: var(--theme-accent, #204563);
   padding: 4px 9px;
   border-radius: 20px;
 }
@@ -70,7 +74,7 @@
   margin-bottom: 24px;
 }
 .role-profile-section-heading > svg {
-  color: #84c9fc;
+  color: var(--theme-link, #84c9fc);
   margin-top: 3px;
   flex-shrink: 0;
 }
@@ -110,7 +114,7 @@
   font-size: 14px;
 }
 .role-profile-fields :is(input, textarea, select):focus-visible {
-  outline: 2px solid #68bfff;
+  outline: 2px solid var(--theme-line, #68bfff);
   outline-offset: 2px;
 }
 .role-profile-fields textarea {
@@ -157,7 +161,7 @@
 }
 .profile-image-upload .profile-image-error {
   margin-top: 12px;
-  color: #ffb3b3;
+  color: var(--theme-warning-text, #ffb3b3);
 }
 .role-profile-alerts {
   display: grid;
@@ -180,7 +184,7 @@
 .role-profile-alerts input {
   width: 18px;
   height: 18px;
-  accent-color: #79c8ff;
+  accent-color: var(--theme-link, #79c8ff);
   flex-shrink: 0;
   padding: 0;
   margin: 0;
@@ -203,13 +207,13 @@
   font-size: 12px;
 }
 .role-profile-actions [role="alert"] {
-  color: #ffb3b3;
+  color: var(--theme-warning-text, #ffb3b3);
 }
 .role-profile-saved {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #8ee2ba;
+  color: var(--theme-success-text, #8ee2ba);
 }
 .role-profile-actions .button {
   flex-shrink: 0;
