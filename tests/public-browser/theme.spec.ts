@@ -1,5 +1,27 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { selectCreator, selectOwner } from "./helpers";
+
+async function expectLightNavigation(page: Page) {
+  for (const navigation of await page
+    .locator(
+      ".workspace-rail, .sidebar, .public-mobile-nav, .role-mobile-nav, .public-mobile-context",
+    )
+    .all()) {
+    await expect(navigation).toHaveCSS(
+      "background-color",
+      "rgb(240, 239, 224)",
+    );
+    await expect(navigation).toHaveCSS("color", "rgb(31, 48, 62)");
+  }
+  for (const selected of await page
+    .locator(
+      ".rail-item.selected > span, .sidebar .nav-item.active, .public-mobile-context .nav-item.active",
+    )
+    .all()) {
+    await expect(selected).toHaveCSS("background-color", "rgb(151, 98, 48)");
+    await expect(selected).toHaveCSS("color", "rgb(250, 249, 242)");
+  }
+}
 
 test("ACU theme follows public pages, every workspace, dialogs and refresh", async ({
   page,
@@ -11,6 +33,7 @@ test("ACU theme follows public pages, every workspace, dialogs and refresh", asy
   for (const route of ["/", "/about", "/explore", "/leaderboard", "/viewer"]) {
     await page.goto(`./#${route}`);
     await expect(picker).toHaveValue("acu");
+    await expectLightNavigation(page);
     await expect(page.locator("body")).toHaveCSS(
       "background-color",
       "rgb(250, 249, 242)",
@@ -54,11 +77,14 @@ test("ACU theme follows public pages, every workspace, dialogs and refresh", asy
   await page.keyboard.press("Escape");
   await selectCreator(page);
   await expect(picker).toHaveValue("acu");
+  await expectLightNavigation(page);
   await selectOwner(page);
   await expect(picker).toHaveValue("acu");
+  await expectLightNavigation(page);
   await page.getByLabel("Demo role").selectOption("admin");
   await expect(page.locator(".topbar")).toBeVisible();
   await expect(picker).toHaveValue("acu");
+  await expectLightNavigation(page);
   await page.reload();
   await expect(picker).toHaveValue("acu");
   await page.screenshot({
@@ -81,6 +107,14 @@ test("ACU theme follows public pages, every workspace, dialogs and refresh", asy
     path: `test-results/acu-home-${info.project.name}.png`,
   });
   await picker.selectOption("ripple");
+  await expect(page.locator(".workspace-rail")).toHaveCSS(
+    "background-color",
+    "rgb(7, 16, 28)",
+  );
+  await expect(page.locator(".sidebar")).toHaveCSS(
+    "background-color",
+    "rgb(14, 25, 39)",
+  );
   await page.reload();
   await expect(picker).toHaveValue("ripple");
   await expect(page.locator("body")).toHaveCSS(

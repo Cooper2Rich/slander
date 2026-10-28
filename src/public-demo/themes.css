@@ -39,16 +39,8 @@ html:has(body.public-demo[data-theme="acu"]) {
   background: #faf9f2;
 }
 
-/* Navy navigation frames the warm, light workspace in every role. */
-.public-demo[data-theme="acu"]
-  :is(
-    .workspace-rail,
-    .sidebar,
-    .public-notice,
-    .public-mobile-nav,
-    .role-mobile-nav,
-    .public-mobile-context
-  ) {
+/* Keep the notice dark; navigation follows the theme's light surfaces. */
+.public-demo[data-theme="acu"] .public-notice {
   --ink: #faf9f2;
   --muted: #d4d4c8;
   --line: #4d626d;
@@ -69,6 +61,38 @@ html:has(body.public-demo[data-theme="acu"]) {
   color: #faf9f2;
 }
 .public-demo[data-theme="acu"]
+  :is(
+    .workspace-rail,
+    .sidebar,
+    .public-mobile-nav,
+    .role-mobile-nav,
+    .public-mobile-context
+  ) {
+  --theme-raised: var(--accent);
+  background: var(--raised);
+  color: var(--ink);
+  border-color: var(--line);
+}
+.public-demo[data-theme="acu"]
+  :is(.sidebar, .public-mobile-context)
+  .nav-item.active,
+.public-demo[data-theme="acu"]
+  :is(.sidebar, .public-mobile-context)
+  .nav-item.active:hover,
+.public-demo[data-theme="acu"] .rail-item.selected > span {
+  background: #976230;
+  color: #faf9f2;
+}
+/* The supplied white wordmark remains legible against a navy backing. */
+.public-demo[data-theme="acu"] .sidebar .brand,
+.public-demo[data-theme="acu"] .rail-brand {
+  background: #1f303e;
+  border-radius: 8px;
+}
+.public-demo[data-theme="acu"] .sidebar .brand {
+  padding: 8px;
+}
+.public-demo[data-theme="acu"]
   :is(.button.primary, .button.secondary, .skip-link) {
   background: #1f303e;
   border-color: #1f303e;
@@ -81,7 +105,7 @@ html:has(body.public-demo[data-theme="acu"]) {
 .public-demo[data-theme="acu"] :is(.button.ghost, .text-button) {
   color: #7a4f26;
 }
-.public-demo[data-theme="acu"] :is(.sidebar, .public-notice) .text-button {
+.public-demo[data-theme="acu"] .public-notice .text-button {
   color: #e1cbb5;
 }
 .public-demo[data-theme="acu"]
@@ -103,7 +127,6 @@ html:has(body.public-demo[data-theme="acu"]) {
   outline: 2px solid #976230;
   outline-offset: 3px;
 }
-.public-demo[data-theme="acu"] .sidebar :focus-visible,
 .public-demo[data-theme="acu"] .public-notice :focus-visible {
   outline-color: #e1cbb5;
 }
