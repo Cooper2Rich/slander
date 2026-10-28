@@ -21,6 +21,7 @@ import {
 import { leaderboardWindow } from "./leaderboard-periods";
 import { rankPublicAds } from "./ranking";
 import { useLeaderSimulation } from "./useLeaderSimulation";
+import { MissionVisual, StepVisual } from "./HomeStoryVisuals";
 
 const shortDate = (date: string) =>
   new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {
@@ -125,7 +126,10 @@ export function PublicHome({
         className="ripple-mission"
         aria-labelledby="mission-title"
       >
-        <span className="home-eyebrow">OUR WHY</span>
+        <div className="mission-visual-column">
+          <span className="home-eyebrow">OUR WHY</span>
+          <MissionVisual />
+        </div>
         <div>
           <h2 id="mission-title">
             Good causes deserve
@@ -145,6 +149,63 @@ export function PublicHome({
             Meet the stories <ArrowUpRight size={17} />
           </Link>
         </div>
+      </section>
+
+      <section
+        id="how-it-works"
+        className="home-how"
+        aria-labelledby="how-title"
+      >
+        <div className="home-section-heading">
+          <div>
+            <span className="home-eyebrow">YOUR FIRST RIPPLE</span>
+            <h2 id="how-title">From a story to something more.</h2>
+            <p>Three simple ways to be part of it.</p>
+          </div>
+        </div>
+        <div className="how-steps">
+          <div>
+            <StepVisual step="discover" />
+            <span>01 / DISCOVER</span>
+            <h3>Find a cause you feel.</h3>
+            <p>
+              Explore ads made by independent creators. Watch for free, browse
+              causes, and see the stories leading each campaign.
+            </p>
+            <Link to="/explore">
+              Discover ads <ArrowUpRight size={14} />
+            </Link>
+          </div>
+          <div>
+            <StepVisual step="connect" />
+            <span>02 / CONNECT</span>
+            <h3>Get to know the story.</h3>
+            <p>
+              Open an ad to meet its creator, learn about the cause, and explore
+              its performance. Press Play whenever you want sound.
+            </p>
+            <Link to="/leaderboard">
+              Explore the leaderboard <ArrowUpRight size={14} />
+            </Link>
+          </div>
+          <div>
+            <StepVisual step="amplify" />
+            <span>03 / AMPLIFY</span>
+            <h3>Help it reach further.</h3>
+            <p>
+              Create a viewer profile and try funding ad spend. This supports
+              distribution and includes a 10% creator share, separately from
+              gifts to the cause.
+            </p>
+            <Link to="/viewer">
+              Create your viewer profile <ArrowUpRight size={14} />
+            </Link>
+          </div>
+        </div>
+        <p className="home-data-note">
+          You’re exploring a working demo. Profiles and simulated contributions
+          stay in your browser. No real payments or ad delivery.
+        </p>
       </section>
 
       <div className="home-intro-strip">
@@ -282,59 +343,6 @@ export function PublicHome({
         </p>
       </section>
 
-      <section
-        id="how-it-works"
-        className="home-how"
-        aria-labelledby="how-title"
-      >
-        <div className="home-section-heading">
-          <div>
-            <span className="home-eyebrow">YOUR FIRST RIPPLE</span>
-            <h2 id="how-title">From a story to something more.</h2>
-            <p>Three simple ways to be part of it.</p>
-          </div>
-        </div>
-        <div className="how-steps">
-          <div>
-            <span>01 / DISCOVER</span>
-            <h3>Find a cause you feel.</h3>
-            <p>
-              Explore ads made by independent creators. Watch for free, browse
-              causes, and see the stories leading each campaign.
-            </p>
-            <Link to="/explore">
-              Discover ads <ArrowUpRight size={14} />
-            </Link>
-          </div>
-          <div>
-            <span>02 / CONNECT</span>
-            <h3>Get to know the story.</h3>
-            <p>
-              Open an ad to meet its creator, learn about the cause, and explore
-              its performance. Press Play whenever you want sound.
-            </p>
-            <Link to="/leaderboard">
-              Explore the leaderboard <ArrowUpRight size={14} />
-            </Link>
-          </div>
-          <div>
-            <span>03 / AMPLIFY</span>
-            <h3>Help it reach further.</h3>
-            <p>
-              Create a viewer profile and try funding ad spend. This supports
-              distribution and includes a 10% creator share, separately from
-              gifts to the cause.
-            </p>
-            <Link to="/viewer">
-              Create your viewer profile <ArrowUpRight size={14} />
-            </Link>
-          </div>
-        </div>
-        <p className="home-data-note">
-          You’re exploring a working demo. Profiles and simulated contributions
-          stay in your browser. No real payments or ad delivery.
-        </p>
-      </section>
       <div className="home-closing">
         <div>
           <span className="home-eyebrow">EVERY RIPPLE STARTS SOMEWHERE</span>

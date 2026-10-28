@@ -795,6 +795,40 @@ body.public-demo {
 .public-demo .ripple-mission > .home-eyebrow {
   align-self: start;
 }
+.public-demo .mission-visual-column {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+.public-demo .mission-visual {
+  margin: 0;
+  max-width: 390px;
+}
+.public-demo .mission-visual > svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid #29435c;
+  border-radius: 18px;
+}
+.public-demo .mission-visual figcaption {
+  color: #8faac1;
+  font-size: 12px;
+  line-height: 1.7;
+  margin-top: 12px;
+}
+.public-demo .how-step-visual {
+  width: 100%;
+  margin-bottom: 20px;
+}
+.public-demo .how-step-visual svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #29445c;
+  border-radius: 14px;
+}
 .public-demo .ripple-mission h2 {
   font-size: clamp(28px, 3vw, 44px);
   font-weight: 550;
@@ -823,8 +857,13 @@ body.public-demo {
   margin-top: 28px;
 }
 .public-demo .how-steps > div {
-  padding-top: 17px;
-  border-top: 1px solid #32475f;
+  padding: 18px;
+  border: 1px solid #263b50;
+  border-radius: 15px;
+  background: #0e1825;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 .public-demo .how-steps > div > span {
   font-size: 10px;
@@ -848,7 +887,8 @@ body.public-demo {
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  margin-top: 16px;
+  margin-top: auto;
+  padding-top: 16px;
 }
 .public-demo .home-closing {
   margin-top: 48px;

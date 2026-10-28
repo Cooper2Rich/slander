@@ -100,6 +100,12 @@ function ContextMenu({ campaigns, categories }: NavigationProps) {
             selected={section === "mission"}
           />
           <ContextLink
+            to="/?section=how-it-works"
+            label="How it works"
+            icon={Info}
+            selected={section === "how-it-works"}
+          />
+          <ContextLink
             to="/?section=current-leaders"
             label="This week’s leaders"
             icon={Trophy}
@@ -110,12 +116,6 @@ function ContextMenu({ campaigns, categories }: NavigationProps) {
             label="Last week’s highlights"
             icon={History}
             selected={section === "past-leaders"}
-          />
-          <ContextLink
-            to="/?section=how-it-works"
-            label="How it works"
-            icon={Info}
-            selected={section === "how-it-works"}
           />
         </>
       )}
