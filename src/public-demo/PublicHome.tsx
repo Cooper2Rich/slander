@@ -120,6 +120,33 @@ export function PublicHome({
         </div>
       </section>
 
+      <section
+        id="mission"
+        className="ripple-mission"
+        aria-labelledby="mission-title"
+      >
+        <span className="home-eyebrow">OUR WHY</span>
+        <div>
+          <h2 id="mission-title">
+            Good causes deserve
+            <br />a bigger audience.
+          </h2>
+          <p>
+            There are stories worth telling and people ready to care. Blue
+            Ripple Media brings creators, causes, and communities together to
+            close that distance.
+          </p>
+          <p>
+            Creators make the ads. Campaigns give them a purpose. You help the
+            ones you believe in go further. A small act of support can start
+            something much bigger.
+          </p>
+          <Link to="/explore" className="home-section-link">
+            Meet the stories <ArrowUpRight size={17} />
+          </Link>
+        </div>
+      </section>
+
       <div className="home-intro-strip">
         <span>
           <AudioLines size={16} /> Watch a story. Feel something. Make a ripple.
@@ -253,33 +280,6 @@ export function PublicHome({
           Saved fictional results from the last completed Monday–Sunday week.
           Only currently public ads are shown.
         </p>
-      </section>
-
-      <section
-        id="mission"
-        className="ripple-mission"
-        aria-labelledby="mission-title"
-      >
-        <span className="home-eyebrow">OUR WHY</span>
-        <div>
-          <h2 id="mission-title">
-            Good causes deserve
-            <br />a bigger audience.
-          </h2>
-          <p>
-            There are stories worth telling and people ready to care. Blue
-            Ripple Media brings creators, causes, and communities together to
-            close that distance.
-          </p>
-          <p>
-            Creators make the ads. Campaigns give them a purpose. You help the
-            ones you believe in go further. A small act of support can start
-            something much bigger.
-          </p>
-          <Link to="/explore" className="home-section-link">
-            Meet the stories <ArrowUpRight size={17} />
-          </Link>
-        </div>
       </section>
 
       <section
