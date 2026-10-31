@@ -6,6 +6,13 @@ async function scale(image: Locator) {
   );
 }
 
+// The app scrolls to the top once ads load, so wait for them before scrolling.
+async function openHome(page: Page) {
+  await page.goto("./#/");
+  await page.locator(".hero-feature-copy a").waitFor();
+  await page.locator(".mission-scene").waitFor();
+}
+
 type Placement = "full" | "half" | "cut-top" | "above" | "below";
 
 // Scrolls the window so the Our Why card sits at the requested placement,
@@ -115,8 +122,7 @@ test("Our Why uses loaded photos over a landscape backdrop in both themes", asyn
 test("populates on a timer once fully in view, then stays while scrolling on", async ({
   page,
 }, info) => {
-  await page.goto("./#/");
-  await page.locator(".mission-scene").waitFor();
+  await openHome(page);
   await place(page, "above");
   await place(page, "half");
   await page.waitForTimeout(1500);
@@ -139,8 +145,7 @@ test("populates on a timer once fully in view, then stays while scrolling on", a
 test("populates again when scrolled back up onto the card", async ({
   page,
 }) => {
-  await page.goto("./#/");
-  await page.locator(".mission-scene").waitFor();
+  await openHome(page);
   await place(page, "full");
   await expect(page.locator(".mission-visual")).toHaveAttribute(
     "data-complete",
@@ -155,8 +160,7 @@ test("populates again when scrolled back up onto the card", async ({
 test("populates again when scrolled back down onto the card", async ({
   page,
 }) => {
-  await page.goto("./#/");
-  await page.locator(".mission-scene").waitFor();
+  await openHome(page);
   const offscreenAtTop = await page.evaluate(
     () =>
       document.querySelector(".mission-scene")!.getBoundingClientRect().top +
@@ -179,7 +183,7 @@ test("reduced motion shows the card fully populated without animation", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./#/");
+  await openHome(page);
   const visual = page.locator(".mission-visual");
   await expect(visual).toHaveAttribute("data-complete", "");
   await place(page, "above");
