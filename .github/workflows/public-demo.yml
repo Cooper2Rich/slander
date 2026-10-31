@@ -42,8 +42,8 @@ jobs:
         run: npm run build:public
       - name: Install Chromium for playback checks
         run: npx playwright install --with-deps chromium
-      - name: Verify home photos and hover playback across every ad view
-        run: npx playwright test --config playwright.public.config.ts tests/public-browser/home-photos.spec.ts tests/public-browser/girl-hover.spec.ts
+      - name: Verify home photos, Our Why sequence and hover playback across every ad view
+        run: npx playwright test --config playwright.public.config.ts tests/public-browser/home-photos.spec.ts tests/public-browser/home-why.spec.ts tests/public-browser/girl-hover.spec.ts
       - name: Check out retained public assets
         uses: actions/checkout@v7
         with:

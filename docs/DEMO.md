@@ -105,7 +105,7 @@ Each public main navigation tab has its own secondary menu: Home links to the we
 
 ## How it works photography
 
-The Discover, Connect and Amplify cards use locally served stock photographs as illustrations, not verified participants or beneficiaries of any demo campaign. Photos are downloaded at 1200 pixels wide rather than hotlinked; card text, destinations and the separate Our Why visual remain unchanged.
+The Discover, Connect and Amplify cards use locally served stock photographs as illustrations, not verified participants or beneficiaries of any demo campaign. Photos are downloaded at 1200 pixels wide rather than hotlinked; card text and destinations remain unchanged.
 
 - Discover: [Volunteers Cleaning the Street](https://www.pexels.com/photo/volunteers-cleaning-the-street-6647012/) by RDNE Stock project, [Pexels License](https://www.pexels.com/license/). Local asset: `public/images/how-discover.jpg`.
 - Connect: [Man Filming Using Video Camera](https://www.pexels.com/photo/man-filming-using-video-camera-5314217/) by Kyle Loftus, [Pexels License](https://www.pexels.com/license/). Local asset: `public/images/how-connect.jpg`.
@@ -114,3 +114,14 @@ The Discover, Connect and Amplify cards use locally served stock photographs as 
 On a hover-capable fine pointer, photos begin at a 1.22x close crop and pan to a 1x wide view over 1.1 seconds when the card is hovered. Keyboard focus on a card link reveals the same wide view. Leaving the card restores the crop. A fixed 16:9 clipped frame prevents layout shifts. Touch devices and reduced-motion preferences show the wide view without requiring hover; reduced motion disables the transition.
 
 Regression checks: `npx playwright test --config playwright.public.config.ts home-photos.spec.ts home.spec.ts`. They cover image loading, both themes, fixed frame geometry, hover/reset, keyboard focus, touch and reduced motion.
+
+## Our Why photography
+
+The Our Why visual places Creators, Causes and Community photos over a softly tinted lake-and-mountain landscape, with ripple rings behind the tiles. Every 2.6 seconds the sequence advances: the active photo zooms out from a 1.3x close crop to the full frame, then a light pulse travels along the arrow to the next item. When Community lights up, the rings ripple outward before the sequence returns to Creators. Hovering a tile holds it in the wide view and pauses the sequence; leaving resumes from the next item. Reduced-motion preferences show all photos still and wide. Photos are illustrations, not verified participants of any demo campaign.
+
+- Creators: [Man Painting on Canvas in a Studio](https://www.pexels.com/photo/man-painting-on-canvas-in-a-studio-20511264/) by Alina Rossoshanska, [Pexels License](https://www.pexels.com/license/). Local asset: `public/images/why-creators.jpg`.
+- Causes: [A Person Carrying a Box of Donations](https://www.pexels.com/photo/a-person-carrying-a-box-of-donations-7156174/) by Gustavo Fring, [Pexels License](https://www.pexels.com/license/). Local asset: `public/images/why-causes.jpg`.
+- Community: [Group of Friends Walking in the Park](https://www.pexels.com/photo/group-of-friends-walking-in-the-park-8121667/) by MART PRODUCTION, [Pexels License](https://www.pexels.com/license/). Local asset: `public/images/why-community.jpg`.
+- Background: [Beautiful Landscape of Mountains Reflecting in a Still Lake](https://www.pexels.com/photo/beautiful-landscape-of-mountains-reflecting-in-a-still-lake-7204540/) by Manfred Neumair, [Pexels License](https://www.pexels.com/license/). Local asset: `public/images/why-landscape.jpg`.
+
+Regression checks: `npx playwright test --config playwright.public.config.ts home-why.spec.ts`. They cover image loading, both themes, sequence order, arrow pulses, hover hold/resume and reduced motion.
