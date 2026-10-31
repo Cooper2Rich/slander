@@ -2,7 +2,7 @@
 
 The secondary sidebar's header close control appears only while that sidebar is open. When closed, open it by selecting a main navigation tab.
 
-The three How it works cards use real stock photography. Hover a card or focus its link to gently pan from a close crop to a wider view inside the same fixed frame; moving away restores the crop. Touch devices and reduced-motion preferences show the wide view without animation. The Our Why visual plays through Creators, Causes and Community photos along its arrows over a landscape backdrop. Photo sources are credited in [the demo guide](docs/DEMO.md#how-it-works-photography).
+The three How it works cards use real stock photography. Hover a card or focus its link to gently pan from a close crop to a wider view inside the same fixed frame; moving away restores the crop. Touch devices and reduced-motion preferences show the wide view without animation. The Our Why visual populates Creators, Causes and Community photos along its arrows on a timer once the card is fully in view, over a landscape backdrop. Photo sources are credited in [the demo guide](docs/DEMO.md#how-it-works-photography).
 
 [**Open the public interactive demo →**](https://cooper2rich.github.io/slander/)
 

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Heart, PenTool, Users } from "lucide-react";
 import { demoAsset } from "../runtime";
 
@@ -26,37 +26,61 @@ const missionNodes = [
   },
 ] as const;
 
-const missionStepMs = 2600;
+// Steps alternate node, arrow, node, arrow, node; 0 is the empty card.
+const missionSteps = missionNodes.length * 2 - 1;
+const missionStartDelayMs = 250;
+const missionStepMs = 650;
 
 export function MissionVisual() {
-  const [active, setActive] = useState(0);
-  const [hovered, setHovered] = useState<number | null>(null);
-  const [animate, setAnimate] = useState(false);
+  const scene = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setAnimate(!motion.matches);
-    update();
-    motion.addEventListener("change", update);
-    return () => motion.removeEventListener("change", update);
+    const element = scene.current;
+    if (!element) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setStep(missionSteps);
+      return;
+    }
+    let timers: number[] = [];
+    const clear = () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      timers = [];
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          // Fully off screen: reset so the next arrival populates again.
+          clear();
+          setStep(0);
+        } else if (entry.intersectionRatio >= 0.99 && timers.length === 0) {
+          for (let next = 1; next <= missionSteps; next++) {
+            timers.push(
+              window.setTimeout(
+                () => setStep((current) => Math.max(current, next)),
+                missionStartDelayMs + (next - 1) * missionStepMs,
+              ),
+            );
+          }
+        }
+      },
+      { threshold: [0, 0.99] },
+    );
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      clear();
+    };
   }, []);
 
-  useEffect(() => {
-    if (!animate || hovered !== null) return;
-    const timer = window.setInterval(
-      () => setActive((current) => (current + 1) % missionNodes.length),
-      missionStepMs,
-    );
-    return () => window.clearInterval(timer);
-  }, [animate, hovered]);
-
-  const current = hovered ?? active;
   return (
     <figure
-      className={`mission-visual${animate ? " is-playing" : ""}`}
-      data-active={animate ? missionNodes[current].key : undefined}
+      className="mission-visual"
+      data-step={step}
+      data-complete={step === missionSteps ? "" : undefined}
     >
       <div
+        ref={scene}
         className="mission-scene"
         role="group"
         aria-label="One story creates a ripple of support: creators tell stories for causes, and community support helps them reach more people."
@@ -81,9 +105,7 @@ export function MissionVisual() {
               {index > 0 && (
                 <span
                   className={`mission-arrow${
-                    animate && hovered === null && current === index - 1
-                      ? " is-flowing"
-                      : ""
+                    step >= index * 2 ? " is-drawn" : ""
                   }`}
                   aria-hidden="true"
                 >
@@ -92,13 +114,8 @@ export function MissionVisual() {
               )}
               <div
                 className={`mission-node ${key}${
-                  animate && current === index ? " is-active" : ""
+                  step >= index * 2 + 1 ? " is-shown" : ""
                 }`}
-                onMouseEnter={() => setHovered(index)}
-                onMouseLeave={() => {
-                  setHovered(null);
-                  setActive(index);
-                }}
               >
                 <div className="mission-node-photo">
                   <img

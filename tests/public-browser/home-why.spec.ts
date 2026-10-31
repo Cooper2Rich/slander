@@ -1,4 +1,4 @@
-import { test, expect, type Locator } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 
 async function scale(image: Locator) {
   return image.evaluate(
@@ -6,12 +6,73 @@ async function scale(image: Locator) {
   );
 }
 
+type Placement = "full" | "half" | "cut-top" | "above" | "below";
+
+// Scrolls the window so the Our Why card sits at the requested placement,
+// retrying while late-loading content above it shifts the layout.
+async function place(page: Page, placement: Placement) {
+  await expect
+    .poll(() => scrollTo(page, placement), { timeout: 5000 })
+    .toBe(true);
+}
+
+async function scrollTo(page: Page, placement: Placement) {
+  await scrollOnce(page, placement);
+  await page.waitForTimeout(150);
+  return page.evaluate((placement) => {
+    const { top, bottom } = document
+      .querySelector(".mission-scene")!
+      .getBoundingClientRect();
+    if (placement === "full") return top >= 0 && bottom <= innerHeight;
+    if (placement === "above") return bottom < 0;
+    if (placement === "below") return top > innerHeight;
+    return top < innerHeight && bottom > 0 && (top < 0 || bottom > innerHeight);
+  }, placement);
+}
+
+async function scrollOnce(page: Page, placement: Placement) {
+  await page.evaluate((placement) => {
+    const card = document.querySelector(".mission-scene")!;
+    const { top, height } = card.getBoundingClientRect();
+    const cardTop = top + scrollY;
+    const target = {
+      full: cardTop - (innerHeight - height) / 2,
+      half: cardTop - innerHeight + height / 2,
+      "cut-top": cardTop + height * 0.4,
+      above: cardTop + height + 60,
+      below: cardTop - innerHeight - 60,
+    }[placement];
+    scrollTo({ top: Math.max(0, target), behavior: "instant" });
+  }, placement);
+}
+
+async function step(page: Page) {
+  return Number(
+    await page.locator(".mission-visual").getAttribute("data-step"),
+  );
+}
+
+async function expectPopulates(page: Page) {
+  const visual = page.locator(".mission-visual");
+  const nodes = visual.locator(".mission-node");
+  const arrows = visual.locator(".mission-arrow");
+  await expect(nodes.nth(0)).toHaveClass(/is-shown/);
+  await expect(nodes.nth(2)).not.toHaveClass(/is-shown/);
+  await expect(arrows.nth(0)).toHaveClass(/is-drawn/);
+  await expect(nodes.nth(1)).toHaveClass(/is-shown/);
+  await expect(arrows.nth(1)).toHaveClass(/is-drawn/);
+  await expect(nodes.nth(2)).toHaveClass(/is-shown/);
+  await expect(visual).toHaveAttribute("data-complete", "");
+  for (const photo of await nodes.locator("img").all()) {
+    await expect.poll(() => scale(photo)).toBeCloseTo(1, 2);
+  }
+}
+
 test("Our Why uses loaded photos over a landscape backdrop in both themes", async ({
   page,
 }, info) => {
   await page.goto("./#/?section=mission");
   const visual = page.locator(".mission-visual");
-  await expect(visual.locator("svg > rect")).toHaveCount(0);
   const backdrop = visual.locator(".mission-backdrop");
   await expect(backdrop).toHaveAttribute("src", /images\/why-landscape\.jpg$/);
   const photos = visual.locator(".mission-node-photo img");
@@ -24,7 +85,8 @@ test("Our Why uses loaded photos over a landscape backdrop in both themes", asyn
   await expect(visual.locator(".mission-arrow")).toHaveCount(2);
   for (const theme of ["ripple", "acu"]) {
     await page.getByLabel("Website theme").selectOption(theme);
-    await visual.scrollIntoViewIfNeeded();
+    await place(page, "full");
+    await expect(visual).toHaveAttribute("data-complete", "");
     for (const image of [backdrop, ...(await photos.all())]) {
       await expect
         .poll(() =>
@@ -43,60 +105,86 @@ test("Our Why uses loaded photos over a landscape backdrop in both themes", asyn
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
+    await expect.poll(() => scale(photos.last())).toBeCloseTo(1, 2);
     await visual.screenshot({
       path: "test-results/home-why-" + theme + "-" + info.project.name + ".png",
     });
   }
 });
 
-test("the sequence plays through each item along the arrows", async ({
+test("populates on a timer once fully in view, then stays while scrolling on", async ({
+  page,
+}, info) => {
+  await page.goto("./#/");
+  await page.locator(".mission-scene").waitFor();
+  await place(page, "above");
+  await place(page, "half");
+  await page.waitForTimeout(1500);
+  expect(await step(page)).toBe(0);
+  await page.locator(".mission-visual").screenshot({
+    path: "test-results/home-why-empty-" + info.project.name + ".png",
+  });
+
+  await place(page, "full");
+  await expectPopulates(page);
+
+  await place(page, "cut-top");
+  await page.waitForTimeout(800);
+  await expect(page.locator(".mission-visual")).toHaveAttribute(
+    "data-complete",
+    "",
+  );
+});
+
+test("populates again when scrolled back up onto the card", async ({
   page,
 }) => {
-  await page.goto("./#/?section=mission");
-  const visual = page.locator(".mission-visual");
-  await visual.scrollIntoViewIfNeeded();
-  await page.mouse.move(0, 0);
-  for (const key of ["creators", "causes", "community", "creators"]) {
-    await expect(visual).toHaveAttribute("data-active", key, {
-      timeout: 4000,
-    });
-    const node = visual.locator(`.mission-node.${key}`);
-    await expect(node).toHaveClass(/is-active/);
-    await expect.poll(() => scale(node.locator("img"))).toBeCloseTo(1, 2);
-    const index = ["creators", "causes", "community"].indexOf(key);
-    if (index < 2) {
-      await expect(visual.locator(".mission-arrow").nth(index)).toHaveClass(
-        /is-flowing/,
-      );
-    }
-  }
-  const idle = visual.locator(".mission-node:not(.is-active) img").first();
-  await expect.poll(() => scale(idle)).toBeCloseTo(1.3, 2);
+  await page.goto("./#/");
+  await page.locator(".mission-scene").waitFor();
+  await place(page, "full");
+  await expect(page.locator(".mission-visual")).toHaveAttribute(
+    "data-complete",
+    "",
+  );
+  await place(page, "above");
+  await expect.poll(() => step(page)).toBe(0);
+  await place(page, "full");
+  await expectPopulates(page);
 });
 
-test("hovering an item holds it in the wide view", async ({ page }) => {
-  await page.goto("./#/?section=mission");
-  const visual = page.locator(".mission-visual");
-  const causes = visual.locator(".mission-node.causes");
-  await causes.scrollIntoViewIfNeeded();
-  await causes.hover();
-  await expect(visual).toHaveAttribute("data-active", "causes");
-  await expect.poll(() => scale(causes.locator("img"))).toBeCloseTo(1, 2);
-  await page.waitForTimeout(3200);
-  await expect(visual).toHaveAttribute("data-active", "causes");
-  await expect(visual.locator(".is-flowing")).toHaveCount(0);
-  await page.mouse.move(0, 0);
-  await expect(visual).toHaveAttribute("data-active", "community", {
-    timeout: 4000,
-  });
+test("populates again when scrolled back down onto the card", async ({
+  page,
+}) => {
+  await page.goto("./#/");
+  await page.locator(".mission-scene").waitFor();
+  const offscreenAtTop = await page.evaluate(
+    () =>
+      document.querySelector(".mission-scene")!.getBoundingClientRect().top +
+        scrollY >
+      innerHeight,
+  );
+  test.skip(!offscreenAtTop, "card is visible at the top of this viewport");
+  await place(page, "full");
+  await expect(page.locator(".mission-visual")).toHaveAttribute(
+    "data-complete",
+    "",
+  );
+  await place(page, "below");
+  await expect.poll(() => step(page)).toBe(0);
+  await place(page, "full");
+  await expectPopulates(page);
 });
 
-test("reduced motion shows still wide photos", async ({ page }) => {
+test("reduced motion shows the card fully populated without animation", async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("./#/?section=mission");
+  await page.goto("./#/");
   const visual = page.locator(".mission-visual");
-  await expect(visual).not.toHaveAttribute("data-active");
-  await expect(visual.locator(".is-flowing")).toHaveCount(0);
+  await expect(visual).toHaveAttribute("data-complete", "");
+  await place(page, "above");
+  await page.waitForTimeout(300);
+  await expect(visual).toHaveAttribute("data-complete", "");
   for (const photo of await visual.locator(".mission-node-photo img").all()) {
     await expect.poll(() => scale(photo)).toBe(1);
   }
