@@ -26,7 +26,6 @@ import {
   Layers3,
   Menu,
   PanelLeftClose,
-  PanelLeftOpen,
   Search,
   ShieldCheck,
   Megaphone,
@@ -497,23 +496,17 @@ export default function App({
               >
                 <Menu size={19} />
               </button>
-              <button
-                className="icon-button"
-                aria-label={
-                  navigation.sidebarOpen
-                    ? "Hide secondary sidebar"
-                    : "Show secondary sidebar"
-                }
-                aria-expanded={navigation.sidebarOpen}
-                aria-controls="public-secondary-navigation"
-                onClick={navigation.toggleSidebar}
-              >
-                {navigation.sidebarOpen ? (
+              {navigation.sidebarOpen && (
+                <button
+                  className="icon-button"
+                  aria-label="Hide secondary sidebar"
+                  aria-expanded={navigation.sidebarOpen}
+                  aria-controls="public-secondary-navigation"
+                  onClick={navigation.toggleSidebar}
+                >
                   <PanelLeftClose size={19} />
-                ) : (
-                  <PanelLeftOpen size={19} />
-                )}
-              </button>
+                </button>
+              )}
             </div>
           )}
           <div className="breadcrumb">

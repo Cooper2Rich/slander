@@ -49,11 +49,11 @@ test("laptop feed fits five readable cards with navigation closed and four with 
     path: `test-results/five-cards-${info.project.name}.png`,
   });
   await page
-    .getByRole("button", { name: "Show secondary sidebar", exact: true })
-    .click();
-  await expect.poll(columns).toBe(4);
-  await page
     .getByRole("button", { name: "Show main navigation", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Workspace shortcuts", exact: true })
+    .getByRole("link", { name: "Discover ads", exact: true })
     .click();
   await expect.poll(columns).toBe(4);
   await page.setViewportSize({ width: 1366, height: 900 });
@@ -111,12 +111,6 @@ test("public About tab explains BRM's purpose and has its own section navigation
     const menu = page.locator(".public-mobile-context");
     if ((await menu.getAttribute("open")) === null)
       await menu.locator("summary").first().click();
-  } else {
-    const show = page.getByRole("button", {
-      name: "Show secondary sidebar",
-      exact: true,
-    });
-    if (await show.isVisible()) await show.click();
   }
   const nav = page.getByRole("navigation", {
     name: "About BRM navigation",

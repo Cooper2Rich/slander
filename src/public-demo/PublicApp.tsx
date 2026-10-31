@@ -11,7 +11,6 @@ import {
   Heart,
   Menu,
   PanelLeftClose,
-  PanelLeftOpen,
   Search,
 } from "lucide-react";
 import App from "../App";
@@ -265,23 +264,17 @@ export default function PublicApp() {
             >
               <Menu size={19} />
             </button>
-            <button
-              className="icon-button"
-              aria-label={
-                layout.sidebarOpen
-                  ? "Hide secondary sidebar"
-                  : "Show secondary sidebar"
-              }
-              aria-expanded={layout.sidebarOpen}
-              aria-controls="public-secondary-navigation"
-              onClick={navigation.toggleSidebar}
-            >
-              {layout.sidebarOpen ? (
+            {layout.sidebarOpen && (
+              <button
+                className="icon-button"
+                aria-label="Hide secondary sidebar"
+                aria-expanded={layout.sidebarOpen}
+                aria-controls="public-secondary-navigation"
+                onClick={navigation.toggleSidebar}
+              >
                 <PanelLeftClose size={19} />
-              ) : (
-                <PanelLeftOpen size={19} />
-              )}
-            </button>
+              </button>
+            )}
           </div>
           <div className="public-breadcrumb">
             <Compass size={17} />

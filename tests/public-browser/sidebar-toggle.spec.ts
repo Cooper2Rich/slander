@@ -19,15 +19,26 @@ test("main tabs toggle secondary menus while preserving the page and filters", a
     exact: true,
   });
   const url = page.url();
+  const closeSidebar = page.getByRole("button", {
+    name: "Hide secondary sidebar",
+    exact: true,
+    includeHidden: true,
+  });
+  await expect(closeSidebar).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Show secondary sidebar", exact: true }),
+  ).toHaveCount(0);
   await expect(discover).toHaveAttribute("aria-expanded", "false");
   await discover.click();
   await expect(discover).toHaveAttribute("aria-expanded", "true");
+  await expect(closeSidebar).toHaveCount(1);
   await expect(
     page.getByRole("navigation", { name: "Discover navigation", exact: true }),
   ).toBeVisible();
   await expect(page).toHaveURL(url);
   await discover.click();
   await expect(discover).toHaveAttribute("aria-expanded", "false");
+  await expect(closeSidebar).toHaveCount(0);
   await expect(
     page.getByRole("navigation", { name: "Discover navigation", exact: true }),
   ).toBeHidden();
@@ -36,6 +47,15 @@ test("main tabs toggle secondary menus while preserving the page and filters", a
   await discover.focus();
   await page.keyboard.press("Enter");
   await expect(discover).toHaveAttribute("aria-expanded", "true");
+  await page.reload();
+  await expect(closeSidebar).toHaveCount(1);
+  if (!mobile) {
+    await closeSidebar.click();
+    await expect(closeSidebar).toHaveCount(0);
+    await expect(page).toHaveURL(url);
+    await page.reload();
+    await expect(closeSidebar).toHaveCount(0);
+  }
   for (const [name, area] of [
     ["About BRM", "About BRM"],
     ["Home", "Home"],
@@ -127,10 +147,24 @@ for (const scenario of roleCases) {
         await tab.click();
         await expect(tab).toHaveAttribute("aria-expanded", "false");
         await expect(page.locator(".sidebar")).toBeHidden();
+        await expect(
+          page.getByRole("button", {
+            name: "Hide secondary sidebar",
+            exact: true,
+            includeHidden: true,
+          }),
+        ).toHaveCount(0);
         await expect(page).toHaveURL(url);
         await tab.click();
         await expect(tab).toHaveAttribute("aria-expanded", "true");
         await expect(page.getByLabel("Demo role")).toHaveValue(scenario.role);
+        await expect(
+          page.getByRole("button", {
+            name: "Hide secondary sidebar",
+            exact: true,
+            includeHidden: true,
+          }),
+        ).toHaveCount(1);
         expect(
           await page.evaluate(() =>
             localStorage.getItem("slander-public-access-v1"),

@@ -9,11 +9,13 @@ export async function openWorkspaceMenu(page: Page) {
     if ((await open.getAttribute("aria-expanded")) !== "true")
       await open.click();
   } else {
-    const show = page.getByRole("button", {
-      name: "Show secondary sidebar",
+    const main = page.getByRole("navigation", {
+      name: "Workspace shortcuts",
       exact: true,
     });
-    if (await show.isVisible()) await show.click();
+    const active = main.locator('a[aria-current="page"]');
+    if ((await active.getAttribute("aria-expanded")) !== "true")
+      await active.click();
   }
 }
 export async function navigate(page: Page, label: string) {
