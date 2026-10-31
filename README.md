@@ -2,6 +2,8 @@
 
 The secondary sidebar's header close control appears only while that sidebar is open. When closed, open it by selecting a main navigation tab.
 
+The three How it works cards use real stock photography. Hover a card or focus its link to gently pan from a close crop to a wider view inside the same fixed frame; moving away restores the crop. Touch devices and reduced-motion preferences show the wide view without animation. Photo sources are credited in [the demo guide](docs/DEMO.md#how-it-works-photography).
+
 [**Open the public interactive demo →**](https://cooper2rich.github.io/slander/)
 
 Use **Theme → Austin Christian** in the top banner for an ivory, navy and bronze theme sampled from [Austin Christian University's website](https://www.austinchristianuniversity.org/) on October 27, 2026. It applies to public pages, Creator, Campaign Owner and Admin workspaces, including profiles, financial panels and dialogs. The choice persists in this browser and syncs across open tabs; **Blue Ripple** restores the original dark palette. Core colors are ivory `#FAF9F2`, navy `#1F303E` and bronze `#976230`, with navy `#2A4A5A` / `#1A252E`, bronze `#B57A4A` / `#7A4F26`, and cream `#F0EFE0` supporting shades. The Blue Ripple logo and ad media retain their original colors.
